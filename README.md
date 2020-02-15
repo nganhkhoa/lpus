@@ -6,7 +6,7 @@ Take a look at [this old post](https://web.archive.org/web/20061110120809/http:/
 
 Luckily, both `MmNonPagedPoolStart` and `MmNonPagedPoolEnd` in Windows XP, can be found by offseting from `ntoskrnl.exe`. Rekall team are very positive that their tools doesn't rely on profiles file like Volatility but use PDB provided by Windows to find these values.
 
-In Rekall source code, the values of those variables are:
+In [Rekall source code](https://github.com/google/rekall/blob/c5d68e31705f4b5bd2581c1d951b7f6983f7089c/rekall-core/rekall/plugins/windows/pool.py#L87), the values of those variables are:
 
 - Windows XP: `MmNonPagedPool{Start,End}`
 - Windows 7 and maybe 8: `MiNonPagedPoolStartAligned`, `MiNonPagedPoolEnd`, and `MiNonPagedPoolBitMap`
