@@ -528,8 +528,18 @@ for (int i = 0; i < 100; i++) {
   DbgPrint("eprocess : 0x%p, [%15s]\n", eprocess, (char*)((ULONG64)eprocess + ImageBaseOffset));
 }
 
-// TODO: update output
-
+// sample output
+eprocess : 0xFFFFF8037401F528, [               ]
+eprocess : 0xFFFF840F5A0D9080, [         System]
+eprocess : 0xFFFF840F5A28C040, [  Secure System]
+eprocess : 0xFFFF840F5A2EF040, [       Registry]
+eprocess : 0xFFFF840F622BF040, [       smss.exe]
+eprocess : 0xFFFF840F6187D080, [       smss.exe]
+eprocess : 0xFFFF840F6263D140, [      csrss.exe]
+eprocess : 0xFFFF840F6277F0C0, [       smss.exe]
+eprocess : 0xFFFF840F627C2080, [    wininit.exe]
+eprocess : 0xFFFF840F64187140, [      csrss.exe]
+eprocess : 0xFFFF840F641CD080, [   services.exe]
 ```
 
 And if we debug and compare the address of that `Empty EPROCESS+ActiveProcessLinksOffset` with `nt!PsActiveProcessHead`, it is just the same. And with the given offset parsed from the PDB file, we can get kernel base address.
