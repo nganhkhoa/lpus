@@ -11,10 +11,22 @@ use pdb::SymbolData;
 use pdb::TypeData;
 use pdb::ClassType;
 use pdb::ModifierType;
+use pdb::Rva;
 
 use pdb::FallibleIterator;
 use pdb::TypeFinder;
 use pdb::TypeIndex;
+
+use std::ffi::CString;
+use widestring::{U16CString};
+use winapi::shared::minwindef::{DWORD};
+use winapi::shared::ntdef::*;
+use winapi::um::winnt::{SE_PRIVILEGE_ENABLED, TOKEN_PRIVILEGES, TOKEN_ADJUST_PRIVILEGES, LUID_AND_ATTRIBUTES};
+use winapi::um::handleapi::*;
+use winapi::um::winbase::*;
+use winapi::um::processthreadsapi::*;
+use winapi::um::libloaderapi::*;
+use winapi::um::securitybaseapi::*;
 
 const PDBNAME: &str = "ntkrnlmp.pdb";
 const NTOSKRNL_PATH: &str = "C:\\Windows\\System32\\ntoskrnl.exe";
@@ -112,14 +124,148 @@ fn get_type_as_str(type_finder: &TypeFinder, typ: &TypeIndex) -> String {
     }
 }
 
-fn parse_pdb() {
+type SymbolStore = HashMap<String, u64>;
+type StructStore = HashMap<String, HashMap<String, (String, u64)>>;
+
+struct PdbStore {
+    pub symbols: SymbolStore,
+    pub structs: StructStore
+}
+
+impl PdbStore {
+    fn get_offset(&self, name: &str) -> Option<u64> {
+        if name.contains(".") {
+            let v: Vec<&str> = name.split_terminator('.').collect();
+            match self.structs.get(v[0]) {
+                Some(member_info) => {
+                    match member_info.get(v[1]) {
+                        Some((_memtype, offset)) => Some(*offset),
+                        None => None
+                    }
+                },
+                None => None
+            }
+        }
+        else {
+            match self.symbols.get(name) {
+                Some(offset) => Some(*offset),
+                None => None
+            }
+        }
+    }
+
+    fn addr_decompose(&self, addr: u64, full_name: &str) -> Result<u64, String>{
+        if !full_name.contains(".") {
+            return Err("Not decomposable".to_string());
+        }
+
+        let mut name_part: Vec<&str> = full_name.split_terminator('.').collect();
+        let mut next: Vec<_> = name_part.drain(2..).collect();
+        match self.structs.get(name_part[0]) {
+            Some(member_info) => {
+                match member_info.get(name_part[1]) {
+                    Some((memtype, offset)) => {
+                        if next.len() != 0 {
+                            if memtype.contains("*") {
+                                return Err(format!("Cannot dereference pointer at {} {}", memtype, name_part[1]));
+                            }
+                            next.insert(0, memtype);
+                            self.addr_decompose(addr + *offset, &next.join("."))
+                        }
+                        else {
+                            Ok(addr + *offset)
+                        }
+                    },
+                    None => Err(format!("Not found member {}", name_part[1]))
+                }
+            },
+            None => Err(format!("Struct {} not found", name_part[0]))
+        }
+    }
+
+    fn default_information(&self) {
+        let need_symbols = [
+            "PsLoadedModuleList", "PsActiveProcessHead", "KeNumberNodes",
+            "PoolBigPageTable", "PoolBigPageTableSize",
+            // "PoolVector", "ExpNumberOfNonPagedPools",
+            "KdDebuggerDataBlock", "MmNonPagedPoolStart", "MmNonPagedPoolEnd",              // Windows XP
+            "MiNonPagedPoolStartAligned", "MiNonPagedPoolEnd", "MiNonPagedPoolBitMap",      // Windows 7, 8
+            "MiNonPagedPoolBitMap", "MiNonPagedPoolVaBitMap",
+            "MiState"                                                                       // Windows 10
+        ];
+
+        let mut need_structs = HashMap::new();
+        need_structs.insert("_POOL_HEADER", vec![]);
+        need_structs.insert("_PEB", vec![]);
+        need_structs.insert("_LIST_ENTRY", vec![
+            "Flink", "Blink"
+        ]);
+        need_structs.insert("_FILE_OBJECT", vec![
+            "FileName"
+        ]);
+        need_structs.insert("_EPROCESS", vec![
+            "struct_size",
+            "UniqueProcessId", "ActiveProcessLinks", "CreateTime",
+            "Peb", "ImageFilePointer", "ImageFileName", "ThreadListHead"
+        ]);
+        need_structs.insert("_KDDEBUGGER_DATA64", vec![
+            "MmNonPagedPoolStart", "MmNonPagedPoolEnd",                                     // Windows XP
+        ]);
+        need_structs.insert("_POOL_TRACKER_BIG_PAGES", vec![]);
+
+        // these struct supports finding NonPagedPool{First,Last}Va in windows 10
+        need_structs.insert("_MI_SYSTEM_INFORMATION", vec![
+            "Hardware",                                                 // windows 10 2016+
+            "SystemNodeInformation"                                     // windows 10 2015
+        ]);
+        need_structs.insert("_MI_HARDWARE_STATE", vec![
+            "SystemNodeInformation",                                    // till windows 10 1900
+            "SystemNodeNonPagedPool"                                    // windows insider, 2020
+        ]);
+        need_structs.insert("_MI_SYSTEM_NODE_INFORMATION", vec![        // till windows 10 1900
+            "NonPagedPoolFirstVa", "NonPagedPoolLastVa",
+            "NonPagedBitMap",                                           // missing on windows 10 1900+
+            "DynamicBitMapNonPagedPool"                                 // some weird field
+        ]);
+        need_structs.insert("_MI_SYSTEM_NODE_NONPAGED_POOL", vec![      // windows insider, 2020
+            "NonPagedPoolFirstVa", "NonPagedPoolLastVa",
+            "DynamicBitMapNonPagedPool"                                 // some weird field
+        ]);
+        need_structs.insert("_MI_DYNAMIC_BITMAP", vec![]);
+        need_structs.insert("_RTL_BITMAP", vec![]);                     // windows 10 until 2020
+        need_structs.insert("_RTL_BITMAP_EX", vec![]);                  // windows insider, 2020
+
+        for &symbol in &need_symbols {
+            match self.symbols.get(symbol) {
+                Some(offset) => println!("0x{:x} {}", offset, symbol),
+                None => {}
+            }
+        }
+
+        for (&struct_name, members) in &need_structs {
+            match self.structs.get(struct_name) {
+                Some(member_info) => {
+                    for &member in members {
+                        match member_info.get(member) {
+                            Some((memtype, offset)) =>
+                                println!("0x{:x} {} {}.{}", offset, memtype, struct_name, member),
+                            None => {}
+                        }
+                    }
+                },
+                None => {}
+            }
+        }
+    }
+}
+
+fn parse_pdb() -> PdbStore {
     let f = File::open("ntkrnlmp.pdb").expect("No such file ./ntkrnlmp.pdb");
     let mut pdb = PDB::open(f).expect("Cannot open as a PDB file");
 
     let info = pdb.pdb_information().expect("Cannot get pdb information");
     let dbi = pdb.debug_information().expect("cannot get debug information");
-    println!("PDB for {}, guid: {}, age: {},", dbi.machine_type().unwrap(), info.guid, dbi.age().unwrap_or(0));
-    println!("");
+    println!("PDB for {}, guid: {}, age: {}\n", dbi.machine_type().unwrap(), info.guid, dbi.age().unwrap_or(0));
 
     let type_information = pdb.type_information().expect("Cannot get type information");
     let mut type_finder = type_information.type_finder();
@@ -128,100 +274,61 @@ fn parse_pdb() {
         type_finder.update(&iter);
     }
 
+    let mut symbol_extracted: SymbolStore = HashMap::new();
+
     // find global symbols offset
     let addr_map = pdb.address_map().expect("Cannot get address map");
     let glosym = pdb.global_symbols().expect("Cannot get global symbols");
     let mut symbols = glosym.iter();
-    let need_symbols = [
-        "PsLoadedModuleList", "PsActiveProcessHead", "KeNumberNodes",
-        // "PoolVector", "ExpNumberOfNonPagedPools",
-        "KdDebuggerDataBlock", "MmNonPagedPoolStart", "MmNonPagedPoolEnd",              // Windows XP
-        "MiNonPagedPoolStartAligned", "MiNonPagedPoolEnd", "MiNonPagedPoolBitMap",      // Windows 7, 8
-        "MiNonPagedPoolBitMap", "MiNonPagedPoolVaBitMap",
-        "MiState"                                                                       // Windows 10
-    ];
     while let Some(symbol) = symbols.next().unwrap() {
         match symbol.parse() {
             Ok(SymbolData::PublicSymbol(data)) => {
                 let name = symbol.name().unwrap().to_string();
-                for sym in need_symbols.iter() {
-                    if &name == sym {
-                        let rva = data.offset.to_rva(&addr_map).unwrap_or_default();
-                        println!("{} {} {} {}:{}",
-                            get_type_as_str(&type_finder, &(symbol.raw_kind() as u32)), name, rva, data.offset.section, data.offset.offset);
-                    }
-                }
+                let Rva(rva) = data.offset.to_rva(&addr_map).unwrap_or_default();
+                symbol_extracted.insert(format!("{}", name), rva as u64);
             },
             _ => {
                 // println!("Something else");
             }
         }
     }
-    println!("");
 
-    let mut need_structs = HashMap::new();
-    // need_structs.insert("_KLDR_DATA_TABLE_ENTRY", vec![]);
-    need_structs.insert("_PEB", vec![]);
-    need_structs.insert("_LIST_ENTRY", vec![]);
-    need_structs.insert("_EPROCESS", vec![]);
-    need_structs.insert("_KDDEBUGGER_DATA64", vec![
-        "MmNonPagedPoolStart", "MmNonPagedPoolEnd",                                     // Windows XP
-        "MiNonPagedPoolStartAligned", "MiNonPagedPoolEnd", "MiNonPagedPoolBitMap",      // Windows 7, 8 -- not sure, global symbols
-        "MiState"                                                                       // Windows 10   -- not sure, global symbols
-    ]);
+    // println!("{:?}", symbol_extracted);
 
-    // these struct supports finding NonPagedPool{First,Last}Va in windows 10
-    need_structs.insert("_MI_SYSTEM_INFORMATION", vec![
-        "Hardware",                                                 // windows 10 2016+
-        "SystemNodeInformation"                                     // windows 10 2015
-    ]);
-    need_structs.insert("_MI_HARDWARE_STATE", vec![
-        "SystemNodeInformation",                                    // till windows 10 1900
-        "SystemNodeNonPagedPool"                                    // windows insider, 2020
-    ]);
-    need_structs.insert("_MI_SYSTEM_NODE_INFORMATION", vec![        // till windows 10 1900
-        "NonPagedPoolFirstVa", "NonPagedPoolLastVa",
-        "NonPagedBitMap",                                           // missing on windows 10 1900+
-        "DynamicBitMapNonPagedPool"                                 // some weird field
-    ]);
-    need_structs.insert("_MI_SYSTEM_NODE_NONPAGED_POOL", vec![      // windows insider, 2020
-        "NonPagedPoolFirstVa", "NonPagedPoolLastVa",
-        "DynamicBitMapNonPagedPool"                                 // some weird field
-    ]);
-    need_structs.insert("_MI_DYNAMIC_BITMAP", vec![]);
-    need_structs.insert("_RTL_BITMAP", vec![]);                     // windows 10 until 2020
-    need_structs.insert("_RTL_BITMAP_EX", vec![]);                  // windows insider, 2020
+    let mut struct_extracted: StructStore = HashMap::new();
 
     iter = type_information.iter();
     while let Some(typ) = iter.next().unwrap() {
         // type_finder.update(&iter);
         match typ.parse() {
-            Ok(TypeData::Class(ClassType {name, fields: Some(fields), ..})) => {
-                let n = name.to_string();
-                // println!("{}", name);
-                if !need_structs.contains_key(&*n) {
-                    continue;
-                }
-                println!("beginstruct {}", name);
+            Ok(TypeData::Class(ClassType {name, fields: Some(fields), size, ..})) => {
+                let mut struct_fields = HashMap::new();
+                struct_fields.insert("struct_size".to_string(), ("u32".to_string(), size as u64));
                 match type_finder.find(fields).unwrap().parse().unwrap() {
                     TypeData::FieldList(list) => {
                         // `fields` is a Vec<TypeData>
                         for field in list.fields {
                             if let TypeData::Member(member) = field {
                                 let mem_typ = get_type_as_str(&type_finder, &member.field_type);
-                                println!("\t0x{:x} {} {}", member.offset, mem_typ, member.name);
+                                // println!("\t0x{:x} {} {}", member.offset, mem_typ, member.name);
+                                struct_fields.insert(
+                                    format!("{}", member.name), (mem_typ, member.offset as u64));
                             } else {
-                                println!("\tmember_func");
-                                // handle member functions, nested types, etc.
                             }
                         }
                     }
                     _ => {}
                 }
-                println!("endstruct\n");
+                struct_extracted.insert(format!("{}", name), struct_fields);
+                // println!("endstruct\n");
             },
             _ => {}
         }
+    }
+    // println!("{:?}", struct_extracted);
+    PdbStore {
+        symbols: symbol_extracted,
+        structs: struct_extracted
     }
 }
 
@@ -267,9 +374,77 @@ fn download_pdb() {
     io::copy(&mut resp, &mut out).expect("failed to copy content");
 }
 
+
 fn main() {
     if !Path::new(PDBNAME).exists() {
         download_pdb();
     }
-    parse_pdb();
+    let store = parse_pdb();
+    store.default_information();
+
+    match store.get_offset("MiState") {
+        Some(offset) => println!("0x{:x} MiState", offset),
+        None => {}
+    };
+    match store.get_offset("_MI_HARDWARE_STATE.SystemNodeNonPagedPool") {
+        Some(offset) => println!("0x{:x} _MI_HARDWARE_STATE.SystemNodeNonPagedPool", offset),
+        None => {}
+    };
+    match store.addr_decompose(0xfffff8005d44f200, "_MI_SYSTEM_INFORMATION.Hardware.SystemNodeNonPagedPool") {
+        Ok(offset) => println!("0x{:x}", offset),
+        Err(msg) =>  println!("{}", msg)
+    };
+
+    let str_ntdll = CString::new("ntdll").expect("");
+    let str_nt_load_driver = CString::new("NtLoadDriver").expect("");
+    let str_nt_unload_driver = CString::new("NtUnloadDriver").expect("");
+    let str_rtl_init_unicode_str = CString::new("RtlInitUnicodeString").expect("");
+    let str_se_load_driver_privilege = CString::new("SeLoadDriverPrivilege").expect("");
+
+    let str_driver_reg =
+        U16CString::from_str("\\Registry\\Machine\\System\\CurrentControlSet\\Services\\nganhkhoa").expect("");
+
+    let nt_load_driver: extern "stdcall" fn(PUNICODE_STRING) -> NTSTATUS;
+    let nt_unload_driver: extern "stdcall" fn(PUNICODE_STRING) -> NTSTATUS;
+    let rtl_init_unicode_str: extern "stdcall" fn(PUNICODE_STRING, PCWSTR);
+
+    unsafe {
+        let ntdll = LoadLibraryA(str_ntdll.as_ptr());
+        let nt_load_driver_ = GetProcAddress(ntdll, str_nt_load_driver.as_ptr());
+        let nt_unload_driver_ = GetProcAddress(ntdll, str_nt_unload_driver.as_ptr());
+        let rtl_init_unicode_str_ = GetProcAddress(ntdll, str_rtl_init_unicode_str.as_ptr());
+
+        // https://github.com/jamalcoder/winapi-dynamic-api-call-using-rust/blob/d0a2386fe590899115442c5e87688ba60013acf7/src/main.rs#L60
+        nt_load_driver = std::mem::transmute(nt_load_driver_);
+        nt_unload_driver = std::mem::transmute(nt_unload_driver_);
+        rtl_init_unicode_str = std::mem::transmute(rtl_init_unicode_str_);
+
+        println!("ntdll 0x{:x}", ntdll as DWORD);
+        println!("NtLoadDriver 0x{:x}", nt_load_driver_ as DWORD);
+        println!("NtUnloadDriver 0x{:x}", nt_unload_driver_ as DWORD);
+        println!("RtlInitUnicodeString 0x{:x}", rtl_init_unicode_str_ as DWORD);
+
+        // Setup privilege SeLoadDriverPrivilege
+        let mut token_handle: HANDLE = std::ptr::null_mut();
+        let mut luid = LUID::default();
+        println!("OpenProcessToken() -> 0x{:x}",
+            OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &mut token_handle));
+        println!("LookupPrivilegeValueA() -> 0x{:x}",
+            LookupPrivilegeValueA(std::ptr::null_mut(), str_se_load_driver_privilege.as_ptr(), &mut luid));
+        let mut new_token_state = TOKEN_PRIVILEGES {
+            PrivilegeCount: 1,
+            Privileges: [LUID_AND_ATTRIBUTES {
+                Luid: luid,
+                Attributes: SE_PRIVILEGE_ENABLED
+            }]
+        };
+        println!("AdjustTokenPrivileges() -> 0x{:x}",
+            AdjustTokenPrivileges(token_handle, 0, &mut new_token_state, 16, std::ptr::null_mut(), std::ptr::null_mut()));
+        CloseHandle(token_handle);
+
+        let mut str_driver_reg_unicode = UNICODE_STRING::default();
+        rtl_init_unicode_str(&mut str_driver_reg_unicode, str_driver_reg.as_ptr() as *const u16);
+        println!("NtLoadDriver()   -> 0x{:x}", nt_load_driver(&mut str_driver_reg_unicode));
+        println!("NtUnloadDriver() -> 0x{:x}", nt_unload_driver(&mut str_driver_reg_unicode));
+    }
 }
