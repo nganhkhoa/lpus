@@ -19,9 +19,13 @@ use pdb::TypeIndex;
 
 use std::ffi::CString;
 use widestring::{U16CString};
-use winapi::shared::minwindef::{DWORD};
+use winapi::shared::minwindef::{HKEY};
 use winapi::shared::ntdef::*;
-use winapi::um::winnt::{SE_PRIVILEGE_ENABLED, TOKEN_PRIVILEGES, TOKEN_ADJUST_PRIVILEGES, LUID_AND_ATTRIBUTES};
+use winapi::um::winnt::{
+    SE_PRIVILEGE_ENABLED, TOKEN_PRIVILEGES, TOKEN_ADJUST_PRIVILEGES, LUID_AND_ATTRIBUTES,
+    REG_DWORD, REG_SZ, REG_OPTION_NON_VOLATILE, KEY_WRITE
+};
+use winapi::um::winreg::*;
 use winapi::um::handleapi::*;
 use winapi::um::winbase::*;
 use winapi::um::processthreadsapi::*;
@@ -391,7 +395,8 @@ fn main() {
         None => {}
     };
     match store.addr_decompose(0xfffff8005d44f200, "_MI_SYSTEM_INFORMATION.Hardware.SystemNodeNonPagedPool") {
-        Ok(offset) => println!("0x{:x}", offset),
+        Ok(offset) =>
+            println!("0x{:x} == ((_MI_SYSTEM_INFORMATION)0xfffff8005d44f200).Hardware.SystemNodeNonPagedPool", offset),
         Err(msg) =>  println!("{}", msg)
     };
 
@@ -401,9 +406,16 @@ fn main() {
     let str_rtl_init_unicode_str = CString::new("RtlInitUnicodeString").expect("");
     let str_se_load_driver_privilege = CString::new("SeLoadDriverPrivilege").expect("");
 
+    let str_driver_path = CString::new("\\SystemRoot\\System32\\DRIVERS\\nganhkhoa.sys").expect("");
+    let str_registry_path = CString::new("System\\CurrentControlSet\\Services\\nganhkhoa").expect("");
     let str_driver_reg =
         U16CString::from_str("\\Registry\\Machine\\System\\CurrentControlSet\\Services\\nganhkhoa").expect("");
+    let str_type = CString::new("Type").expect("");
+    let str_error_control = CString::new("ErrorControl").expect("");
+    let str_start = CString::new("Start").expect("");
+    let str_image_path = CString::new("ImagePath").expect("");
 
+    let mut str_driver_reg_unicode = UNICODE_STRING::default();
     let nt_load_driver: extern "stdcall" fn(PUNICODE_STRING) -> NTSTATUS;
     let nt_unload_driver: extern "stdcall" fn(PUNICODE_STRING) -> NTSTATUS;
     let rtl_init_unicode_str: extern "stdcall" fn(PUNICODE_STRING, PCWSTR);
@@ -414,23 +426,40 @@ fn main() {
         let nt_unload_driver_ = GetProcAddress(ntdll, str_nt_unload_driver.as_ptr());
         let rtl_init_unicode_str_ = GetProcAddress(ntdll, str_rtl_init_unicode_str.as_ptr());
 
-        // https://github.com/jamalcoder/winapi-dynamic-api-call-using-rust/blob/d0a2386fe590899115442c5e87688ba60013acf7/src/main.rs#L60
         nt_load_driver = std::mem::transmute(nt_load_driver_);
         nt_unload_driver = std::mem::transmute(nt_unload_driver_);
         rtl_init_unicode_str = std::mem::transmute(rtl_init_unicode_str_);
 
-        println!("ntdll 0x{:x}", ntdll as DWORD);
-        println!("NtLoadDriver 0x{:x}", nt_load_driver_ as DWORD);
-        println!("NtUnloadDriver 0x{:x}", nt_unload_driver_ as DWORD);
-        println!("RtlInitUnicodeString 0x{:x}", rtl_init_unicode_str_ as DWORD);
+        // setup registry
+        let mut registry_key: HKEY = std::ptr::null_mut();
+        RegCreateKeyExA(
+            HKEY_LOCAL_MACHINE, str_registry_path.as_ptr(),
+            0, std::ptr::null_mut(),
+            REG_OPTION_NON_VOLATILE, KEY_WRITE,
+            std::ptr::null_mut(), &mut registry_key, std::ptr::null_mut()
+        );
+        let type_value: [u8; 4] = 1u32.to_le_bytes();
+        let error_control_value: [u8; 4] = 1u32.to_le_bytes();
+        let start_value: [u8; 4] = 3u32.to_le_bytes();
+        let registry_values = [
+            (str_type.as_ptr(), REG_DWORD, type_value.as_ptr(), 4),
+            (str_error_control.as_ptr(), REG_DWORD, error_control_value.as_ptr(), 4),
+            (str_start.as_ptr(), REG_DWORD, start_value.as_ptr(), 4),
+            (str_image_path.as_ptr(), REG_SZ, str_driver_path.as_ptr() as *const u8, str_driver_path.to_bytes().len() + 1)
+        ];
+        for &(key, keytype, value_ptr, size_in_bytes) in &registry_values {
+            RegSetValueExA(
+                registry_key, key, 0,
+                keytype, value_ptr, size_in_bytes as u32
+            );
+        }
+        RegCloseKey(registry_key);
 
         // Setup privilege SeLoadDriverPrivilege
         let mut token_handle: HANDLE = std::ptr::null_mut();
         let mut luid = LUID::default();
-        println!("OpenProcessToken() -> 0x{:x}",
-            OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &mut token_handle));
-        println!("LookupPrivilegeValueA() -> 0x{:x}",
-            LookupPrivilegeValueA(std::ptr::null_mut(), str_se_load_driver_privilege.as_ptr(), &mut luid));
+        OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &mut token_handle);
+        LookupPrivilegeValueA(std::ptr::null_mut(), str_se_load_driver_privilege.as_ptr(), &mut luid);
         let mut new_token_state = TOKEN_PRIVILEGES {
             PrivilegeCount: 1,
             Privileges: [LUID_AND_ATTRIBUTES {
@@ -438,13 +467,12 @@ fn main() {
                 Attributes: SE_PRIVILEGE_ENABLED
             }]
         };
-        println!("AdjustTokenPrivileges() -> 0x{:x}",
-            AdjustTokenPrivileges(token_handle, 0, &mut new_token_state, 16, std::ptr::null_mut(), std::ptr::null_mut()));
+        AdjustTokenPrivileges(token_handle, 0, &mut new_token_state, 16, std::ptr::null_mut(), std::ptr::null_mut());
         CloseHandle(token_handle);
 
-        let mut str_driver_reg_unicode = UNICODE_STRING::default();
         rtl_init_unicode_str(&mut str_driver_reg_unicode, str_driver_reg.as_ptr() as *const u16);
-        println!("NtLoadDriver()   -> 0x{:x}", nt_load_driver(&mut str_driver_reg_unicode));
-        println!("NtUnloadDriver() -> 0x{:x}", nt_unload_driver(&mut str_driver_reg_unicode));
     }
+
+    println!("NtLoadDriver()   -> 0x{:x}", nt_load_driver(&mut str_driver_reg_unicode));
+    println!("NtUnloadDriver() -> 0x{:x}", nt_unload_driver(&mut str_driver_reg_unicode));
 }
