@@ -7,6 +7,8 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+hex = "0.4.2"
 pdb = "0.5.0"
+widestring = "0.4.0"
+winapi = { version = "0.3.8", features = ["libloaderapi", "processthreadsapi", "winbase", "securitybaseapi", "handleapi", "winnt", "winreg"] }
 reqwest = { version = "0.10.1", features = ["blocking"] }
-
