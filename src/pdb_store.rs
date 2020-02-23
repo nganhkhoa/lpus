@@ -1,5 +1,6 @@
 use std::io;
 use std::io::{Read};
+use std::path::Path;
 use std::fs::File;
 use std::collections::HashMap;
 
@@ -15,9 +16,9 @@ use pdb::TypeFinder;
 use pdb::TypeIndex;
 
 
-pub const PDBNAME: &str = "ntkrnlmp.pdb";
-pub const NTOSKRNL_PATH: &str = "C:\\Windows\\System32\\ntoskrnl.exe";
-pub const PDB_SERVER_PATH: &str = "http://msdl.microsoft.com/download/symbols";
+const PDBNAME: &str = "ntkrnlmp.pdb";
+const NTOSKRNL_PATH: &str = "C:\\Windows\\System32\\ntoskrnl.exe";
+const PDB_SERVER_PATH: &str = "http://msdl.microsoft.com/download/symbols";
 
 type SymbolStore = HashMap<String, u64>;
 type StructStore = HashMap<String, HashMap<String, (String, u64)>>;
@@ -28,6 +29,7 @@ pub struct PdbStore {
 }
 
 impl PdbStore {
+    #[allow(dead_code)]
     pub fn get_offset(&self, name: &str) -> Option<u64> {
         if name.contains(".") {
             let v: Vec<&str> = name.split_terminator('.').collect();
@@ -49,6 +51,7 @@ impl PdbStore {
         }
     }
 
+    #[allow(dead_code)]
     pub fn addr_decompose(&self, addr: u64, full_name: &str) -> Result<u64, String>{
         if !full_name.contains(".") {
             return Err("Not decomposable".to_string());
@@ -78,6 +81,7 @@ impl PdbStore {
         }
     }
 
+    #[allow(dead_code)]
     pub fn print_default_information(&self) {
         let need_symbols = [
             "PsLoadedModuleList", "PsActiveProcessHead", "KeNumberNodes",
@@ -246,7 +250,54 @@ fn get_type_as_str(type_finder: &TypeFinder, typ: &TypeIndex) -> String {
     }
 }
 
+pub fn download_pdb() {
+    let mut ntoskrnl = File::open(NTOSKRNL_PATH).expect("Cannot open ntoskrnl.exe");
+
+    let mut buffer = Vec::new();
+    ntoskrnl.read_to_end(&mut buffer).expect("Cannot read file ntoskrnl.exe");
+
+    let mut buffiter = buffer.chunks(4);
+    while buffiter.next().unwrap() != [0x52, 0x53, 0x44, 0x53] {
+        // signature == RSDS
+    }
+
+    // next 16 bytes is guid in raw bytes
+    let raw_guid: Vec<u8> = vec![
+        buffiter.next().unwrap(),
+        buffiter.next().unwrap(),
+        buffiter.next().unwrap(),
+        buffiter.next().unwrap(),
+    ].concat();
+
+    // guid to hex string
+    let guid = (vec![
+        raw_guid[3], raw_guid[2], raw_guid[1], raw_guid[0],
+        raw_guid[5], raw_guid[4],
+        raw_guid[7], raw_guid[6],
+        raw_guid[8], raw_guid[9], raw_guid[10], raw_guid[11],
+        raw_guid[12], raw_guid[13], raw_guid[14], raw_guid[15],
+    ].iter().map(|b| format!("{:02X}", b)).collect::<Vec<String>>()).join("");
+
+    // next 4 bytes is age, in little endian
+    let raw_age = buffiter.next().unwrap();
+    let age = u32::from_le_bytes([
+        raw_age[0], raw_age[1], raw_age[2], raw_age[3]
+    ]);
+
+    let downloadurl = format!("{}/{}/{}{:X}/{}", PDB_SERVER_PATH, PDBNAME, guid, age, PDBNAME);
+    println!("{}", downloadurl);
+
+    let mut resp = reqwest::blocking::get(&downloadurl).expect("request failed");
+    let mut out = File::create(PDBNAME).expect("failed to create file");
+    io::copy(&mut resp, &mut out).expect("failed to copy content");
+}
+
 pub fn parse_pdb() -> PdbStore {
+    // TODO: Detect pdb file and ntoskrnl file version differs
+    // The guid of ntoskrnl and pdb file are different
+    if !Path::new(PDBNAME).exists() {
+        download_pdb();
+    }
     let f = File::open("ntkrnlmp.pdb").expect("No such file ./ntkrnlmp.pdb");
     let mut pdb = PDB::open(f).expect("Cannot open as a PDB file");
 
@@ -308,46 +359,3 @@ pub fn parse_pdb() -> PdbStore {
         structs: struct_extracted
     }
 }
-
-pub fn download_pdb() {
-    let mut ntoskrnl = File::open(NTOSKRNL_PATH).expect("Cannot open ntoskrnl.exe");
-
-    let mut buffer = Vec::new();
-    ntoskrnl.read_to_end(&mut buffer).expect("Cannot read file ntoskrnl.exe");
-
-    let mut buffiter = buffer.chunks(4);
-    while buffiter.next().unwrap() != [0x52, 0x53, 0x44, 0x53] {
-        // signature == RSDS
-    }
-
-    // next 16 bytes is guid in raw bytes
-    let raw_guid: Vec<u8> = vec![
-        buffiter.next().unwrap(),
-        buffiter.next().unwrap(),
-        buffiter.next().unwrap(),
-        buffiter.next().unwrap(),
-    ].concat();
-
-    // guid to hex string
-    let guid = (vec![
-        raw_guid[3], raw_guid[2], raw_guid[1], raw_guid[0],
-        raw_guid[5], raw_guid[4],
-        raw_guid[7], raw_guid[6],
-        raw_guid[8], raw_guid[9], raw_guid[10], raw_guid[11],
-        raw_guid[12], raw_guid[13], raw_guid[14], raw_guid[15],
-    ].iter().map(|b| format!("{:02X}", b)).collect::<Vec<String>>()).join("");
-
-    // next 4 bytes is age, in little endian
-    let raw_age = buffiter.next().unwrap();
-    let age = u32::from_le_bytes([
-        raw_age[0], raw_age[1], raw_age[2], raw_age[3]
-    ]);
-
-    let downloadurl = format!("{}/{}/{}{:X}/{}", PDB_SERVER_PATH, PDBNAME, guid, age, PDBNAME);
-    println!("{}", downloadurl);
-
-    let mut resp = reqwest::blocking::get(&downloadurl).expect("request failed");
-    let mut out = File::create(PDBNAME).expect("failed to create file");
-    io::copy(&mut resp, &mut out).expect("failed to copy content");
-}
-

@@ -16,6 +16,7 @@ use winapi::um::securitybaseapi::*;
 use winapi::um::winbase::*;
 use winapi::um::winreg::*;
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum WindowsVersion {
     Windows10_2015,
@@ -28,6 +29,7 @@ pub enum WindowsVersion {
     Windows10VersionUnknown
 }
 
+#[allow(dead_code)]
 pub struct WindowsFFI {
     pub version_info: OSVERSIONINFOW,
     pub short_version: WindowsVersion,
@@ -162,10 +164,12 @@ impl WindowsFFI {
         (self.nt_unload_driver)(&mut self.driver_registry_string)
     }
 
+    #[allow(dead_code)]
     pub fn get_build_number(&self) -> DWORD {
         self.version_info.dwBuildNumber
     }
 
+    #[allow(dead_code)]
     pub fn print_version(&self) {
         println!("Windows version: {}.{}.{} {:?}",
             self.version_info.dwMajorVersion,
