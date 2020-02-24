@@ -1,20 +1,24 @@
 use std::ffi::CString;
-use widestring::{U16CString};
+use std::ptr::null_mut;
+use widestring::U16CString;
 
 use winapi::shared::ntdef::*;
 use winapi::shared::minwindef::{DWORD, HKEY, HMODULE};
 use winapi::um::winnt::{
     SE_PRIVILEGE_ENABLED, TOKEN_PRIVILEGES, TOKEN_ADJUST_PRIVILEGES, LUID_AND_ATTRIBUTES,
     REG_DWORD, REG_SZ, REG_OPTION_NON_VOLATILE, KEY_WRITE,
-    PRTL_OSVERSIONINFOW, OSVERSIONINFOW
+    PRTL_OSVERSIONINFOW, OSVERSIONINFOW,
+    FILE_ATTRIBUTE_NORMAL, GENERIC_READ, GENERIC_WRITE
 };
 
-use winapi::um::handleapi::*;
-use winapi::um::libloaderapi::*;
-use winapi::um::processthreadsapi::*;
-use winapi::um::securitybaseapi::*;
-use winapi::um::winbase::*;
-use winapi::um::winreg::*;
+use winapi::um::ioapiset::DeviceIoControl;
+use winapi::um::fileapi::{CreateFileA, CREATE_ALWAYS};
+use winapi::um::handleapi::{INVALID_HANDLE_VALUE, CloseHandle};
+use winapi::um::libloaderapi::{LoadLibraryA, GetProcAddress};
+use winapi::um::processthreadsapi::{GetCurrentProcess, OpenProcessToken};
+use winapi::um::securitybaseapi::{AdjustTokenPrivileges};
+use winapi::um::winbase::{LookupPrivilegeValueA};
+use winapi::um::winreg::{RegCreateKeyExA, RegSetValueExA, RegCloseKey, HKEY_LOCAL_MACHINE};
 
 #[allow(dead_code)]
 #[derive(Debug)]
@@ -33,7 +37,8 @@ pub enum WindowsVersion {
 pub struct WindowsFFI {
     pub version_info: OSVERSIONINFOW,
     pub short_version: WindowsVersion,
-    driver_registry_string: UNICODE_STRING,
+    // driver_registry_string: UNICODE_STRING,
+    driver_handle: HANDLE,
     ntdll: HMODULE,
     nt_load_driver: extern "stdcall" fn(PUNICODE_STRING) -> NTSTATUS,
     nt_unload_driver: extern "stdcall" fn(PUNICODE_STRING) -> NTSTATUS,
@@ -43,23 +48,22 @@ pub struct WindowsFFI {
 
 impl WindowsFFI {
     pub fn new() -> Self {
-        let str_ntdll = CString::new("ntdll").expect("");
-        let str_nt_load_driver = CString::new("NtLoadDriver").expect("");
-        let str_nt_unload_driver = CString::new("NtUnloadDriver").expect("");
-        let str_rtl_init_unicode_str = CString::new("RtlInitUnicodeString").expect("");
-        let str_rtl_get_version = CString::new("RtlGetVersion").expect("");
-        let str_se_load_driver_privilege = CString::new("SeLoadDriverPrivilege").expect("");
+        let str_ntdll = CString::new("ntdll").unwrap();
+        let str_nt_load_driver = CString::new("NtLoadDriver").unwrap();
+        let str_nt_unload_driver = CString::new("NtUnloadDriver").unwrap();
+        let str_rtl_init_unicode_str = CString::new("RtlInitUnicodeString").unwrap();
+        let str_rtl_get_version = CString::new("RtlGetVersion").unwrap();
+        let str_se_load_driver_privilege = CString::new("SeLoadDriverPrivilege").unwrap();
 
-        let str_driver_path = CString::new("\\SystemRoot\\System32\\DRIVERS\\nganhkhoa.sys").expect("");
-        let str_registry_path = CString::new("System\\CurrentControlSet\\Services\\nganhkhoa").expect("");
-        let str_driver_reg =
-            U16CString::from_str("\\Registry\\Machine\\System\\CurrentControlSet\\Services\\nganhkhoa").expect("");
-        let str_type = CString::new("Type").expect("");
-        let str_error_control = CString::new("ErrorControl").expect("");
-        let str_start = CString::new("Start").expect("");
-        let str_image_path = CString::new("ImagePath").expect("");
+        let str_driver_path = CString::new("\\SystemRoot\\System32\\DRIVERS\\nganhkhoa.sys").unwrap();
+        let str_registry_path = CString::new("System\\CurrentControlSet\\Services\\nganhkhoa").unwrap();
+        let str_type = CString::new("Type").unwrap();
+        let str_error_control = CString::new("ErrorControl").unwrap();
+        let str_start = CString::new("Start").unwrap();
+        let str_image_path = CString::new("ImagePath").unwrap();
 
-        let mut str_driver_reg_unicode = UNICODE_STRING::default();
+        // let mut str_driver_reg_unicode = UNICODE_STRING::default();
+        let str_driver_reg_unicode: UNICODE_STRING;
         let mut version_info = OSVERSIONINFOW {
             dwOSVersionInfoSize: 0u32,
             dwMajorVersion: 0u32,
@@ -89,12 +93,12 @@ impl WindowsFFI {
             rtl_get_version = std::mem::transmute(rtl_get_version_);
 
             // setup registry
-            let mut registry_key: HKEY = std::ptr::null_mut();
+            let mut registry_key: HKEY = null_mut();
             RegCreateKeyExA(
                 HKEY_LOCAL_MACHINE, str_registry_path.as_ptr(),
-                0, std::ptr::null_mut(),
+                0, null_mut(),
                 REG_OPTION_NON_VOLATILE, KEY_WRITE,
-                std::ptr::null_mut(), &mut registry_key, std::ptr::null_mut()
+                null_mut(), &mut registry_key, null_mut()
             );
             let type_value: [u8; 4] = 1u32.to_le_bytes();
             let error_control_value: [u8; 4] = 1u32.to_le_bytes();
@@ -115,10 +119,10 @@ impl WindowsFFI {
             RegCloseKey(registry_key);
 
             // Setup privilege SeLoadDriverPrivilege
-            let mut token_handle: HANDLE = std::ptr::null_mut();
+            let mut token_handle: HANDLE = null_mut();
             let mut luid = LUID::default();
             OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &mut token_handle);
-            LookupPrivilegeValueA(std::ptr::null_mut(), str_se_load_driver_privilege.as_ptr(), &mut luid);
+            LookupPrivilegeValueA(null_mut(), str_se_load_driver_privilege.as_ptr(), &mut luid);
             let mut new_token_state = TOKEN_PRIVILEGES {
                 PrivilegeCount: 1,
                 Privileges: [LUID_AND_ATTRIBUTES {
@@ -127,11 +131,17 @@ impl WindowsFFI {
                 }]
             };
             AdjustTokenPrivileges(
-                token_handle, 0, &mut new_token_state, 16, std::ptr::null_mut(), std::ptr::null_mut());
+                token_handle, 0, &mut new_token_state, 16, null_mut(), null_mut());
             CloseHandle(token_handle);
 
-            // init string for load and unload driver routine
-            rtl_init_unicode_str(&mut str_driver_reg_unicode, str_driver_reg.as_ptr() as *const u16);
+            // init string for loading and unloading driver routine
+            // rtl_init_unicode_str(&mut str_driver_reg_unicode, str_driver_reg.as_ptr());
+            //
+            // let unicode_str =
+            //     U16CString::from_ptr_unchecked(
+            //         str_driver_reg_unicode.Buffer, (str_driver_reg_unicode.Length / 2) as usize);
+            //
+            // println!("unicode string created: {:p} {}", str_driver_reg_unicode.Buffer, unicode_str.to_string_lossy());
         }
 
         rtl_get_version(&mut version_info);
@@ -147,7 +157,8 @@ impl WindowsFFI {
         Self {
             version_info,
             short_version,
-            driver_registry_string: str_driver_reg_unicode,
+            // driver_registry_string: str_driver_reg_unicode,
+            driver_handle: null_mut(),
             ntdll,
             nt_load_driver,
             nt_unload_driver,
@@ -157,11 +168,69 @@ impl WindowsFFI {
     }
 
     pub fn load_driver(&mut self) -> NTSTATUS {
-        (self.nt_load_driver)(&mut self.driver_registry_string)
+        let mut str_driver_reg_unicode: UNICODE_STRING = UNICODE_STRING::default();
+        unsafe {
+            let str_driver_reg =
+                U16CString::from_str(
+                    "\\Registry\\Machine\\System\\CurrentControlSet\\Services\\nganhkhoa")
+                    .expect("");
+            (self.rtl_init_unicode_str)(&mut str_driver_reg_unicode, str_driver_reg.as_ptr());
+            // str_driver_reg_unicode = UNICODE_STRING {
+            //     Length: (str_driver_reg.len() * 2) as u16,
+            //     MaximumLength: (str_driver_reg.len() * 2) as u16,
+            //     Buffer: str_driver_reg.as_ptr() as *mut u16
+            // };
+            let unicode_str =
+                U16CString::from_ptr_unchecked(
+                    str_driver_reg_unicode.Buffer, (str_driver_reg_unicode.Length / 2) as usize);
+
+            println!("unicode string called: {:p} {}", str_driver_reg_unicode.Buffer, unicode_str.to_string_lossy());
+            println!("unicode string called: {:?}", unicode_str.into_vec_with_nul());
+        }
+        let status = (self.nt_load_driver)(&mut str_driver_reg_unicode);
+        // Create a device handle to loaded driver
+        let driver_system_path = CString::new("\\Device\\poolscanner").unwrap();
+        let driver_handle;
+        unsafe {
+            driver_handle = CreateFileA(driver_system_path.as_ptr(),
+                                        GENERIC_READ | GENERIC_WRITE,
+                                        0,
+                                        null_mut(),
+                                        CREATE_ALWAYS,
+                                        FILE_ATTRIBUTE_NORMAL,
+                                        null_mut());
+        }
+        // TODO: check driver_handle return status
+        self.driver_handle = driver_handle;
+        if driver_handle == INVALID_HANDLE_VALUE {
+            println!("Driver create failed");
+            status
+        }
+        else {
+            status
+        }
     }
 
     pub fn unload_driver(&mut self) -> NTSTATUS {
-        (self.nt_unload_driver)(&mut self.driver_registry_string)
+        let mut str_driver_reg_unicode: UNICODE_STRING;
+        unsafe {
+            let str_driver_reg =
+                U16CString::from_str(
+                    "\\Registry\\Machine\\System\\CurrentControlSet\\Services\\nganhkhoa")
+                    .expect("");
+            str_driver_reg_unicode = UNICODE_STRING {
+                Length: (str_driver_reg.len() * 2) as u16,
+                MaximumLength: (str_driver_reg.len() * 2) as u16,
+                Buffer: str_driver_reg.as_ptr() as *mut u16
+            };
+            let unicode_str =
+                U16CString::from_ptr_unchecked(
+                    str_driver_reg_unicode.Buffer, (str_driver_reg_unicode.Length / 2) as usize);
+
+            println!("unicode string called: {:p} {}", str_driver_reg_unicode.Buffer, unicode_str.to_string_lossy());
+            println!("unicode string called: {:?}", unicode_str.into_vec_with_nul());
+        }
+        (self.nt_unload_driver)(&mut str_driver_reg_unicode)
     }
 
     #[allow(dead_code)]
@@ -177,5 +246,12 @@ impl WindowsFFI {
             self.version_info.dwBuildNumber,
             self.short_version
         );
+    }
+
+    #[allow(dead_code)]
+    pub fn device_io(&self, _code: DWORD) {
+        unsafe {
+            DeviceIoControl(self.driver_handle, 0x900, null_mut(), 0, null_mut(), 0, null_mut(), null_mut());
+        }
     }
 }

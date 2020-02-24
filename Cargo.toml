@@ -10,5 +10,5 @@ edition = "2018"
 hex = "0.4.2"
 pdb = "0.5.0"
 widestring = "0.4.0"
-winapi = { version = "0.3.8", features = ["libloaderapi", "processthreadsapi", "winbase", "securitybaseapi", "handleapi", "winnt", "winreg"] }
+winapi = { version = "0.3.8", features = ["libloaderapi", "processthreadsapi", "winbase", "securitybaseapi", "handleapi", "winnt", "winreg", "fileapi", "ioapiset"] }
 reqwest = { version = "0.10.1", features = ["blocking"] }
