@@ -163,7 +163,7 @@ impl WindowsFFI {
         (self.rtl_init_unicode_str)(&mut str_driver_reg_unicode, str_driver_reg.as_ptr() as *const u16);
         let status = (self.nt_load_driver)(&mut str_driver_reg_unicode);
 
-        let filename = CString::new("\\Device\\poolscanner").unwrap();
+        let filename = CString::new("\\\\.\\poolscanner").unwrap();
         let driver_file_handle: HANDLE = unsafe {
             CreateFileA(filename.as_ptr(),
                         GENERIC_READ | GENERIC_WRITE,
