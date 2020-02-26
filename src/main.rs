@@ -1,18 +1,25 @@
 mod pdb_store;
 mod windows;
+mod ioctl_protocol;
+mod driver_state;
+
+use pdb_store::parse_pdb;
+use windows::WindowsFFI;
+use driver_state::{DriverState, DriverAction};
 
 fn main() {
-    let store = pdb_store::parse_pdb();
-    store.print_default_information();
-
     // for windows admin require
     // https://github.com/nabijaczleweli/rust-embed-resource
-    let mut windows_ffi = windows::WindowsFFI::new();
-    windows_ffi.print_version();
 
-    println!("NtLoadDriver()   -> 0x{:x}", windows_ffi.load_driver());
+    let mut driver = DriverState::new(parse_pdb(), WindowsFFI::new());
 
-    windows_ffi.device_io(0x900);
+    println!("NtLoadDriver()   -> 0x{:x}", driver.startup());
 
-    println!("NtUnloadDriver() -> 0x{:x}", windows_ffi.unload_driver());
+    driver.interact(DriverAction::SetupOffset);
+    driver.interact(DriverAction::GetKernelBase);
+    // driver.interact(DriverAction::ScanPsActiveHead);
+    // driver.interact(DriverAction::ScanPool);
+    driver.interact(DriverAction::ScanPoolRemote);
+
+    println!("NtUnloadDriver() -> 0x{:x}", driver.shutdown());
 }

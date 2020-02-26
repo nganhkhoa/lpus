@@ -1,5 +1,5 @@
-use std::ffi::CString;
-use std::mem::transmute;
+use std::ffi::{c_void, CString};
+use std::mem::{transmute, size_of_val};
 use std::ptr::null_mut;
 use widestring::U16CString;
 
@@ -12,7 +12,8 @@ use winapi::um::winnt::{
     FILE_ATTRIBUTE_NORMAL, GENERIC_READ, GENERIC_WRITE
 };
 
-use winapi::um::ioapiset::DeviceIoControl;
+use winapi::um::ioapiset::{DeviceIoControl};
+use winapi::um::errhandlingapi::{GetLastError};
 use winapi::um::fileapi::{CreateFileA, CREATE_ALWAYS};
 use winapi::um::handleapi::{INVALID_HANDLE_VALUE, CloseHandle};
 use winapi::um::libloaderapi::{LoadLibraryA, GetProcAddress};
@@ -24,7 +25,7 @@ use winapi::um::winreg::{RegCreateKeyExA, RegSetValueExA, RegCloseKey, HKEY_LOCA
 const STR_DRIVER_REGISTRY_PATH: &str = "\\Registry\\Machine\\System\\CurrentControlSet\\Services\\nganhkhoa";
 
 #[allow(dead_code)]
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub enum WindowsVersion {
     Windows10_2015,
     Windows10_2016,
@@ -37,6 +38,7 @@ pub enum WindowsVersion {
 }
 
 #[allow(dead_code)]
+#[derive(Copy, Clone)]
 pub struct WindowsFFI {
     pub version_info: OSVERSIONINFOW,
     pub short_version: WindowsVersion,
@@ -148,7 +150,7 @@ impl WindowsFFI {
         Self {
             version_info,
             short_version,
-            driver_handle: null_mut(),
+            driver_handle: INVALID_HANDLE_VALUE,
             ntdll,
             nt_load_driver,
             nt_unload_driver,
@@ -157,7 +159,13 @@ impl WindowsFFI {
         }
     }
 
+    pub fn driver_loaded(self) -> bool {
+        self.driver_handle != INVALID_HANDLE_VALUE
+    }
+
     pub fn load_driver(&mut self) -> NTSTATUS {
+        // TODO: Move this to new()
+        // If we move this function to new(), self.driver_handle will be init, and thus no mut here
         let str_driver_reg = U16CString::from_str(STR_DRIVER_REGISTRY_PATH).unwrap();
         let mut str_driver_reg_unicode = UNICODE_STRING::default();
         (self.rtl_init_unicode_str)(&mut str_driver_reg_unicode, str_driver_reg.as_ptr() as *const u16);
@@ -180,7 +188,7 @@ impl WindowsFFI {
         status
     }
 
-    pub fn unload_driver(&mut self) -> NTSTATUS {
+    pub fn unload_driver(&self) -> NTSTATUS {
         let str_driver_reg = U16CString::from_str(STR_DRIVER_REGISTRY_PATH).unwrap();
         let mut str_driver_reg_unicode = UNICODE_STRING::default();
         (self.rtl_init_unicode_str)(&mut str_driver_reg_unicode, str_driver_reg.as_ptr());
@@ -202,10 +210,37 @@ impl WindowsFFI {
         );
     }
 
-    #[allow(dead_code)]
-    pub fn device_io(&self, _code: DWORD) {
+    pub fn device_io<T, E>(&self, code: DWORD, inbuf: &mut T, outbuf: &mut E) -> DWORD {
+        // input_ptr: *mut c_void, input_len: DWORD, output_ptr: *mut c_void, output_len: DWORD) {
+        // println!("driver loaded: {}; device_io_code: {}", self.driver_loaded(), code);
+        // TODO: call device_io_raw
+        let mut bytes_returned: DWORD = 0;
         unsafe {
-            DeviceIoControl(self.driver_handle, 0x900, null_mut(), 0, null_mut(), 0, null_mut(), null_mut());
-        }
+            let status = DeviceIoControl(self.driver_handle, code,
+                                         inbuf as *mut _ as *mut c_void, size_of_val(inbuf) as DWORD,
+                                         outbuf as *mut _ as *mut c_void, size_of_val(outbuf) as DWORD,
+                                         &mut bytes_returned, null_mut());
+            if status == 0 {
+                println!("device io failed: last error {}", GetLastError());
+            }
+        };
+        bytes_returned
+    }
+
+    pub fn device_io_raw(&self, code: DWORD,
+                         input_ptr: *mut c_void, input_len: DWORD,
+                         output_ptr: *mut c_void, output_len: DWORD) -> DWORD {
+        // println!("driver loaded: {}; device_io_code: {}", self.driver_loaded(), code);
+        let mut bytes_returned: DWORD = 0;
+        unsafe {
+            let status = DeviceIoControl(self.driver_handle, code,
+                                         input_ptr, input_len,
+                                         output_ptr, output_len,
+                                         &mut bytes_returned, null_mut());
+            if status == 0 {
+                println!("device io failed: last error {}", GetLastError());
+            }
+        };
+        bytes_returned
     }
 }
