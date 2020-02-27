@@ -79,10 +79,18 @@ impl ScanRange {
 }
 
 #[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct HideProcess {
+    pub name: [u8; 15],
+    pub size: u64
+}
+
+#[repr(C)]
 pub union InputData {
     pub offset_value: OffsetData,
     pub deref_addr: DerefAddr,
     pub scan_range: ScanRange,
+    pub hide_process: HideProcess,
 }
 
 #[repr(C)]

@@ -17,6 +17,9 @@ fn main() {
 
     driver.interact(DriverAction::SetupOffset);
     driver.interact(DriverAction::GetKernelBase);
+
+    driver.interact(DriverAction::HideProcess);
+
     driver.interact(DriverAction::ScanPsActiveHead);
     driver.interact(DriverAction::ScanPoolRemote);
 
@@ -25,7 +28,7 @@ fn main() {
     for result in &driver.eprocess_traverse_result {
         println!("- [{}] 0x{:x} {}",
                  driver.pool_scan_result.contains(&result),
-                 result.eprocess_addr, result.eprocess_name.trim_end_matches(char::from(0)));
+                 result.eprocess_addr, result.eprocess_name);
     }
 
     println!("Pool tag (quick) scanning");
@@ -33,7 +36,7 @@ fn main() {
     for result in &driver.pool_scan_result {
         println!("- [{}] 0x{:x} 0x{:x} {}",
                  driver.eprocess_traverse_result.contains(&result),
-                 result.pool_addr, result.eprocess_addr, result.eprocess_name.trim_end_matches(char::from(0)));
+                 result.pool_addr, result.eprocess_addr, result.eprocess_name);
     }
 
     println!("NtUnloadDriver() -> 0x{:x}", driver.shutdown());

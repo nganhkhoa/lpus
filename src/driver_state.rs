@@ -11,7 +11,7 @@ use winapi::um::winioctl::{
 use crate::pdb_store::{PdbStore};
 use crate::windows::{WindowsFFI, WindowsVersion};
 use crate::ioctl_protocol::{
-    InputData, OffsetData, DerefAddr, ScanRange,
+    InputData, OffsetData, DerefAddr, ScanRange, HideProcess,
     OutputData, Nothing
 };
 
@@ -25,7 +25,8 @@ pub enum DriverAction {
     ScanPsActiveHead,
     ScanPool,
     ScanPoolRemote,
-    DereferenceAddress
+    DereferenceAddress,
+    HideProcess
 }
 
 impl DriverAction {
@@ -36,7 +37,8 @@ impl DriverAction {
             DriverAction::ScanPsActiveHead => CTL_CODE(SIOCTL_TYPE, 0x902, METHOD_NEITHER, FILE_ANY_ACCESS),
             DriverAction::ScanPool => CTL_CODE(SIOCTL_TYPE, 0x903, METHOD_IN_DIRECT, FILE_ANY_ACCESS),
             DriverAction::ScanPoolRemote => CTL_CODE(SIOCTL_TYPE, 0x904, METHOD_IN_DIRECT, FILE_ANY_ACCESS),
-            DriverAction::DereferenceAddress => CTL_CODE(SIOCTL_TYPE, 0xA00, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
+            DriverAction::DereferenceAddress => CTL_CODE(SIOCTL_TYPE, 0xA00, METHOD_OUT_DIRECT, FILE_ANY_ACCESS),
+            DriverAction::HideProcess => CTL_CODE(SIOCTL_TYPE, 0xA01, METHOD_IN_DIRECT, FILE_ANY_ACCESS)
         }
     }
 }
@@ -124,7 +126,9 @@ impl DriverState {
                             self.eprocess_traverse_result.push(EprocessPoolChunk {
                                 pool_addr: 0,
                                 eprocess_addr: eprocess,
-                                eprocess_name: n.to_string()
+                                eprocess_name: n.to_string().trim_end_matches(char::from(0))
+                                                .to_string()
+
                             });
                         },
                         _ => {}
@@ -190,12 +194,14 @@ impl DriverState {
                             let mut image_name = [0u8; 15];
                             self.deref_addr(try_eprocess_ptr + eprocess_name_offset, &mut image_name);
                             // println!("_EPROCESS at 0x{:x} of {}",
-                                     // try_eprocess_ptr, std::str::from_utf8(&image_name).unwrap());
+                            //          try_eprocess_ptr, std::str::from_utf8(&image_name).unwrap());
                             // TODO: save result
                             self.pool_scan_result.push(EprocessPoolChunk {
                                 pool_addr,
                                 eprocess_addr: try_eprocess_ptr,
-                                eprocess_name: std::str::from_utf8(&image_name).unwrap().to_string()
+                                eprocess_name: std::str::from_utf8(&image_name).unwrap()
+                                                    .to_string().trim_end_matches(char::from(0))
+                                                    .to_string()
                             });
                             break;
                         }
@@ -206,6 +212,21 @@ impl DriverState {
                     }
                 }
             },
+            DriverAction::HideProcess => {
+                let s = String::from("notepad.exe");
+                let s_bytes = s.as_bytes();
+                let mut name = [0u8; 15];
+                for i in 0..s.len() {
+                    name[i] = s_bytes[i];
+                };
+                let mut input = InputData {
+                    hide_process: HideProcess {
+                        name,
+                        size: s.len() as u64
+                    }
+                };
+                self.windows_ffi.device_io(code, &mut input, &mut Nothing);
+            }
             _ => {}
         };
     }
