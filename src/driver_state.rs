@@ -41,12 +41,27 @@ impl DriverAction {
     }
 }
 
+#[derive(Debug)]
+pub struct EprocessPoolChunk {
+    pub pool_addr: u64,
+    pub eprocess_addr: u64,
+    pub eprocess_name: String
+}
+
+impl PartialEq for EprocessPoolChunk {
+    fn eq(&self, other: &Self) -> bool {
+        self.eprocess_addr == other.eprocess_addr
+    }
+}
+
 #[allow(dead_code)]
 pub struct DriverState {
     pdb_store: PdbStore,
     windows_ffi: WindowsFFI,
     ntosbase: u64,
     nonpaged_range: [u64; 2],
+    pub eprocess_traverse_result: Vec<EprocessPoolChunk>,
+    pub pool_scan_result: Vec<EprocessPoolChunk>
 }
 
 impl DriverState {
@@ -57,7 +72,9 @@ impl DriverState {
             pdb_store,
             windows_ffi,
             ntosbase: 0u64,
-            nonpaged_range: [0, 0]
+            nonpaged_range: [0, 0],
+            eprocess_traverse_result: Vec::new(),
+            pool_scan_result: Vec::new()
         }
     }
 
@@ -94,8 +111,8 @@ impl DriverState {
                 let mut ptr = ps_active_head;
                 self.deref_addr(ptr + flink_offset, &mut ptr);
 
-                println!("========================");
-                println!("Scan PsActiveProcessHead");
+                // println!("========================");
+                // println!("Scan PsActiveProcessHead");
                 while ptr != ps_active_head {
                     let mut image_name = [0u8; 15];
                     let eprocess = ptr - eprocess_link_offset;
@@ -103,13 +120,18 @@ impl DriverState {
                     match std::str::from_utf8(&image_name) {
                         Ok(n) => {
                             // TODO: save to somewhere
-                            println!("_EPROCESS at 0x{:x} of {}", eprocess, n);
+                            // println!("_EPROCESS at 0x{:x} of {}", eprocess, n);
+                            self.eprocess_traverse_result.push(EprocessPoolChunk {
+                                pool_addr: 0,
+                                eprocess_addr: eprocess,
+                                eprocess_name: n.to_string()
+                            });
                         },
                         _ => {}
                     };
                     self.deref_addr(ptr + flink_offset, &mut ptr);
                 }
-                println!("========================");
+                // println!("========================");
 
                 // test call to check result
                 self.windows_ffi.device_io(code, &mut Nothing, &mut Nothing);
@@ -128,6 +150,8 @@ impl DriverState {
 
                 let pool_header_size = self.pdb_store.get_offset("_POOL_HEADER.struct_size").unwrap_or(0u64);
                 let eprocess_name_offset = self.pdb_store.get_offset("_EPROCESS.ImageFileName").unwrap_or(0u64);
+                let eprocess_create_time_offset = self.pdb_store.get_offset("_EPROCESS.CreateTime").unwrap_or(0u64);
+                let eprocess_size = self.pdb_store.get_offset("_EPROCESS.struct_size").unwrap_or(0u64);
 
                 let mut ptr = start_address;
                 while ptr < end_address {
@@ -144,38 +168,38 @@ impl DriverState {
                     let mut pool = vec![0u8; pool_header_size as usize];
                     self.deref_addr_ptr(pool_addr, pool.as_mut_ptr(), pool_header_size);
                     // TODO: Use pdb to parse, bit mangling and stuff
-                    println!("=========================");
-                    println!("Pool at 0x{:x}", pool_addr);
-                    println!("Previos Size: 0x{:x}", pool[0]);
-                    println!("Pool index  : {:x}", pool[1]);
-                    println!("Block size  : 0x{:x}", (pool[2] as u64) * 16u64); // CHUNK_SIZE = 16
-                    println!("Pool type   : {}", pool[3]);
-                    println!("Pool tag    : {}", std::str::from_utf8(&pool[4..8]).unwrap());
+                    // println!("=========================");
+                    // println!("Pool at 0x{:x}", pool_addr);
+                    // println!("Previos Size: 0x{:x}", pool[0]);
+                    // println!("Pool index  : {:x}", pool[1]);
+                    // println!("Block size  : 0x{:x}", (pool[2] as u64) * 16u64); // CHUNK_SIZE = 16
+                    // println!("Pool type   : {}", pool[3]);
+                    // println!("Pool tag    : {}", std::str::from_utf8(&pool[4..8]).unwrap());
 
                     let pool_size = (pool[2] as u64) * 16u64;
-                    // dump pool here
-                    let eprocess_offset: Vec<u64> = match pool_size {
-                        0xf00 => vec![0x40],
-                        0xd80 => vec![0x40, 0x70, 0x80],
-                        0xe00 => vec![0x60, 0x70, 0x80, 0x90],
-                        _ => vec![]
-                    };
-                    // let eprocess_offset: Vec<u64> = vec![0x40, 0x70, 0x80];
+                    let eprocess_valid_start = pool_addr + pool_header_size;
+                    let eprocess_valid_end = pool_addr + pool_size - eprocess_size;
                     let mut found_valid = false;
-                    for &offset in &eprocess_offset {
-                        let eprocess = pool_addr + offset;
-                        let mut image_name = [0u8; 15];
-                        self.deref_addr(eprocess + eprocess_name_offset, &mut image_name);
-                        match std::str::from_utf8(&image_name) {
-                            Ok(n) => {
-                                // TODO: save to somewhere
-                                // TODO: check if a name is not valid, values outside ascii,
-                                // remember that if a string is vaid, the rest of the name is 0
-                                found_valid = true;
-                                println!("_EPROCESS at 0x{:x} of {}", eprocess, n);
-                            },
-                            _ => {}
-                        };
+                    let mut try_eprocess_ptr = eprocess_valid_start;
+
+                    while !found_valid || try_eprocess_ptr < eprocess_valid_end {
+                        let mut create_time = 0u64;
+                        self.deref_addr(try_eprocess_ptr + eprocess_create_time_offset, &mut create_time);
+                        if self.windows_ffi.valid_process_time(create_time) {
+                            found_valid = true;
+                            let mut image_name = [0u8; 15];
+                            self.deref_addr(try_eprocess_ptr + eprocess_name_offset, &mut image_name);
+                            // println!("_EPROCESS at 0x{:x} of {}",
+                                     // try_eprocess_ptr, std::str::from_utf8(&image_name).unwrap());
+                            // TODO: save result
+                            self.pool_scan_result.push(EprocessPoolChunk {
+                                pool_addr,
+                                eprocess_addr: try_eprocess_ptr,
+                                eprocess_name: std::str::from_utf8(&image_name).unwrap().to_string()
+                            });
+                            break;
+                        }
+                        try_eprocess_ptr += 0x4;        // search exhaustively
                     }
                     if !found_valid {
                         println!("Not an eprocess maybe");

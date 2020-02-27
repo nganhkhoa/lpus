@@ -1,6 +1,7 @@
 use std::ffi::{c_void, CString};
 use std::mem::{transmute, size_of_val};
 use std::ptr::null_mut;
+use std::time::{SystemTime, UNIX_EPOCH};
 use widestring::U16CString;
 
 use winapi::shared::ntdef::*;
@@ -18,6 +19,7 @@ use winapi::um::fileapi::{CreateFileA, CREATE_ALWAYS};
 use winapi::um::handleapi::{INVALID_HANDLE_VALUE, CloseHandle};
 use winapi::um::libloaderapi::{LoadLibraryA, GetProcAddress};
 use winapi::um::processthreadsapi::{GetCurrentProcess, OpenProcessToken};
+use winapi::um::sysinfoapi::{GetTickCount64};
 use winapi::um::securitybaseapi::{AdjustTokenPrivileges};
 use winapi::um::winbase::{LookupPrivilegeValueA};
 use winapi::um::winreg::{RegCreateKeyExA, RegSetValueExA, RegCloseKey, HKEY_LOCAL_MACHINE};
@@ -210,21 +212,30 @@ impl WindowsFFI {
         );
     }
 
+    pub fn valid_process_time(&self, filetime: u64) -> bool {
+        // https://www.frenk.com/2009/12/convert-filetime-to-unix-timestamp/
+        let windows_epoch_diff = 11644473600000 * 10000;
+        if filetime < windows_epoch_diff {
+            return false;
+        }
+        let system_up_time_ms = unsafe { GetTickCount64() };
+        let process_time_epoch = (filetime - windows_epoch_diff) / 10000;
+        let now_ms = SystemTime::now().duration_since(UNIX_EPOCH).expect("Time went backwards").as_millis() as u64;
+        let system_start_up_time_ms = now_ms - system_up_time_ms;
+
+        if process_time_epoch < system_start_up_time_ms {
+            false
+        } else if process_time_epoch > now_ms {
+            false
+        } else {
+            true
+        }
+    }
+
     pub fn device_io<T, E>(&self, code: DWORD, inbuf: &mut T, outbuf: &mut E) -> DWORD {
-        // input_ptr: *mut c_void, input_len: DWORD, output_ptr: *mut c_void, output_len: DWORD) {
-        // println!("driver loaded: {}; device_io_code: {}", self.driver_loaded(), code);
-        // TODO: call device_io_raw
-        let mut bytes_returned: DWORD = 0;
-        unsafe {
-            let status = DeviceIoControl(self.driver_handle, code,
-                                         inbuf as *mut _ as *mut c_void, size_of_val(inbuf) as DWORD,
-                                         outbuf as *mut _ as *mut c_void, size_of_val(outbuf) as DWORD,
-                                         &mut bytes_returned, null_mut());
-            if status == 0 {
-                println!("device io failed: last error {}", GetLastError());
-            }
-        };
-        bytes_returned
+        self.device_io_raw(code,
+                           inbuf as *mut _ as *mut c_void, size_of_val(inbuf) as DWORD,
+                           outbuf as *mut _ as *mut c_void, size_of_val(outbuf) as DWORD)
     }
 
     pub fn device_io_raw(&self, code: DWORD,
