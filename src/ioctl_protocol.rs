@@ -64,16 +64,18 @@ pub struct DerefAddr {
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct ScanRange {
+pub struct ScanPoolData {
     pub start: u64,
-    pub end: u64
+    pub end: u64,
+    pub tag: [u8; 4]
 }
 
-impl ScanRange {
-    pub fn new(arr: &[u64; 2]) -> Self {
+impl ScanPoolData{
+    pub fn new(arr: &[u64; 2], tag: &[u8; 4]) -> Self {
         Self {
             start: arr[0],
-            end: arr[1]
+            end: arr[1],
+            tag: tag
         }
     }
 }
