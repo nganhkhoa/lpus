@@ -75,7 +75,7 @@ impl ScanPoolData{
         Self {
             start: arr[0],
             end: arr[1],
-            tag: tag
+            tag: *tag
         }
     }
 }
@@ -91,7 +91,7 @@ pub struct HideProcess {
 pub union InputData {
     pub offset_value: OffsetData,
     pub deref_addr: DerefAddr,
-    pub scan_range: ScanRange,
+    pub scan_range: ScanPoolData,
     pub hide_process: HideProcess,
 }
 
