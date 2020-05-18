@@ -1,3 +1,4 @@
+use std::error::Error;
 use std::io;
 use std::io::{Read};
 use std::path::Path;
@@ -29,6 +30,10 @@ pub struct PdbStore {
 }
 
 impl PdbStore {
+    pub fn get_offset_r(&self, name: &str) -> Result<u64, Box<dyn Error>> {
+        self.get_offset(name)
+            .ok_or(format!("{} is not found in PDB", name).into())
+    }
     #[allow(dead_code)]
     pub fn get_offset(&self, name: &str) -> Option<u64> {
         if name.contains(".") {
@@ -52,9 +57,9 @@ impl PdbStore {
     }
 
     #[allow(dead_code)]
-    pub fn addr_decompose(&self, addr: u64, full_name: &str) -> Result<u64, String>{
+    pub fn addr_decompose(&self, addr: u64, full_name: &str) -> Result<u64, Box<dyn Error>>{
         if !full_name.contains(".") {
-            return Err("Not decomposable".to_string());
+            return Err("Not decomposable".into());
         }
 
         let mut name_part: Vec<&str> = full_name.split_terminator('.').collect();
@@ -65,7 +70,7 @@ impl PdbStore {
                     Some((memtype, offset)) => {
                         if next.len() != 0 {
                             if memtype.contains("*") {
-                                return Err(format!("Cannot dereference pointer at {} {}", memtype, name_part[1]));
+                                return Err(format!("Cannot dereference pointer at {} {}", memtype, name_part[1]).into());
                             }
                             next.insert(0, memtype);
                             self.addr_decompose(addr + *offset, &next.join("."))
@@ -74,10 +79,10 @@ impl PdbStore {
                             Ok(addr + *offset)
                         }
                     },
-                    None => Err(format!("Not found member {}", name_part[1]))
+                    None => Err(format!("Not found member {}", name_part[1]).into())
                 }
             },
-            None => Err(format!("Struct {} not found", name_part[0]))
+            None => Err(format!("Struct {} not found", name_part[0]).into())
         }
     }
 
@@ -294,7 +299,15 @@ pub fn download_pdb() {
 
 pub fn parse_pdb() -> PdbStore {
     // TODO: Detect pdb file and ntoskrnl file version differs
-    // The guid of ntoskrnl and pdb file are different
+    // Use a folder at %APPDATA% to save pdb files
+    // %APPDATA%\lpus
+    // |--ntoskrnl
+    // |--|--GUID
+    // |--|--|--ntkrnlmp.pdb
+    // |--file
+    // |--|--GUID
+    // |--|--|--file.pdb
+    // TODO: Turn function to Result to handle error
     if !Path::new(PDBNAME).exists() {
         download_pdb();
     }
