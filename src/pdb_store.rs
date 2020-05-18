@@ -299,7 +299,15 @@ pub fn download_pdb() {
 
 pub fn parse_pdb() -> PdbStore {
     // TODO: Detect pdb file and ntoskrnl file version differs
-    // The guid of ntoskrnl and pdb file are different
+    // Use a folder at %APPDATA% to save pdb files
+    // %APPDATA%\lpus
+    // |--ntoskrnl
+    // |--|--GUID
+    // |--|--|--ntkrnlmp.pdb
+    // |--file
+    // |--|--GUID
+    // |--|--|--file.pdb
+    // TODO: Turn function to Result to handle error
     if !Path::new(PDBNAME).exists() {
         download_pdb();
     }

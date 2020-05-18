@@ -67,7 +67,7 @@ pub struct DerefAddr {
 pub struct ScanPoolData {
     pub start: u64,
     pub end: u64,
-    pub tag: [u8; 4]
+    pub tag: u32
 }
 
 impl ScanPoolData{
@@ -75,7 +75,7 @@ impl ScanPoolData{
         Self {
             start: arr[0],
             end: arr[1],
-            tag: *tag
+            tag: u32::from_le_bytes(*tag)
         }
     }
 }

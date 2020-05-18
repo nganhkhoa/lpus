@@ -10,7 +10,7 @@ use winapi::um::winioctl::{
     METHOD_IN_DIRECT, METHOD_OUT_DIRECT, /* METHOD_BUFFERED, */ METHOD_NEITHER
 };
 
-use crate::pdb_store::{PdbStore};
+use crate::pdb_store::{PdbStore, parse_pdb};
 use crate::windows::{WindowsFFI, WindowsVersion};
 use crate::ioctl_protocol::{
     InputData, OffsetData, DerefAddr, ScanPoolData, /* HideProcess, */
@@ -79,12 +79,10 @@ pub struct DriverState {
 }
 
 impl DriverState {
-    pub fn new(pdb_store: PdbStore, windows_ffi: WindowsFFI) -> Self {
-        pdb_store.print_default_information();
-        windows_ffi.print_version();
+    pub fn new() -> Self {
         Self {
-            pdb_store,
-            windows_ffi
+            pdb_store: parse_pdb(),
+            windows_ffi: WindowsFFI::new()
         }
     }
 
@@ -102,12 +100,12 @@ impl DriverState {
         self.windows_ffi.unload_driver()
     }
 
-    pub fn get_kernel_base(&self) -> BoxResult<u64> {
+    pub fn get_kernel_base(&self) -> u64 {
         let mut ntosbase = 0u64;
         self.windows_ffi.device_io(DriverAction::GetKernelBase.get_code(),
                                    &mut Nothing, &mut ntosbase);
         // println!("ntosbase: 0x{:x}", self.ntosbase);
-        Ok(ntosbase)
+        ntosbase
     }
 
     pub fn scan_active_head(&self, ntosbase: u64) -> BoxResult<Vec<EprocessPoolChunk>> {
@@ -144,9 +142,14 @@ impl DriverState {
         Ok(result)
     }
 
-    pub fn scan_pool<F>(&self, ntosbase: u64, tag: [u8; 4], mut handler: F) -> BoxResult<bool>
-                        where F: FnMut(&DriverState, u64) -> BoxResult<bool>
+    pub fn scan_pool<F>(&self, tag: &[u8; 4], mut handler: F) -> BoxResult<bool>
+                        where F: FnMut(u64, &[u8], u64) -> BoxResult<bool>
+                        // F(Pool Address, Pool Header Data, Pool Data Address)
+                        // TODO: Pool Header as a real struct
     {
+        let ntosbase = self.get_kernel_base();
+        // TODO: check valid tag
+        let pool_header_size = self.pdb_store.get_offset_r("_POOL_HEADER.struct_size")?;
         let code = DriverAction::ScanPoolRemote.get_code();
         let range = self.get_nonpaged_range(ntosbase)?;
         let start_address = range[0];
@@ -154,22 +157,23 @@ impl DriverState {
         let mut ptr = start_address;
         while ptr < end_address {
             let mut input = InputData {
-                scan_range: ScanPoolData::new(&[ptr, end_address], &tag)
+                scan_range: ScanPoolData::new(&[ptr, end_address], tag)
             };
             self.windows_ffi.device_io(code, &mut input, &mut ptr);
             if ptr >= end_address {
                 break;
             }
-            ptr += match handler(&self, ptr) {
-                Ok(success) => {
-                    if success {
-                    }
-                    else {
-                    }
-                },
-                Err(e) => println!("Handle error {:?}", e),
-                // found, ptr += chunk size
-                // ptr += pool_header_size;
+            let pool_addr = ptr;
+            let mut header = vec![0u8; pool_header_size as usize];
+            self.deref_addr_ptr(pool_addr, header.as_mut_ptr(), pool_header_size);
+
+            let success = handler(ptr, &header, pool_addr + pool_header_size)?;
+            if success {
+                let chunk_size = (header[2] as u64) * 16u64;
+                ptr += chunk_size /* pass this chunk */
+            }
+            else {
+                ptr += 0x4 /* search next */
             };
         }
         Ok(true)
