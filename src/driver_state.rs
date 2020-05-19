@@ -163,23 +163,47 @@ impl DriverState {
             if ptr >= end_address {
                 break;
             }
+
             let pool_addr = ptr;
             let mut header = vec![0u8; pool_header_size as usize];
             self.deref_addr_ptr(pool_addr, header.as_mut_ptr(), pool_header_size);
+            let chunk_size = (header[2] as u64) * 16u64;
 
-            let success = handler(ptr, &header, pool_addr + pool_header_size)?;
-            if success {
-                let chunk_size = (header[2] as u64) * 16u64;
-                ptr += chunk_size /* pass this chunk */
+            if pool_addr + chunk_size > end_address {
+                // the chunk found is not a valid chunk for sure
+                break;
+            }
+
+            // TODO: move to another function, with tables mapping fromm tag -> struct
+            // automatically reject bad chunk
+            // Proc -> _EPROCESS
+            // Thre -> _KTHREAD
+            if tag == b"Proc" {
+                let eprocess_size = self.pdb_store.get_offset_r("_EPROCESS.struct_size")?;
+                let minimum_data_size = eprocess_size + pool_header_size;
+                if chunk_size < minimum_data_size {
+                    ptr += 0x4;
+                    continue;
+                }
             }
             else {
-                ptr += 0x4 /* search next */
-            };
+                println!("Tag unknown");
+                break;
+            }
+
+            let success = handler(pool_addr, &header, pool_addr + pool_header_size)?;
+            if success {
+                ptr += chunk_size; /* pass this chunk */
+            }
+            else {
+                ptr += 0x4; /* search next */
+            }
         }
         Ok(true)
     }
 
     pub fn deref_addr<T>(&self, addr: u64, outbuf: &mut T) {
+        // println!("deref addr: 0x{:x}", addr);
         let code = DriverAction::DereferenceAddress.get_code();
         let size: usize = size_of_val(outbuf);
         let mut input = InputData {

@@ -99,7 +99,10 @@ impl PdbStore {
         ];
 
         let mut need_structs = HashMap::new();
-        need_structs.insert("_POOL_HEADER", vec![]);
+        need_structs.insert("_POOL_HEADER", vec![
+            "struct_size",
+            "PoolType", "BlockSize", "PoolTag"
+        ]);
         need_structs.insert("_PEB", vec![]);
         need_structs.insert("_LIST_ENTRY", vec![
             "Flink", "Blink"
