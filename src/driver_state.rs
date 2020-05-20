@@ -268,7 +268,28 @@ impl DriverState {
                     &mut last_va);
 
                 Ok([first_va, last_va])
-            }
+            },
+            WindowsVersion::Windows10_2019 => {
+                let mistate = ntosbase + self.pdb_store.get_offset_r("MiState")?;
+                let system_node_ptr = self.pdb_store.addr_decompose(
+                                        mistate, "_MI_SYSTEM_INFORMATION.Hardware.SystemNodeInformation")?;
+                let mut system_node_addr = 0u64;
+                self.deref_addr(system_node_ptr, &mut system_node_addr);
+
+                let mut first_va = 0u64;
+                let mut last_va = 0u64;
+                self.deref_addr(
+                    system_node_addr
+                    + self.pdb_store.get_offset_r("_MI_SYSTEM_NODE_INFORMATION.NonPagedPoolFirstVa")?,
+                    &mut first_va);
+
+                self.deref_addr(
+                    system_node_addr
+                    + self.pdb_store.get_offset_r("_MI_SYSTEM_NODE_INFORMATION.NonPagedPoolLastVa")?,
+                    &mut last_va);
+
+                Ok([first_va, last_va])
+            },
             _ => {
                 Err("Windows version for nonpaged pool algorithm is not implemented".into())
             }
