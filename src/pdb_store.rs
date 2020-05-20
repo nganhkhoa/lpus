@@ -1,25 +1,24 @@
 use std::error::Error;
 use std::io;
 use std::io::{Read};
-use std::path::Path;
+use std::path::{PathBuf};
 use std::fs::File;
 use std::collections::HashMap;
 
-use pdb::PDB;
-use pdb::SymbolData;
-use pdb::TypeData;
-use pdb::ClassType;
-use pdb::ModifierType;
-use pdb::Rva;
+use pdb::{
+    PDB, SymbolData, TypeData, ClassType, ModifierType, Rva,
+    FallibleIterator, TypeFinder, TypeIndex
+};
 
-use pdb::FallibleIterator;
-use pdb::TypeFinder;
-use pdb::TypeIndex;
+use app_dirs::{AppInfo, AppDataType, app_dir};
 
+const APP_INFO: AppInfo = AppInfo { name: "lpus", author: "nganhkhoa" };
 
-const PDBNAME: &str = "ntkrnlmp.pdb";
+const KERNEL_PDB_NAME: &str = "ntkrnlmp.pdb";
 const NTOSKRNL_PATH: &str = "C:\\Windows\\System32\\ntoskrnl.exe";
 const PDB_SERVER_PATH: &str = "http://msdl.microsoft.com/download/symbols";
+
+type BoxResult<T> = Result<T, Box<dyn Error>>;
 
 type SymbolStore = HashMap<String, u64>;
 type StructStore = HashMap<String, HashMap<String, (String, u64)>>;
@@ -30,7 +29,7 @@ pub struct PdbStore {
 }
 
 impl PdbStore {
-    pub fn get_offset_r(&self, name: &str) -> Result<u64, Box<dyn Error>> {
+    pub fn get_offset_r(&self, name: &str) -> BoxResult<u64> {
         self.get_offset(name)
             .ok_or(format!("{} is not found in PDB", name).into())
     }
@@ -57,7 +56,7 @@ impl PdbStore {
     }
 
     #[allow(dead_code)]
-    pub fn addr_decompose(&self, addr: u64, full_name: &str) -> Result<u64, Box<dyn Error>>{
+    pub fn addr_decompose(&self, addr: u64, full_name: &str) -> BoxResult<u64>{
         if !full_name.contains(".") {
             return Err("Not decomposable".into());
         }
@@ -258,11 +257,12 @@ fn get_type_as_str(type_finder: &TypeFinder, typ: &TypeIndex) -> String {
     }
 }
 
-pub fn download_pdb() {
-    let mut ntoskrnl = File::open(NTOSKRNL_PATH).expect("Cannot open ntoskrnl.exe");
+fn get_guid_age(exe_file: &str) -> BoxResult<(String, u32)>{
+    // TODO: Check file existance
+    let mut file = File::open(exe_file)?;
 
     let mut buffer = Vec::new();
-    ntoskrnl.read_to_end(&mut buffer).expect("Cannot read file ntoskrnl.exe");
+    file.read_to_end(&mut buffer)?;
 
     let mut buffiter = buffer.chunks(4);
     while buffiter.next().unwrap() != [0x52, 0x53, 0x44, 0x53] {
@@ -292,37 +292,54 @@ pub fn download_pdb() {
         raw_age[0], raw_age[1], raw_age[2], raw_age[3]
     ]);
 
-    let downloadurl = format!("{}/{}/{}{:X}/{}", PDB_SERVER_PATH, PDBNAME, guid, age, PDBNAME);
-    println!("{}", downloadurl);
-
-    let mut resp = reqwest::blocking::get(&downloadurl).expect("request failed");
-    let mut out = File::create(PDBNAME).expect("failed to create file");
-    io::copy(&mut resp, &mut out).expect("failed to copy content");
+    Ok((guid, age))
 }
 
-pub fn parse_pdb() -> PdbStore {
-    // TODO: Detect pdb file and ntoskrnl file version differs
+fn pdb_exists(pdbname: &str, guid: &str, age: u32) -> BoxResult<(bool, PathBuf)> {
     // Use a folder at %APPDATA% to save pdb files
-    // %APPDATA%\lpus
-    // |--ntoskrnl
+    // %APPDATA%\nganhkhoaa\lpus
+    // |--ntkrnlmp.pdb
     // |--|--GUID
     // |--|--|--ntkrnlmp.pdb
-    // |--file
+    // |--file.pdb
     // |--|--GUID
     // |--|--|--file.pdb
-    // TODO: Turn function to Result to handle error
-    if !Path::new(PDBNAME).exists() {
-        download_pdb();
-    }
-    let f = File::open("ntkrnlmp.pdb").expect("No such file ./ntkrnlmp.pdb");
-    let mut pdb = PDB::open(f).expect("Cannot open as a PDB file");
+    let mut pdb_location = app_dir(AppDataType::UserData, &APP_INFO,
+                                   &format!("{}/{}/{}", pdbname, guid, age))?;
+    pdb_location.push(pdbname);
+    Ok((pdb_location.exists(), pdb_location))
+}
 
-    let info = pdb.pdb_information().expect("Cannot get pdb information");
-    let dbi = pdb.debug_information().expect("cannot get debug information");
+fn download_pdb(pdbname: &str, guid: &str, age: u32, outfile: &PathBuf) -> BoxResult<()> {
+    let downloadurl = format!("{}/{}/{}{:X}/{}", PDB_SERVER_PATH, pdbname, guid, age, pdbname);
+    println!("{}", downloadurl);
+
+    let mut resp = reqwest::blocking::get(&downloadurl)?;
+    let mut out = File::create(outfile)?;
+    io::copy(&mut resp, &mut out)?;
+    Ok(())
+}
+
+pub fn parse_pdb() -> BoxResult<PdbStore> {
+    // TODO: Resolve pdb name
+    // ntoskrnl.exe -> ntkrnlmp.pdb
+    // tcpip.sys -> tcpip.pdb ?????
+    // There may be more pdb files in the future
+    let (guid, age) = get_guid_age(NTOSKRNL_PATH)?;
+    let (exists, pdb_path) = pdb_exists(KERNEL_PDB_NAME, &guid, age)?;
+    if !exists {
+        println!("PDB not found, download into {:?}", pdb_path);
+        download_pdb(KERNEL_PDB_NAME, &guid, age, &pdb_path)?;
+    }
+    let f = File::open(pdb_path)?;
+    let mut pdb = PDB::open(f)?;
+
+    let info = pdb.pdb_information()?;
+    let dbi = pdb.debug_information()?;
     println!("PDB for {}, guid: {}, age: {}\n",
         dbi.machine_type().unwrap(), info.guid, dbi.age().unwrap_or(0));
 
-    let type_information = pdb.type_information().expect("Cannot get type information");
+    let type_information = pdb.type_information()?;
     let mut type_finder = type_information.type_finder();
     let mut iter = type_information.iter();
     while let Some(_typ) = iter.next().unwrap() {
@@ -330,8 +347,8 @@ pub fn parse_pdb() -> PdbStore {
     }
 
     let mut symbol_extracted: SymbolStore = HashMap::new();
-    let addr_map = pdb.address_map().expect("Cannot get address map");
-    let glosym = pdb.global_symbols().expect("Cannot get global symbols");
+    let addr_map = pdb.address_map()?;
+    let glosym = pdb.global_symbols()?;
     let mut symbols = glosym.iter();
     while let Some(symbol) = symbols.next().unwrap() {
         match symbol.parse() {
@@ -370,8 +387,8 @@ pub fn parse_pdb() -> PdbStore {
         }
     }
 
-    PdbStore {
+    Ok(PdbStore {
         symbols: symbol_extracted,
         structs: struct_extracted
-    }
+    })
 }

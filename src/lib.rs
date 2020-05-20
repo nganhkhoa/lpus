@@ -1,4 +1,5 @@
 extern crate chrono;
+extern crate app_dirs;
 
 pub mod pdb_store;
 pub mod windows;

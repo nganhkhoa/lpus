@@ -24,7 +24,7 @@ use winapi::um::securitybaseapi::{AdjustTokenPrivileges};
 use winapi::um::winbase::{LookupPrivilegeValueA};
 use winapi::um::winreg::{RegCreateKeyExA, RegSetValueExA, RegCloseKey, HKEY_LOCAL_MACHINE};
 
-const STR_DRIVER_REGISTRY_PATH: &str = "\\Registry\\Machine\\System\\CurrentControlSet\\Services\\nganhkhoa";
+const STR_DRIVER_REGISTRY_PATH: &str = "\\Registry\\Machine\\System\\CurrentControlSet\\Services\\lpus";
 
 #[allow(dead_code)]
 #[derive(Debug, Copy, Clone)]
@@ -61,8 +61,8 @@ impl WindowsFFI {
         let str_rtl_get_version = CString::new("RtlGetVersion").unwrap();
         let str_se_load_driver_privilege = CString::new("SeLoadDriverPrivilege").unwrap();
 
-        let str_driver_path = CString::new("\\SystemRoot\\System32\\DRIVERS\\nganhkhoa.sys").unwrap();
-        let str_registry_path = CString::new("System\\CurrentControlSet\\Services\\nganhkhoa").unwrap();
+        let str_driver_path = CString::new("\\SystemRoot\\System32\\DRIVERS\\lpus.sys").unwrap();
+        let str_registry_path = CString::new("System\\CurrentControlSet\\Services\\lpus").unwrap();
         let str_type = CString::new("Type").unwrap();
         let str_error_control = CString::new("ErrorControl").unwrap();
         let str_start = CString::new("Start").unwrap();

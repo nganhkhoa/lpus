@@ -81,7 +81,7 @@ pub struct DriverState {
 impl DriverState {
     pub fn new() -> Self {
         Self {
-            pdb_store: parse_pdb(),
+            pdb_store: parse_pdb().expect("Cannot get PDB file"),
             windows_ffi: WindowsFFI::new()
         }
     }

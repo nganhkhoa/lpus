@@ -34,14 +34,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         let eprocess_size = driver.pdb_store.get_offset_r("_EPROCESS.struct_size")?;
         let eprocess_name_offset = driver.pdb_store.get_offset_r("_EPROCESS.ImageFileName")?;
         let eprocess_create_time_offset = driver.pdb_store.get_offset_r("_EPROCESS.CreateTime")?;
-        let eprocess_exit_time_offset = driver.pdb_store.get_offset_r("_EPROCESS.ExitTime")?;
+        // let eprocess_exit_time_offset = driver.pdb_store.get_offset_r("_EPROCESS.ExitTime")?;
 
         let eprocess_valid_start = data_addr;
         let eprocess_valid_end = (pool_addr + chunk_size) - eprocess_size;
         let mut try_eprocess_ptr = eprocess_valid_start;
 
         let mut create_time = 0u64;
-        let mut exit_time = 0u64;
+        // let mut exit_time = 0u64;
         while try_eprocess_ptr <= eprocess_valid_end {
             driver.deref_addr(try_eprocess_ptr + eprocess_create_time_offset, &mut create_time);
             // driver.deref_addr(try_eprocess_ptr + eprocess_exit_time_offset, &mut exit_time);
@@ -51,7 +51,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             }
             try_eprocess_ptr += 0x4;        // search exhaustively
         }
-        if (try_eprocess_ptr > eprocess_valid_end) {
+        if try_eprocess_ptr > eprocess_valid_end {
             return Ok(false);
         }
 

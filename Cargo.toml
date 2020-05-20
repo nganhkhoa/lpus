@@ -11,6 +11,7 @@ name = "lpus"
 doctest = false
 
 [dependencies]
+app_dirs = "1.2.1"
 hex = "0.4.2"
 pdb = "0.5.0"
 chrono = "0.4"
