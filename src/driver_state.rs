@@ -108,7 +108,8 @@ impl DriverState {
         ntosbase
     }
 
-    pub fn scan_active_head(&self, ntosbase: u64) -> BoxResult<Vec<EprocessPoolChunk>> {
+    pub fn scan_active_head(&self) -> BoxResult<Vec<EprocessPoolChunk>> {
+        let ntosbase = self.get_kernel_base();
         let ps_active_head = ntosbase + self.pdb_store.get_offset_r("PsActiveProcessHead")?;
         let flink_offset = self.pdb_store.get_offset_r("_LIST_ENTRY.Flink")?;
         let eprocess_link_offset = self.pdb_store.get_offset_r("_EPROCESS.ActiveProcessLinks")?;
@@ -148,8 +149,8 @@ impl DriverState {
                         // TODO: Pool Header as a real struct
     {
         let ntosbase = self.get_kernel_base();
-        // TODO: check valid tag
         let pool_header_size = self.pdb_store.get_offset_r("_POOL_HEADER.struct_size")?;
+        let minimum_block_size = self.get_minimum_block_size(tag)?;
         let code = DriverAction::ScanPoolRemote.get_code();
         let range = self.get_nonpaged_range(ntosbase)?;
         let start_address = range[0];
@@ -165,6 +166,9 @@ impl DriverState {
             }
 
             let pool_addr = ptr;
+            // println!("chunk: 0x{:x}", pool_addr);
+            // ptr += 0x4;
+            // continue;
             let mut header = vec![0u8; pool_header_size as usize];
             self.deref_addr_ptr(pool_addr, header.as_mut_ptr(), pool_header_size);
             let chunk_size = (header[2] as u64) * 16u64;
@@ -174,23 +178,14 @@ impl DriverState {
                 break;
             }
 
-            // TODO: move to another function, with tables mapping fromm tag -> struct
             // automatically reject bad chunk
-            // Proc -> _EPROCESS
-            // Thre -> _KTHREAD
-            if tag == b"Proc" {
-                let eprocess_size = self.pdb_store.get_offset_r("_EPROCESS.struct_size")?;
-                let minimum_data_size = eprocess_size + pool_header_size;
-                if chunk_size < minimum_data_size {
-                    ptr += 0x4;
-                    continue;
-                }
-            }
-            else {
-                println!("Tag unknown");
-                break;
+            if chunk_size < minimum_block_size {
+                ptr += 0x4;
+                continue;
             }
 
+            // ptr += 0x4;
+            // continue;
             let success = handler(pool_addr, &header, pool_addr + pool_header_size)?;
             if success {
                 ptr += chunk_size; /* pass this chunk */
@@ -200,6 +195,25 @@ impl DriverState {
             }
         }
         Ok(true)
+    }
+
+    fn get_minimum_block_size(&self, tag: &[u8; 4]) -> BoxResult<u64> {
+        // Proc -> _EPROCESS
+        // Thre -> _KTHREAD
+        let pool_header_size = self.pdb_store.get_offset_r("_POOL_HEADER.struct_size")?;
+        if tag == b"Proc" {
+            let eprocess_size = self.pdb_store.get_offset_r("_EPROCESS.struct_size")?;
+            let minimum_data_size = eprocess_size + pool_header_size;
+            Ok(minimum_data_size)
+        }
+        else if tag == b"File" {
+            let file_object_size = self.pdb_store.get_offset_r("_FILE_OBJECT.struct_size")?;
+            let minimum_data_size = file_object_size + pool_header_size;
+            Ok(minimum_data_size)
+        }
+        else {
+            Err("Tag unknown".into())
+        }
     }
 
     pub fn deref_addr<T>(&self, addr: u64, outbuf: &mut T) {
@@ -231,18 +245,23 @@ impl DriverState {
 
     pub fn get_unicode_string(&self, unicode_str_addr: u64) -> BoxResult<String> {
         let mut strlen = 0u16;
+        let mut capacity = 0u16;
         let mut bufaddr = 0u64;
         let buffer_ptr = unicode_str_addr + self.pdb_store.get_offset_r("_UNICODE_STRING.Buffer")?;
+        let capacity_addr  = unicode_str_addr + self.pdb_store.get_offset_r("_UNICODE_STRING.MaximumLength")?;
 
         self.deref_addr(unicode_str_addr, &mut strlen);
+        self.deref_addr(capacity_addr, &mut capacity);
         self.deref_addr(buffer_ptr, &mut bufaddr);
 
-        let mut buf = vec![0u8; strlen as usize];
+        if bufaddr == 0 || strlen > capacity || strlen == 0 {
+            return Err("Unicode string is empty".into());
+        }
+
+        let mut buf = vec![0u16; (strlen / 2) as usize];
         self.deref_addr_ptr(bufaddr, buf.as_mut_ptr(), strlen as u64);
 
-        println!("unicode string {:?}", buf);
-
-        Ok(std::str::from_utf8(&buf)?.to_string())
+        Ok(String::from_utf16(&buf)?)
     }
 
     pub fn get_nonpaged_range(&self, ntosbase: u64) -> BoxResult<[u64; 2]> {
