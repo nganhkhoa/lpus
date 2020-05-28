@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         driver.deref_addr(try_eprocess_ptr + eprocess_name_offset, &mut image_name);
         driver.deref_addr(try_eprocess_ptr + eprocess_image_file_ptr_offset, &mut file_object_ptr);
-        let filename = if file_object_ptr != 0 { driver.get_unicode_string(file_object_ptr + fob_filename_offset)? }
+        let filename = if file_object_ptr != 0 { driver.get_unicode_string(file_object_ptr + fob_filename_offset, true)? }
                        else { "".to_string() };
 
         if let Ok(name) = from_utf8(&image_name) {

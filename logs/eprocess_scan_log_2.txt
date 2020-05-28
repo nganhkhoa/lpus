@@ -1,0 +1,325 @@
+PDB for Amd64, guid: 94add4fd-403f-5f1a-8d4b-aba8db5d5b7a, age: 1
+
+NtLoadDriver()   -> 0x0
+pool: 0xffffa80e2cced000 | eprocess: 0xffffa80e2cced040 |  | System
+pool: 0xffffa80e2cd17000 | eprocess: 0xffffa80e2cd17080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e2cd3d010 | eprocess: 0xffffa80e2cd3d080 |  | Registry
+pool: 0xffffa80e2cd3e000 | eprocess: 0xffffa80e2cd3e080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e2cd79040 | eprocess: 0xffffa80e2cd79080 |  | Secure System
+pool: 0xffffa80e2cdc8000 | eprocess: 0xffffa80e2cdc8080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e2efcc000 | eprocess: 0xffffa80e2efcc080 |  | svchost.exe
+pool: 0xffffa80e2efcf000 | eprocess: 0xffffa80e2efcf080 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e2efd1000 | eprocess: 0xffffa80e2efd1080 | \Program Files\Dell\SupportAssistAgent\PCDr\SupportAssist\6.0.7106.1428\DSAPI.exe | DSAPI.exe
+pool: 0xffffa80e316cb0f0 | eprocess: 0xffffa80e316cb180 | \Windows\System32\dllhost.exe | dllhost.exe
+pool: 0xffffa80e365b9000 | eprocess: 0xffffa80e365b9040 | \Windows\System32\smss.exe | smss.exe
+pool: 0xffffa80e368ed000 | eprocess: 0xffffa80e368ed080 |  | smss.exe
+pool: 0xffffa80e369420c0 | eprocess: 0xffffa80e36942140 | \Windows\System32\csrss.exe | csrss.exe
+pool: 0xffffa80e384c1000 | eprocess: 0xffffa80e384c1080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e38502040 | eprocess: 0xffffa80e385020c0 | \Windows\System32\wbem\WmiPrvSE.exe | WmiPrvSE.exe
+pool: 0xffffa80e38772000 | eprocess: 0xffffa80e38772080 |  | smss.exe
+pool: 0xffffa80e3877e0c0 | eprocess: 0xffffa80e3877e140 | \Windows\System32\csrss.exe | csrss.exe
+pool: 0xffffa80e3877f000 | eprocess: 0xffffa80e3877f080 | \Windows\System32\wininit.exe | wininit.exe
+pool: 0xffffa80e387d4000 | eprocess: 0xffffa80e387d4080 | \Windows\System32\ibtsiva.exe | ibtsiva.exe
+pool: 0xffffa80e387f2000 | eprocess: 0xffffa80e387f2080 | \Windows\System32\services.exe | services.exe
+pool: 0xffffa80e387f4000 | eprocess: 0xffffa80e387f4080 | \Windows\System32\lsass.exe | lsass.exe
+pool: 0xffffa80e387f6000 | eprocess: 0xffffa80e387f6080 | \Windows\System32\LsaIso.exe | LsaIso.exe
+pool: 0xffffa80e38e88000 | eprocess: 0xffffa80e38e88080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e38eed000 | eprocess: 0xffffa80e38eed080 | \Windows\System32\fontdrvhost.exe | fontdrvhost.ex
+pool: 0xffffa80e38ef9000 | eprocess: 0xffffa80e38ef9080 | \Windows\System32\WUDFHost.exe | WUDFHost.exe
+pool: 0xffffa80e38fc1000 | eprocess: 0xffffa80e38fc1080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39005000 | eprocess: 0xffffa80e39005080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39006000 | eprocess: 0xffffa80e39006080 | \Windows\System32\winlogon.exe | winlogon.exe
+pool: 0xffffa80e39102040 | eprocess: 0xffffa80e391020c0 | \Windows\System32\fontdrvhost.exe | fontdrvhost.ex
+pool: 0xffffa80e39107000 | eprocess: 0xffffa80e39107080 | \Windows\System32\dwm.exe | dwm.exe
+pool: 0xffffa80e3910a000 | eprocess: 0xffffa80e3910a080 |  | LogonUI.exe
+pool: 0xffffa80e391c10b0 | eprocess: 0xffffa80e391c1140 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e391c5000 | eprocess: 0xffffa80e391c5080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39259000 | eprocess: 0xffffa80e39259080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39264000 | eprocess: 0xffffa80e39264080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39289040 | eprocess: 0xffffa80e392890c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e392db000 | eprocess: 0xffffa80e392db080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e392de000 | eprocess: 0xffffa80e392de080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e392e4000 | eprocess: 0xffffa80e392e4080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39306000 | eprocess: 0xffffa80e39306080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3930d000 | eprocess: 0xffffa80e3930d080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3930f000 | eprocess: 0xffffa80e3930f080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e393bc040 | eprocess: 0xffffa80e393bc0c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e393c1000 | eprocess: 0xffffa80e393c1080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e393c2000 | eprocess: 0xffffa80e393c2080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e393d5000 | eprocess: 0xffffa80e393d5080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39423040 | eprocess: 0xffffa80e394230c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39430000 | eprocess: 0xffffa80e39430080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39454000 | eprocess: 0xffffa80e39454080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39580000 | eprocess: 0xffffa80e39580080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e395ab000 | eprocess: 0xffffa80e395ab080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e395af000 | eprocess: 0xffffa80e395af080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39613040 | eprocess: 0xffffa80e396130c0 | \Program Files (x86)\Dell\UpdateService\ServiceShell.exe | ServiceShell.e
+pool: 0xffffa80e39637000 | eprocess: 0xffffa80e39637080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3965e000 | eprocess: 0xffffa80e3965e080 | \Windows\System32\vmms.exe | vmms.exe
+pool: 0xffffa80e39677000 | eprocess: 0xffffa80e39677080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e396eb000 | eprocess: 0xffffa80e396eb080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39723040 | eprocess: 0xffffa80e397230c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3977a070 | eprocess: 0xffffa80e3977a100 | \Program Files\NVIDIA Corporation\Display.NvContainer\NVDisplay.Container.exe | NVDisplay.Cont
+pool: 0xffffa80e39785000 | eprocess: 0xffffa80e39785080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3979d000 | eprocess: 0xffffa80e3979d080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e397a1000 | eprocess: 0xffffa80e397a1080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e397a8000 | eprocess: 0xffffa80e397a8080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e397f6000 | eprocess: 0xffffa80e397f6080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39829000 | eprocess: 0xffffa80e39829040 |  | MemCompression
+pool: 0xffffa80e3982f000 | eprocess: 0xffffa80e3982f080 | \Windows\System32\DriverStore\FileRepository\ki127176.inf_amd64_86c658cabfb17c9c\igfxCUIService.exe | igfxCUIService
+pool: 0xffffa80e39842000 | eprocess: 0xffffa80e39842080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3984e000 | eprocess: 0xffffa80e3984e080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39853000 | eprocess: 0xffffa80e39853080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39983000 | eprocess: 0xffffa80e39983080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e399e3000 | eprocess: 0xffffa80e399e3080 | \Program Files\NVIDIA Corporation\Display.NvContainer\NVDisplay.Container.exe | NVDisplay.Cont
+pool: 0xffffa80e39a47000 | eprocess: 0xffffa80e39a47080 | \Windows\System32\SettingSyncHost.exe | SettingSyncHos
+pool: 0xffffa80e39a48000 | eprocess: 0xffffa80e39a48080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39a4c000 | eprocess: 0xffffa80e39a4c080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39a50000 | eprocess: 0xffffa80e39a50080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39a6d000 | eprocess: 0xffffa80e39a6d080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39a98000 | eprocess: 0xffffa80e39a98080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39ab5000 | eprocess: 0xffffa80e39ab5080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39b08000 | eprocess: 0xffffa80e39b08080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39b84000 | eprocess: 0xffffa80e39b84080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39c49000 | eprocess: 0xffffa80e39c49080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39c89000 | eprocess: 0xffffa80e39c89080 | \Windows\System32\wbem\WmiPrvSE.exe | WmiPrvSE.exe
+pool: 0xffffa80e39dc5000 | eprocess: 0xffffa80e39dc5080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39dc7040 | eprocess: 0xffffa80e39dc70c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e39ea0000 | eprocess: 0xffffa80e39ea0080 | \Windows\System32\spoolsv.exe | spoolsv.exe
+pool: 0xffffa80e39fc2040 | eprocess: 0xffffa80e39fc20c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3a0ab000 | eprocess: 0xffffa80e3a0ab080 | \Program Files (x86)\Common Files\Adobe\Adobe Desktop Common\ElevationManager\AdobeUpdateService.exe | AdobeUpdateSer
+pool: 0xffffa80e3a0ac000 | eprocess: 0xffffa80e3a0ac080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3a0b11d0 | eprocess: 0xffffa80e3a0b1240 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3a0b4000 | eprocess: 0xffffa80e3a0b4080 | \Program Files (x86)\Common Files\Adobe\ARM\1.0\armsvc.exe | armsvc.exe
+pool: 0xffffa80e3a1a7000 | eprocess: 0xffffa80e3a1a7080 | \Program Files (x86)\Common Files\Adobe\AdobeGCClient\AGMService.exe | AGMService.exe
+pool: 0xffffa80e3a1a8000 | eprocess: 0xffffa80e3a1a8080 | \Program Files\Common Files\microsoft shared\ClickToRun\OfficeClickToRun.exe | OfficeClickToR
+pool: 0xffffa80e3a1ab000 | eprocess: 0xffffa80e3a1ab080 | \Program Files\Docker\Docker\com.docker.service | com.docker.ser
+pool: 0xffffa80e3a1ac000 | eprocess: 0xffffa80e3a1ac080 | \Windows\System32\DriverStore\FileRepository\ki127176.inf_amd64_86c658cabfb17c9c\IntelCpHDCPSvc.exe | IntelCpHDCPSvc
+pool: 0xffffa80e3a21b000 | eprocess: 0xffffa80e3a21b080 | \Windows\System32\CxAudMsg64.exe | CxAudMsg64.exe
+pool: 0xffffa80e3a21c000 | eprocess: 0xffffa80e3a21c080 | \Program Files\CONEXANT\SA3\Dell-Notebook\CxUtilSvc.exe | CxUtilSvc.exe
+pool: 0xffffa80e3a245000 | eprocess: 0xffffa80e3a245080 | \Windows\System32\DbxSvc.exe | DbxSvc.exe
+pool: 0xffffa80e3a246000 | eprocess: 0xffffa80e3a246080 | \Windows\System32\wlanext.exe | wlanext.exe
+pool: 0xffffa80e3a24d000 | eprocess: 0xffffa80e3a24d080 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e3a251000 | eprocess: 0xffffa80e3a251080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3a27a000 | eprocess: 0xffffa80e3a27a080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3a2a1000 | eprocess: 0xffffa80e3a2a1080 | \Windows\System32\sihost.exe | sihost.exe
+pool: 0xffffa80e3a2a9040 | eprocess: 0xffffa80e3a2a90c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3a2ad1d0 | eprocess: 0xffffa80e3a2ad240 | \Windows\System32\ApplicationFrameHost.exe | ApplicationFra
+pool: 0xffffa80e3a2b2000 | eprocess: 0xffffa80e3a2b2080 | \Windows\System32\Intel\DPTF\esif_uf.exe | esif_uf.exe
+pool: 0xffffa80e3a2b4070 | eprocess: 0xffffa80e3a2b4100 | \Program Files\Intel\Intel(R) Online Connect Access\IntelTechnologyAccessService.exe | IntelTechnolog
+pool: 0xffffa80e3a2b5000 | eprocess: 0xffffa80e3a2b5080 | \Program Files\Intel\WiFi\bin\EvtEng.exe | EvtEng.exe
+pool: 0xffffa80e3a2b8000 | eprocess: 0xffffa80e3a2b8080 | \Windows\System32\FMService64.exe | FMService64.ex
+pool: 0xffffa80e3a2d5000 | eprocess: 0xffffa80e3a2d5080 | \Program Files\Intel\Intel(R) Rapid Storage Technology\IAStorIcon.exe | IAStorIcon.exe
+pool: 0xffffa80e3a362000 | eprocess: 0xffffa80e3a362080 | \Program Files (x86)\Common Files\Microsoft Shared\Phone Tools\CoreCon\11.0\bin\IpOverUsbSvc.exe | IpOverUsbSvc.e
+pool: 0xffffa80e3a363000 | eprocess: 0xffffa80e3a363080 | \Program Files\Intel\Intel(R) Online Connect Access\LegacyCsLoaderService.exe | LegacyCsLoader
+pool: 0xffffa80e3a36c080 | eprocess: 0xffffa80e3a36c100 | \Program Files (x86)\NVIDIA Corporation\NvTelemetry\NvTelemetryContainer.exe | NvTelemetryCon
+pool: 0xffffa80e3a37d000 | eprocess: 0xffffa80e3a37d080 | \Windows\SysWOW64\PnkBstrA.exe | PnkBstrA.exe
+pool: 0xffffa80e3a3a4000 | eprocess: 0xffffa80e3a3a4080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3a3a5000 | eprocess: 0xffffa80e3a3a5080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3a447000 | eprocess: 0xffffa80e3a447080 | \Program Files\Rivet Networks\SmartByte\SmartByteNetworkService.exe | SmartByteNetwo
+pool: 0xffffa80e3a448000 | eprocess: 0xffffa80e3a448080 | \Program Files\Microsoft SQL Server\90\Shared\sqlwriter.exe | sqlwriter.exe
+pool: 0xffffa80e3a44d000 | eprocess: 0xffffa80e3a44d080 | \Windows\ThunderboltService.exe | ThunderboltSer
+pool: 0xffffa80e3a44f000 | eprocess: 0xffffa80e3a44f080 | \Windows\System32\RtkAudUService64.exe | RtkAudUService
+pool: 0xffffa80e3a450000 | eprocess: 0xffffa80e3a450080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3a514000 | eprocess: 0xffffa80e3a514080 | \Program Files\TrueColor\TrueColorALS.exe | TrueColorALS.e
+pool: 0xffffa80e3a51a000 | eprocess: 0xffffa80e3a51a080 | \Program Files\Intel\WiFi\bin\ZeroConfigService.exe | ZeroConfigServ
+pool: 0xffffa80e3a51b000 | eprocess: 0xffffa80e3a51b080 | \Program Files (x86)\TeamViewer\TeamViewer_Service.exe | TeamViewer_Ser
+pool: 0xffffa80e3a520000 | eprocess: 0xffffa80e3a520080 | \Program Files (x86)\Western Digital\WD Drive Manager\WDDriveService.exe | WDDriveService
+pool: 0xffffa80e3a521000 | eprocess: 0xffffa80e3a521080 | \Windows\System32\dasHost.exe | dasHost.exe
+pool: 0xffffa80e3a522000 | eprocess: 0xffffa80e3a522080 | \Program Files\Waves\MaxxAudio\WavesSysSvc64.exe | WavesSysSvc64.
+pool: 0xffffa80e3a562000 | eprocess: 0xffffa80e3a562080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3a565000 | eprocess: 0xffffa80e3a565080 | \ProgramData\Microsoft\Windows Defender\Platform\4.18.2004.6-0\MsMpEng.exe | MsMpEng.exe
+pool: 0xffffa80e3a586000 | eprocess: 0xffffa80e3a586080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3a587000 | eprocess: 0xffffa80e3a587080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3a588000 | eprocess: 0xffffa80e3a588080 | \Windows\System32\DriverStore\FileRepository\ki127176.inf_amd64_86c658cabfb17c9c\igfxext.exe | igfxext.exe
+pool: 0xffffa80e3a589000 | eprocess: 0xffffa80e3a589080 | \Windows\System32\vmcompute.exe | vmcompute.exe
+pool: 0xffffa80e3a58b000 | eprocess: 0xffffa80e3a58b080 | \Windows\System32\wbem\unsecapp.exe | unsecapp.exe
+pool: 0xffffa80e3a58c000 | eprocess: 0xffffa80e3a58c080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3a58d000 | eprocess: 0xffffa80e3a58d080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3a592040 | eprocess: 0xffffa80e3a5920c0 | \Windows\System32\DriverStore\FileRepository\ki127176.inf_amd64_86c658cabfb17c9c\IntelCpHeciSvc.exe | IntelCpHeciSvc
+pool: 0xffffa80e3a593000 | eprocess: 0xffffa80e3a593080 | \Windows\System32\Intel\DPTF\dptf_helper.exe | dptf_helper.ex
+pool: 0xffffa80e3abf7000 | eprocess: 0xffffa80e3abf7080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3ad6f000 | eprocess: 0xffffa80e3ad6f080 | \Windows\System32\dllhost.exe | dllhost.exe
+pool: 0xffffa80e3b05e040 | eprocess: 0xffffa80e3b05e0c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e3b08b000 | eprocess: 0xffffa80e3b08b080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3b090000 | eprocess: 0xffffa80e3b090080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3b0be000 | eprocess: 0xffffa80e3b0be080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3b0bf000 | eprocess: 0xffffa80e3b0bf080 |  | GoogleUpdate.e
+pool: 0xffffa80e3b0e6040 | eprocess: 0xffffa80e3b0e60c0 | \Windows\System32\taskhostw.exe | taskhostw.exe
+pool: 0xffffa80e3b0f1000 | eprocess: 0xffffa80e3b0f1080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3b0f3000 | eprocess: 0xffffa80e3b0f3080 | \Program Files (x86)\Dropbox\Update\DropboxUpdate.exe | DropboxUpdate.
+pool: 0xffffa80e3b18a000 | eprocess: 0xffffa80e3b18a080 | \Windows\Microsoft.NET\Framework64\v3.0\WPF\PresentationFontCache.exe | PresentationFo
+pool: 0xffffa80e3b206060 | eprocess: 0xffffa80e3b2060c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3b208000 | eprocess: 0xffffa80e3b208080 | \Windows\System32\ctfmon.exe | ctfmon.exe
+pool: 0xffffa80e3b27b000 | eprocess: 0xffffa80e3b27b080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3b2d9000 | eprocess: 0xffffa80e3b2d9080 |  | userinit.exe
+pool: 0xffffa80e3b3b9040 | eprocess: 0xffffa80e3b3b90c0 | \Windows\explorer.exe | explorer.exe
+pool: 0xffffa80e3b3f6000 | eprocess: 0xffffa80e3b3f6080 |  | cmd.exe
+pool: 0xffffa80e3b428000 | eprocess: 0xffffa80e3b428080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3b429000 | eprocess: 0xffffa80e3b429080 | \Windows\System32\InputMethod\CHS\ChsIME.exe | ChsIME.exe
+pool: 0xffffa80e3b49d120 | eprocess: 0xffffa80e3b49d180 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3b4a00c0 | eprocess: 0xffffa80e3b4a0140 | \Windows\System32\SearchIndexer.exe | SearchIndexer.
+pool: 0xffffa80e3b661000 | eprocess: 0xffffa80e3b661080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3b698000 | eprocess: 0xffffa80e3b698080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3b6cd000 | eprocess: 0xffffa80e3b6cd080 | \Windows\System32\DriverStore\FileRepository\ki127176.inf_amd64_86c658cabfb17c9c\igfxEM.exe | igfxEM.exe
+pool: 0xffffa80e3b74f000 | eprocess: 0xffffa80e3b74f080 | \ProgramData\Microsoft\Windows Defender\Platform\4.18.2004.6-0\NisSrv.exe | NisSrv.exe
+pool: 0xffffa80e3b8cf000 | eprocess: 0xffffa80e3b8cf080 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffffa80e3b9de000 | eprocess: 0xffffa80e3b9de080 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffffa80e3bac5040 | eprocess: 0xffffa80e3bac50c0 |  | HxTsr.exe
+pool: 0xffffa80e3bad6040 | eprocess: 0xffffa80e3bad60c0 | \Windows\SystemApps\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\StartMenuExperienceHost.exe | StartMenuExper
+pool: 0xffffa80e3bbbb000 | eprocess: 0xffffa80e3bbbb080 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffffa80e3bc0b000 | eprocess: 0xffffa80e3bc0b080 | \Program Files\WindowsApps\FACEBOOK.317180B0BB486_520.3.60.0_x64__8xx8rvfyw5nnt\app\Messenger.exe | Messenger.exe
+pool: 0xffffa80e3bc83000 | eprocess: 0xffffa80e3bc83080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e3bccc040 | eprocess: 0xffffa80e3bccc0c0 | \Windows\SystemApps\ShellExperienceHost_cw5n1h2txyewy\ShellExperienceHost.exe | ShellExperienc
+pool: 0xffffa80e3bd1e000 | eprocess: 0xffffa80e3bd1e080 | \Windows\SystemApps\MicrosoftWindows.Client.CBS_cw5n1h2txyewy\TextInputHost.exe | TextInputHost.
+pool: 0xffffa80e3be13040 | eprocess: 0xffffa80e3be130c0 | \Windows\System32\MicrosoftEdgeCP.exe | MicrosoftEdgeC
+pool: 0xffffa80e3be2a000 | eprocess: 0xffffa80e3be2a080 | \Program Files\WindowsApps\Microsoft.SkypeApp_14.56.102.0_x64__kzf8qxf38zg5c\SkypeApp.exe | SkypeApp.exe
+pool: 0xffffa80e3be3f000 | eprocess: 0xffffa80e3be3f080 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffffa80e3bea3000 | eprocess: 0xffffa80e3bea3080 | \Windows\System32\RtkAudUService64.exe | RtkAudUService
+pool: 0xffffa80e3bf6d000 | eprocess: 0xffffa80e3bf6d080 | \Windows\SystemApps\Microsoft.LockApp_cw5n1h2txyewy\LockApp.exe | LockApp.exe
+pool: 0xffffa80e3bfd6000 | eprocess: 0xffffa80e3bfd6080 | \Program Files\WindowsApps\Microsoft.SkypeApp_14.56.102.0_x64__kzf8qxf38zg5c\SkypeBackgroundHost.exe | SkypeBackgroun
+pool: 0xffffa80e442ac000 | eprocess: 0xffffa80e442ac080 |  | IAStorIconLaun
+pool: 0xffffa80e442b3000 | eprocess: 0xffffa80e442b3080 | \Program Files\CONEXANT\cAudioFilterAgent\CAudioFilterAgent64.exe | CAudioFilterAg
+pool: 0xffffa80e443d8040 | eprocess: 0xffffa80e443d80c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e44480020 | eprocess: 0xffffa80e44480080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e444f5020 | eprocess: 0xffffa80e444f5080 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffffa80e4452f000 | eprocess: 0xffffa80e4452f080 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e445be000 | eprocess: 0xffffa80e445be080 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e445c4000 | eprocess: 0xffffa80e445c4080 | \Program Files\Dell\DellDataVault\DDVRulesProcessor.exe | DDVRulesProces
+pool: 0xffffa80e445e6000 | eprocess: 0xffffa80e445e6080 | \Windows\System32\SecurityHealthService.exe | SecurityHealth
+pool: 0xffffa80e445e8000 | eprocess: 0xffffa80e445e8080 | \Windows\System32\SecurityHealthSystray.exe | SecurityHealth
+pool: 0xffffa80e44613040 | eprocess: 0xffffa80e446130c0 | \Windows\SystemApps\Microsoft.Windows.Search_cw5n1h2txyewy\SearchApp.exe | SearchApp.exe
+pool: 0xffffa80e446fb000 | eprocess: 0xffffa80e446fb080 | \Program Files (x86)\Google\Update\1.3.35.452\GoogleCrashHandler.exe | GoogleCrashHan
+pool: 0xffffa80e4474c000 | eprocess: 0xffffa80e4474c080 | \Program Files (x86)\Google\Update\1.3.35.452\GoogleCrashHandler64.exe | GoogleCrashHan
+pool: 0xffffa80e44771140 | eprocess: 0xffffa80e447711c0 | \Windows\ImmersiveControlPanel\SystemSettings.exe | SystemSettings
+pool: 0xffffa80e44773050 | eprocess: 0xffffa80e447730c0 | \Windows\System32\Speech_OneCore\common\SpeechRuntime.exe | SpeechRuntime.
+pool: 0xffffa80e448f5000 | eprocess: 0xffffa80e448f5080 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e449eb000 | eprocess: 0xffffa80e449eb080 | \Program Files\WindowsApps\FACEBOOK.317180B0BB486_520.3.60.0_x64__8xx8rvfyw5nnt\app\Messenger.exe | Messenger.exe
+pool: 0xffffa80e44cec000 | eprocess: 0xffffa80e44cec080 | \Program Files (x86)\Intel\Intel(R) Management Engine Components\DAL\jhi_service.exe | jhi_service.ex
+pool: 0xffffa80e44cee000 | eprocess: 0xffffa80e44cee080 | \Program Files\Intel\Intel(R) Rapid Storage Technology\IAStorDataMgrSvc.exe | IAStorDataMgrS
+pool: 0xffffa80e44eb3000 | eprocess: 0xffffa80e44eb3080 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e45154040 | eprocess: 0xffffa80e451540c0 | \Windows\System32\msdtc.exe | msdtc.exe
+pool: 0xffffa80e451c8040 | eprocess: 0xffffa80e451c80c0 | \Program Files\Dell\DellDataVault\DDVDataCollector.exe | DDVDataCollect
+pool: 0xffffa80e451f0000 | eprocess: 0xffffa80e451f0080 | \Program Files (x86)\Intel\Intel(R) Management Engine Components\LMS\LMS.exe | LMS.exe
+pool: 0xffffa80e451f4000 | eprocess: 0xffffa80e451f4080 | \Windows\System32\vmwp.exe | vmwp.exe
+pool: 0xffffa80e45208000 | eprocess: 0xffffa80e45208080 | \Program Files\Dell\DellDataVault\DDVCollectorSvcApi.exe | DDVCollectorSv
+pool: 0xffffa80e45235040 | eprocess: 0xffffa80e452350c0 | \ProgramData\Microsoft\Windows Defender\Scans\MsMpEngCP.exe | MsMpEngCP.exe
+pool: 0xffffa80e452f7050 | eprocess: 0xffffa80e452f70c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e453c9040 | eprocess: 0xffffa80e453c90c0 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e453eb040 | eprocess: 0xffffa80e453eb0c0 | \Windows\System32\dllhost.exe | dllhost.exe
+pool: 0xffffa80e4549e000 | eprocess: 0xffffa80e4549e080 | \Program Files\Docker\Docker\Docker Desktop.exe | Docker Desktop
+pool: 0xffffa80e45502040 | eprocess: 0xffffa80e455020c0 |  | sacpl.exe
+pool: 0xffffa80e45554000 | eprocess: 0xffffa80e45554080 | \Program Files\CONEXANT\SA3\Dell-Notebook\SmartAudio3.exe | SmartAudio3.ex
+pool: 0xffffa80e455d9040 | eprocess: 0xffffa80e455d90c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e455eb000 | eprocess: 0xffffa80e455eb080 | \Program Files\WindowsApps\FACEBOOK.317180B0BB486_520.3.60.0_x64__8xx8rvfyw5nnt\app\Messenger.exe | Messenger.exe
+pool: 0xffffa80e45690020 | eprocess: 0xffffa80e45690080 | \Program Files\Intel\Intel(R) Online Connect\ioc.exe | ioc.exe
+pool: 0xffffa80e45859000 | eprocess: 0xffffa80e45859080 | \Program Files\Dolby\Dolby DAX2\DAX2_API\DolbyDAX2API.exe | DolbyDAX2API.e
+pool: 0xffffa80e45ae3000 | eprocess: 0xffffa80e45ae3080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e45b22000 | eprocess: 0xffffa80e45b22080 |  | vmmem
+pool: 0xffffa80e45b35040 | eprocess: 0xffffa80e45b350c0 | \ProgramData\Docker\cli-plugins\docker-mutagen.exe | docker-mutagen
+pool: 0xffffa80e45b46040 | eprocess: 0xffffa80e45b460c0 | \Program Files\Docker\Docker\resources\com.docker.backend.exe | com.docker.bac
+pool: 0xffffa80e45b79040 | eprocess: 0xffffa80e45b790c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e45b88090 | eprocess: 0xffffa80e45b88100 |  | nvapiw.exe
+pool: 0xffffa80e45dcc000 | eprocess: 0xffffa80e45dcc080 | \Windows\System32\SgrmBroker.exe | SgrmBroker.exe
+pool: 0xffffa80e45dd7000 | eprocess: 0xffffa80e45dd7080 | \Program Files\Dell\SupportAssistAgent\bin\SupportAssistAgent.exe | SupportAssistA
+pool: 0xffffa80e47872000 | eprocess: 0xffffa80e47872080 | \Program Files\WindowsApps\AcrobatNotificationClient_1.0.4.0_x86__e1rzdqpraam7r\AcrobatNotificationClient.exe | AcrobatNotific
+pool: 0xffffa80e479c5040 | eprocess: 0xffffa80e479c50c0 | \Program Files\Dell\DellDataVault\nvapiw.exe | nvapiw.exe
+pool: 0xffffa80e479c6000 | eprocess: 0xffffa80e479c6080 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e47b090f0 | eprocess: 0xffffa80e47b09180 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e47b100f0 | eprocess: 0xffffa80e47b10180 | \Windows\System32\lxss\wslhost.exe | wslhost.exe
+pool: 0xffffa80e47b3a0f0 | eprocess: 0xffffa80e47b3a180 | \Windows\System32\wsl.exe | wsl.exe
+pool: 0xffffa80e47df0000 | eprocess: 0xffffa80e47df0080 | \Program Files\Docker\Docker\resources\vpnkit-bridge.exe | vpnkit-bridge.
+pool: 0xffffa80e47ea0000 | eprocess: 0xffffa80e47ea0080 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e47ead000 | eprocess: 0xffffa80e47ead080 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e47ec2000 | eprocess: 0xffffa80e47ec2080 | \Windows\System32\wsl.exe | wsl.exe
+pool: 0xffffa80e47ec5000 | eprocess: 0xffffa80e47ec5080 | \Windows\System32\lxss\wslhost.exe | wslhost.exe
+pool: 0xffffa80e47ee8000 | eprocess: 0xffffa80e47ee8080 | \Windows\System32\lxss\wslhost.exe | wslhost.exe
+pool: 0xffffa80e47ee9000 | eprocess: 0xffffa80e47ee9080 | \Program Files\Docker\Docker\resources\vpnkit.exe | vpnkit.exe
+pool: 0xffffa80e47eeb040 | eprocess: 0xffffa80e47eeb0c0 | \Windows\System32\wsl.exe | wsl.exe
+pool: 0xffffa80e47f18000 | eprocess: 0xffffa80e47f18080 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e47f19000 | eprocess: 0xffffa80e47f19080 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e47f42000 | eprocess: 0xffffa80e47f42080 | \Program Files\Docker\Docker\resources\com.docker.proxy.exe | com.docker.pro
+pool: 0xffffa80e47fa9000 | eprocess: 0xffffa80e47fa9080 | \Windows\System32\lxss\wslhost.exe | wslhost.exe
+pool: 0xffffa80e47fd8000 | eprocess: 0xffffa80e47fd8080 | \Windows\System32\lxss\wslhost.exe | wslhost.exe
+pool: 0xffffa80e47fda000 | eprocess: 0xffffa80e47fda080 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e48002040 | eprocess: 0xffffa80e480020c0 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e4800b000 | eprocess: 0xffffa80e4800b080 | \Program Files\Rivet Networks\SmartByte\SmartByteTelemetry.exe | SmartByteTelem
+pool: 0xffffa80e48024040 | eprocess: 0xffffa80e480240c0 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e48029000 | eprocess: 0xffffa80e48029080 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffffa80e48077040 | eprocess: 0xffffa80e480770c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e48102040 | eprocess: 0xffffa80e481020c0 | \Windows\System32\wsl.exe | wsl.exe
+pool: 0xffffa80e48171040 | eprocess: 0xffffa80e481710c0 | \Program Files\Docker\Docker\resources\com.docker.wsl-distro-proxy.exe | com.docker.wsl
+pool: 0xffffa80e48189000 | eprocess: 0xffffa80e48189080 | \Windows\System32\dllhost.exe | dllhost.exe
+pool: 0xffffa80e4846c1d0 | eprocess: 0xffffa80e4846c240 |  | HxTsr.exe
+pool: 0xffffa80e48470000 | eprocess: 0xffffa80e48470080 | \Program Files\WindowsApps\AdobeNotificationClient_1.0.1.22_x86__enpm4xejd91yc\AdobeNotificationClient.exe | AdobeNotificat
+pool: 0xffffa80e48480040 | eprocess: 0xffffa80e484800c0 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e4854d040 | eprocess: 0xffffa80e4854d0c0 | \Windows\System32\MicrosoftEdgeSH.exe | MicrosoftEdgeS
+pool: 0xffffa80e485541d0 | eprocess: 0xffffa80e48554240 | \Windows\System32\rundll32.exe | rundll32.exe
+pool: 0xffffa80e4858a040 | eprocess: 0xffffa80e4858a0c0 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffffa80e485c0040 | eprocess: 0xffffa80e485c00c0 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffffa80e4879c040 | eprocess: 0xffffa80e4879c0c0 |  | AcroRd32.exe
+pool: 0xffffa80e499c5040 | eprocess: 0xffffa80e499c50c0 | \Windows\System32\browser_broker.exe | browser_broker
+pool: 0xffffa80e4a2d6040 | eprocess: 0xffffa80e4a2d60c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e4a2f0050 | eprocess: 0xffffa80e4a2f00c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4a85a0c0 | eprocess: 0xffffa80e4a85a140 | \Windows\SystemApps\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\MicrosoftEdge.exe | MicrosoftEdge.
+pool: 0xffffa80e4a8a5000 | eprocess: 0xffffa80e4a8a5080 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffffa80e4ac35040 | eprocess: 0xffffa80e4ac350c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4ac6c000 | eprocess: 0xffffa80e4ac6c080 |  | chrome.exe
+pool: 0xffffa80e4acdc040 | eprocess: 0xffffa80e4acdc0c0 | \Program Files\WindowsApps\FACEBOOK.317180B0BB486_520.3.60.0_x64__8xx8rvfyw5nnt\app\Messenger.exe | Messenger.exe
+pool: 0xffffa80e4b03d050 | eprocess: 0xffffa80e4b03d0c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4b335040 | eprocess: 0xffffa80e4b3350c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4b4840c0 | eprocess: 0xffffa80e4b484140 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4b8d5040 | eprocess: 0xffffa80e4b8d50c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4ba1b040 | eprocess: 0xffffa80e4ba1b0c0 |  | VirtualBoxVM.e
+pool: 0xffffa80e4bbdb040 | eprocess: 0xffffa80e4bbdb0c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4bbec040 | eprocess: 0xffffa80e4bbec0c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4bc24040 | eprocess: 0xffffa80e4bc240c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4bc46040 | eprocess: 0xffffa80e4bc460c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4bc68040 | eprocess: 0xffffa80e4bc680c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4bc8a040 | eprocess: 0xffffa80e4bc8a0c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4bcce040 | eprocess: 0xffffa80e4bcce0c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4bcdf040 | eprocess: 0xffffa80e4bcdf0c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4bd02040 | eprocess: 0xffffa80e4bd020c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4bd24040 | eprocess: 0xffffa80e4bd240c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4bd67040 | eprocess: 0xffffa80e4bd670c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4bd9a040 | eprocess: 0xffffa80e4bd9a0c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4bdcd040 | eprocess: 0xffffa80e4bdcd0c0 | \My Programs\fvim-win-x64\FVim.exe | FVim.exe
+pool: 0xffffa80e4be02040 | eprocess: 0xffffa80e4be020c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4be03000 | eprocess: 0xffffa80e4be03080 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4bedd000 | eprocess: 0xffffa80e4bedd080 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4bf961d0 | eprocess: 0xffffa80e4bf96240 | \tools\neovim\Neovim\bin\nvim.exe | nvim.exe
+pool: 0xffffa80e4c024040 | eprocess: 0xffffa80e4c0240c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4c04f000 | eprocess: 0xffffa80e4c04f080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e4c387020 | eprocess: 0xffffa80e4c387080 | \Windows\System32\dllhost.exe | dllhost.exe
+pool: 0xffffa80e4c74c090 | eprocess: 0xffffa80e4c74c100 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffffa80e4c7b9040 | eprocess: 0xffffa80e4c7b90c0 | \Program Files (x86)\Windows Kits\10\Debuggers\x64\windbg.exe | windbg.exe
+pool: 0xffffa80e4cec0040 | eprocess: 0xffffa80e4cec00c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4d5f2000 | eprocess: 0xffffa80e4d5f2080 |  | chrome.exe
+pool: 0xffffa80e4d6061d0 | eprocess: 0xffffa80e4d606240 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e4d985040 | eprocess: 0xffffa80e4d9850c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4da281c0 | eprocess: 0xffffa80e4da28240 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e4dc3a000 | eprocess: 0xffffa80e4dc3a080 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4dc79040 | eprocess: 0xffffa80e4dc790c0 | \Windows\explorer.exe | explorer.exe
+pool: 0xffffa80e4df44000 | eprocess: 0xffffa80e4df44080 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4dfc41c0 | eprocess: 0xffffa80e4dfc4240 | \Users\nganhkhoa\AppData\Local\nvim\plugged\LanguageClient-neovim\bin\languageclient.exe | languageclient
+pool: 0xffffa80e4e00b000 | eprocess: 0xffffa80e4e00b080 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e4e026000 | eprocess: 0xffffa80e4e026080 | \Users\nganhkhoa\Desktop\findDbgBlock\parsePDBforOffsets\target\debug\eprocess_scan.exe | eprocess_scan.
+pool: 0xffffa80e4e08f000 | eprocess: 0xffffa80e4e08f080 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4e131000 | eprocess: 0xffffa80e4e131080 | \Program Files\WindowsApps\FACEBOOK.317180B0BB486_520.3.60.0_x64__8xx8rvfyw5nnt\app\Messenger.exe | Messenger.exe
+pool: 0xffffa80e4e16f0a0 | eprocess: 0xffffa80e4e16f100 | \Windows\System32\SearchProtocolHost.exe | SearchProtocol
+pool: 0xffffa80e4e4ac040 | eprocess: 0xffffa80e4e4ac0c0 | \Program Files\WindowsApps\Microsoft.YourPhone_1.20051.90.0_x64__8wekyb3d8bbwe\YourPhone.exe | YourPhone.exe
+pool: 0xffffa80e4e779040 | eprocess: 0xffffa80e4e7790c0 | \Windows\System32\cmd.exe | cmd.exe
+pool: 0xffffa80e4e9b2040 | eprocess: 0xffffa80e4e9b20c0 | \Program Files\WindowsApps\FACEBOOK.317180B0BB486_520.3.60.0_x64__8xx8rvfyw5nnt\app\Messenger.exe | Messenger.exe
+pool: 0xffffa80e4e9e5040 | eprocess: 0xffffa80e4e9e50c0 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffffa80e4ea05000 | eprocess: 0xffffa80e4ea05080 | \Windows\System32\cmd.exe | cmd.exe
+pool: 0xffffa80e4ea9b040 | eprocess: 0xffffa80e4ea9b0c0 |  | nvapiw.exe
+pool: 0xffffa80e4ee02040 | eprocess: 0xffffa80e4ee020c0 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffffa80e4ee3f1d0 | eprocess: 0xffffa80e4ee3f240 | \Program Files\WindowsApps\Microsoft.Windows.Photos_2020.20050.19001.0_x64__8wekyb3d8bbwe\Microsoft.Photos.exe | Microsoft.Phot
+pool: 0xffffa80e4efb5040 | eprocess: 0xffffa80e4efb50c0 | \Windows\System32\SearchProtocolHost.exe | SearchProtocol
+pool: 0xffffa80e4f3ea040 | eprocess: 0xffffa80e4f3ea0c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4f3ee1d0 | eprocess: 0xffffa80e4f3ee240 | \tools\neovim\Neovim\bin\winpty-agent.exe | winpty-agent.e
+pool: 0xffffa80e4f4e1040 | eprocess: 0xffffa80e4f4e10c0 | \Program Files\Notepad++\notepad++.exe | notepad++.exe
+pool: 0xffffa80e4f55e040 | eprocess: 0xffffa80e4f55e0c0 | \Program Files (x86)\Google\Chrome\Application\chrome.exe | chrome.exe
+pool: 0xffffa80e4f5610c0 | eprocess: 0xffffa80e4f561140 | \Windows\System32\SearchFilterHost.exe | SearchFilterHo
+pool: 0xffffa80e4f5621d0 | eprocess: 0xffffa80e4f562240 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+NtUnloadDriver() -> 0x0

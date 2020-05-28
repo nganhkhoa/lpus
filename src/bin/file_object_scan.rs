@@ -13,6 +13,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
         let fob_size = driver.pdb_store.get_offset_r("_FILE_OBJECT.struct_size")?;
         let fob_size_offset = driver.pdb_store.get_offset_r("_FILE_OBJECT.Size")?;
+        let fob_read_access_offset = driver.pdb_store.get_offset_r("_FILE_OBJECT.ReadAccess")?;
         let fob_filename_offset = driver.pdb_store.get_offset_r("_FILE_OBJECT.FileName")?;
 
         let valid_end = (pool_addr + chunk_size) - fob_size;
@@ -29,13 +30,20 @@ fn main() -> Result<(), Box<dyn Error>> {
             try_ptr += 0x4;        // search exhaustively
         }
         if try_ptr > valid_end {
+            println!("pool: 0x{:x} cannot detect file object", pool_addr);
             return Ok(false);
         }
         let fob_addr = try_ptr;
-        // println!("pool: 0x{:x} | file object: 0x{:x} | offsetby: {}", pool_addr, fob_addr, fob_addr - pool_addr);
-        if let Ok(filename) = driver.get_unicode_string(fob_addr + fob_filename_offset) {
-            println!("pool: 0x{:x} | file object: 0x{:x} | offsetby: {} | {}",
-                    pool_addr, fob_addr, fob_addr - pool_addr, filename);
+        let mut read_ok = 0u8;
+        driver.deref_addr(fob_addr + fob_read_access_offset, &mut read_ok);
+
+        println!("pool: 0x{:x} | file object: 0x{:x} | offsetby: 0x{:x}", pool_addr, fob_addr, fob_addr - pool_addr);
+        if read_ok == 0 {
+            println!("      [NOT READABLE]");
+            return Ok(true);
+        }
+        if let Ok(filename) = driver.get_unicode_string(fob_addr + fob_filename_offset, true) {
+            println!("      {}", filename);
             return Ok(true);
         }
         Ok(false)

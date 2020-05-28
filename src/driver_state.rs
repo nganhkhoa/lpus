@@ -161,14 +161,12 @@ impl DriverState {
                 scan_range: ScanPoolData::new(&[ptr, end_address], tag)
             };
             self.windows_ffi.device_io(code, &mut input, &mut ptr);
+            // println!("found: 0x{:x}", ptr);
             if ptr >= end_address {
                 break;
             }
 
             let pool_addr = ptr;
-            // println!("chunk: 0x{:x}", pool_addr);
-            // ptr += 0x4;
-            // continue;
             let mut header = vec![0u8; pool_header_size as usize];
             self.deref_addr_ptr(pool_addr, header.as_mut_ptr(), pool_header_size);
             let chunk_size = (header[2] as u64) * 16u64;
@@ -184,11 +182,10 @@ impl DriverState {
                 continue;
             }
 
-            // ptr += 0x4;
-            // continue;
             let success = handler(pool_addr, &header, pool_addr + pool_header_size)?;
             if success {
                 ptr += chunk_size; /* pass this chunk */
+                // ptr += 0x4;
             }
             else {
                 ptr += 0x4; /* search next */
@@ -243,7 +240,7 @@ impl DriverState {
                                        outptr as *mut c_void, output_len as DWORD);
     }
 
-    pub fn get_unicode_string(&self, unicode_str_addr: u64) -> BoxResult<String> {
+    pub fn get_unicode_string(&self, unicode_str_addr: u64, deref: bool) -> BoxResult<String> {
         let mut strlen = 0u16;
         let mut capacity = 0u16;
         let mut bufaddr = 0u64;
@@ -254,8 +251,13 @@ impl DriverState {
         self.deref_addr(capacity_addr, &mut capacity);
         self.deref_addr(buffer_ptr, &mut bufaddr);
 
-        if bufaddr == 0 || strlen > capacity || strlen == 0 {
+        // println!("unicode str: 0x{:x} size: 0x{:x} capacity: 0x{:x}", bufaddr, strlen, capacity);
+        if bufaddr == 0 || strlen > capacity || strlen == 0 || strlen % 2 != 0 {
             return Err("Unicode string is empty".into());
+        }
+
+        if !deref {
+            return Ok("".to_string());
         }
 
         let mut buf = vec![0u16; (strlen / 2) as usize];
