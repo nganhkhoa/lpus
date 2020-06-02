@@ -36,7 +36,23 @@ impl OffsetData {
                 large_page_size_offset: pdb_store.get_offset("PoolBigPageTableSize").unwrap_or(0u64),
                 pool_chunk_size: pdb_store.get_offset("_POOL_HEADER.struct_size").unwrap_or(0u64),
             },
+            WindowsVersion::Windows10_2019 |
+            WindowsVersion::Windows10_2018 => Self {
+                eprocess_name_offset: pdb_store.get_offset("_EPROCESS.ImageFileName").unwrap_or(0u64),
+                eprocess_link_offset: pdb_store.get_offset("_EPROCESS.ActiveProcessLinks").unwrap_or(0u64),
+                list_blink_offset: pdb_store.get_offset("_LIST_ENTRY.Blink").unwrap_or(0u64),
+                process_head_offset: pdb_store.get_offset("PsActiveProcessHead").unwrap_or(0u64),
+                mistate_offset: pdb_store.get_offset("MiState").unwrap_or(0u64),
+                hardware_offset: pdb_store.get_offset("_MI_SYSTEM_INFORMATION.Hardware").unwrap_or(0u64),
+                system_node_offset: pdb_store.get_offset("_MI_HARDWARE_STATE.SystemNodeInformation").unwrap_or(0u64),
+                first_va_offset: pdb_store.get_offset("_MI_SYSTEM_NODE_INFORMATION.NonPagedPoolFirstVa").unwrap_or(0u64),
+                last_va_offset: pdb_store.get_offset("_MI_SYSTEM_NODE_INFORMATION.NonPagedPoolLastVa").unwrap_or(0u64),
+                large_page_table_offset: pdb_store.get_offset("PoolBigPageTable").unwrap_or(0u64),
+                large_page_size_offset: pdb_store.get_offset("PoolBigPageTableSize").unwrap_or(0u64),
+                pool_chunk_size: pdb_store.get_offset("_POOL_HEADER.struct_size").unwrap_or(0u64),
+            },
             // TODO: Add other version of Windows here
+            // TODO: Warn user of unknown windows version, because BSOD will occur
             _ => Self {
                 eprocess_name_offset: 0u64,
                 eprocess_link_offset: 0u64,

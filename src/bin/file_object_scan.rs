@@ -40,13 +40,14 @@ fn main() -> Result<(), Box<dyn Error>> {
         println!("pool: 0x{:x} | file object: 0x{:x} | offsetby: 0x{:x}", pool_addr, fob_addr, fob_addr - pool_addr);
         if read_ok == 0 {
             println!("      [NOT READABLE]");
-            return Ok(true);
         }
-        if let Ok(filename) = driver.get_unicode_string(fob_addr + fob_filename_offset, true) {
+        else if let Ok(filename) = driver.get_unicode_string(fob_addr + fob_filename_offset, true) {
             println!("      {}", filename);
-            return Ok(true);
         }
-        Ok(false)
+        else {
+            println!("      [NOT A VALID _UNICODE_STRING]");
+        }
+        Ok(true)
     })?;
 
     println!("NtUnloadDriver() -> 0x{:x}", driver.shutdown());
