@@ -1,0 +1,118 @@
+address,process,fullpath
+0xffff948957c6c080,svchost.exe,
+0xffff948957caa080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895ad15080,powershell.exe,
+0xffff94895ad1a080,CodeHelper.exe,\Users\User\AppData\Local\Programs\Microsoft VS Code\resources\app\out\vs\platform\files\node\watcher\win32\CodeHelper.exe
+0xffff94895b394080,Code.exe,\Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe
+0xffff94895ba28080,MicrosoftEdgeC,\Windows\System32\MicrosoftEdgeCP.exe
+0xffff94895ba2b080,sppsvc.exe,\Windows\System32\sppsvc.exe
+0xffff94895ba433c0,audiodg.exe,\Windows\System32\audiodg.exe
+0xffff94895bb21380,powershell.exe,\Windows\System32\WindowsPowerShell\v1.0\powershell.exe
+0xffff94895bb25080,MicrosoftEdgeC,\Windows\System32\MicrosoftEdgeCP.exe
+0xffff94895bb28080,conhost.exe,\Windows\System32\conhost.exe
+0xffff94895bb8a080,conhost.exe,\Windows\System32\conhost.exe
+0xffff94895cbc9080,Code.exe,\Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe
+0xffff94895ce98400,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895cea7080,MemCompression,
+0xffff94895ceb5380,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895cec9080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895cf2e3c0,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895cf5c400,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895cf90400,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895cf98400,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e017440,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e02b380,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e072400,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e077400,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e0ce400,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e0d8400,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e1670c0,sqlwriter.exe,\Program Files\Microsoft SQL Server\90\Shared\sqlwriter.exe
+0xffff94895e169380,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e16a080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e16b080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e16c080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e16d080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e170080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e171080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e172080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e174080,spoolsv.exe,\Windows\System32\spoolsv.exe
+0xffff94895e1780c0,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e38b080,WindowsInterna,\Windows\SystemApps\InputApp_cw5n1h2txyewy\WindowsInternal.ComposableShell.Experiences.TextInput.InputApp.exe
+0xffff94895e390080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e391080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e392080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e394080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e395080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e396080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895e3990c0,wlms.exe,\Windows\System32\wlms\wlms.exe
+0xffff94895e54e4c0,NisSrv.exe,\ProgramData\Microsoft\Windows Defender\Platform\4.18.2005.5-0\NisSrv.exe
+0xffff94895e929480,smartscreen.ex,\Windows\System32\smartscreen.exe
+0xffff94895e92a080,Code.exe,\Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe
+0xffff94895e9412c0,Windows.WARP.J,\Windows\System32\Windows.WARP.JITService.exe
+0xffff94895e9512c0,MsMpEng.exe,\ProgramData\Microsoft\Windows Defender\Platform\4.18.2005.5-0\MsMpEng.exe
+0xffff94895e970080,SearchUI.exe,\Windows\SystemApps\Microsoft.Windows.Cortana_cw5n1h2txyewy\SearchUI.exe
+0xffff94895eaaf440,sihost.exe,\Windows\System32\sihost.exe
+0xffff94895eaee480,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895eaf54c0,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895eaf84c0,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895eb4f080,svchost.exe,
+0xffff94895eb57380,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895eb5b4c0,taskhostw.exe,\Windows\System32\taskhostw.exe
+0xffff94895ebbd3c0,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895ebc2440,ctfmon.exe,\Windows\System32\ctfmon.exe
+0xffff94895ec48400,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895ec5e080,userinit.exe,
+0xffff94895ec62080,explorer.exe,\Windows\explorer.exe
+0xffff94895ec70080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895ec77080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895ec934c0,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895eccc4c0,Code.exe,\Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe
+0xffff94895ece5080,dllhost.exe,\Windows\System32\dllhost.exe
+0xffff94895edca080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895edda080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895edf6080,StartMenuExper,\Windows\SystemApps\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\StartMenuExperienceHost.exe
+0xffff94895ef1b480,RuntimeBroker.,\Windows\System32\RuntimeBroker.exe
+0xffff94895efb9080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895f089480,RuntimeBroker.,\Windows\System32\RuntimeBroker.exe
+0xffff94895f118480,RuntimeBroker.,\Windows\System32\RuntimeBroker.exe
+0xffff94895f119080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895f122380,SearchIndexer.,\Windows\System32\SearchIndexer.exe
+0xffff94895f19e080,Windows.WARP.J,\Windows\System32\Windows.WARP.JITService.exe
+0xffff94895f2020c0,MicrosoftEdge.,\Windows\SystemApps\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\MicrosoftEdge.exe
+0xffff94895f2074c0,ApplicationFra,\Windows\System32\ApplicationFrameHost.exe
+0xffff94895f267440,cmd.exe,\Windows\System32\cmd.exe
+0xffff94895f2c8080,SgrmBroker.exe,\Windows\System32\SgrmBroker.exe
+0xffff94895f2db080,SkypeBackgroun,\Program Files\WindowsApps\Microsoft.SkypeApp_14.56.102.0_x64__kzf8qxf38zg5c\SkypeBackgroundHost.exe
+0xffff94895f2dd080,SkypeApp.exe,\Program Files\WindowsApps\Microsoft.SkypeApp_14.56.102.0_x64__kzf8qxf38zg5c\SkypeApp.exe
+0xffff94895f3be480,browser_broker,\Windows\System32\browser_broker.exe
+0xffff94895f3c5080,YourPhone.exe,\Program Files\WindowsApps\Microsoft.YourPhone_1.20041.91.0_x64__8wekyb3d8bbwe\YourPhone.exe
+0xffff94895f3ce400,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895f419080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895f449080,WinStore.App.e,\Program Files\WindowsApps\Microsoft.WindowsStore_12005.1001.1.0_x64__8wekyb3d8bbwe\WinStore.App.exe
+0xffff94895f44b480,RuntimeBroker.,\Windows\System32\RuntimeBroker.exe
+0xffff94895f4b1080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895f4e5080,RuntimeBroker.,\Windows\System32\RuntimeBroker.exe
+0xffff94895f4e9240,MicrosoftEdgeC,\Windows\System32\MicrosoftEdgeCP.exe
+0xffff94895f571480,RuntimeBroker.,\Windows\System32\RuntimeBroker.exe
+0xffff94895f5880c0,RuntimeBroker.,\Windows\System32\RuntimeBroker.exe
+0xffff94895f58e080,VBoxTray.exe,\Windows\System32\VBoxTray.exe
+0xffff94895f5c7080,svchost.exe,\Windows\System32\svchost.exe
+0xffff94895f603080,MicrosoftEdgeS,\Windows\System32\MicrosoftEdgeSH.exe
+0xffff94895f7c7080,OneDrive.exe,\Users\User\AppData\Local\Microsoft\OneDrive\OneDrive.exe
+0xffff94895f7c8080,SecurityHealth,\Windows\System32\SecurityHealthSystray.exe
+0xffff94895f7ca380,SecurityHealth,\Windows\System32\SecurityHealthService.exe
+0xffff94895fce60c0,backgroundTask,\Windows\System32\backgroundTaskHost.exe
+0xffff94895fdd2080,Code.exe,\Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe
+0xffff94895ffce080,MicrosoftEdgeC,
+0xffff94895ffe2080,Code.exe,\Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe
+0xffff94895ffef080,backgroundTask,\Windows\System32\backgroundTaskHost.exe
+0xffff94895fff2480,conhost.exe,\Windows\System32\conhost.exe
+0xffff9489600c50c0,Code.exe,\Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe
+0xffff9489600cf340,eprocess_scan.,\Users\User\Desktop\lpus-0.3-alpha\target\release\eprocess_scan.exe
+0xffff9489602ec080,dllhost.exe,\Windows\System32\dllhost.exe
+0xffff9489602f0080,conhost.exe,
+0xffff9489602f5080,svchost.exe,\Windows\System32\svchost.exe
+0xffff9489603ca080,Windows.WARP.J,\Windows\System32\Windows.WARP.JITService.exe
+0xffff948960acc080,svchost.exe,\Windows\System32\svchost.exe
+0xffff948960ad3080,RuntimeBroker.,\Windows\System32\RuntimeBroker.exe
+0xffff9489610de080,MicrosoftEdgeC,\Windows\System32\MicrosoftEdgeCP.exe

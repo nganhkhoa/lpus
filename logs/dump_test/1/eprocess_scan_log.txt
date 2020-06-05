@@ -1,0 +1,121 @@
+PDB for Amd64, guid: e7477a03-a707-8050-cb79-36455ce346b5, age: 1
+
+NtLoadDriver()   -> 0x0
+pool: 0xffff948957c6c000 | eprocess: 0xffff948957c6c080 |  | svchost.exe
+pool: 0xffff948957caa000 | eprocess: 0xffff948957caa080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895ad15000 | eprocess: 0xffff94895ad15080 |  | powershell.exe
+pool: 0xffff94895ad1a000 | eprocess: 0xffff94895ad1a080 | \Users\User\AppData\Local\Programs\Microsoft VS Code\resources\app\out\vs\platform\files\node\watcher\win32\CodeHelper.exe | CodeHelper.exe
+pool: 0xffff94895b394000 | eprocess: 0xffff94895b394080 | \Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe | Code.exe
+pool: 0xffff94895ba28000 | eprocess: 0xffff94895ba28080 | \Windows\System32\MicrosoftEdgeCP.exe | MicrosoftEdgeC
+pool: 0xffff94895ba2b000 | eprocess: 0xffff94895ba2b080 | \Windows\System32\sppsvc.exe | sppsvc.exe
+pool: 0xffff94895ba43360 | eprocess: 0xffff94895ba433c0 | \Windows\System32\audiodg.exe | audiodg.exe
+pool: 0xffff94895bb21310 | eprocess: 0xffff94895bb21380 | \Windows\System32\WindowsPowerShell\v1.0\powershell.exe | powershell.exe
+pool: 0xffff94895bb25000 | eprocess: 0xffff94895bb25080 | \Windows\System32\MicrosoftEdgeCP.exe | MicrosoftEdgeC
+pool: 0xffff94895bb28000 | eprocess: 0xffff94895bb28080 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffff94895bb8a000 | eprocess: 0xffff94895bb8a080 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffff94895cbc9000 | eprocess: 0xffff94895cbc9080 | \Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe | Code.exe
+pool: 0xffff94895ce98390 | eprocess: 0xffff94895ce98400 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895cea7040 | eprocess: 0xffff94895cea7080 |  | MemCompression
+pool: 0xffff94895ceb5310 | eprocess: 0xffff94895ceb5380 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895cec9000 | eprocess: 0xffff94895cec9080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895cf2e350 | eprocess: 0xffff94895cf2e3c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895cf5c390 | eprocess: 0xffff94895cf5c400 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895cf90390 | eprocess: 0xffff94895cf90400 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895cf98390 | eprocess: 0xffff94895cf98400 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e0173c0 | eprocess: 0xffff94895e017440 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e02b310 | eprocess: 0xffff94895e02b380 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e072390 | eprocess: 0xffff94895e072400 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e077390 | eprocess: 0xffff94895e077400 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e0ce390 | eprocess: 0xffff94895e0ce400 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e0d8390 | eprocess: 0xffff94895e0d8400 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e167040 | eprocess: 0xffff94895e1670c0 | \Program Files\Microsoft SQL Server\90\Shared\sqlwriter.exe | sqlwriter.exe
+pool: 0xffff94895e169310 | eprocess: 0xffff94895e169380 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e16a000 | eprocess: 0xffff94895e16a080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e16b000 | eprocess: 0xffff94895e16b080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e16c000 | eprocess: 0xffff94895e16c080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e16d000 | eprocess: 0xffff94895e16d080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e170000 | eprocess: 0xffff94895e170080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e171000 | eprocess: 0xffff94895e171080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e172000 | eprocess: 0xffff94895e172080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e174000 | eprocess: 0xffff94895e174080 | \Windows\System32\spoolsv.exe | spoolsv.exe
+pool: 0xffff94895e178040 | eprocess: 0xffff94895e1780c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e38b000 | eprocess: 0xffff94895e38b080 | \Windows\SystemApps\InputApp_cw5n1h2txyewy\WindowsInternal.ComposableShell.Experiences.TextInput.InputApp.exe | WindowsInterna
+pool: 0xffff94895e390000 | eprocess: 0xffff94895e390080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e391000 | eprocess: 0xffff94895e391080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e392000 | eprocess: 0xffff94895e392080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e394000 | eprocess: 0xffff94895e394080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e395000 | eprocess: 0xffff94895e395080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e396000 | eprocess: 0xffff94895e396080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895e399040 | eprocess: 0xffff94895e3990c0 | \Windows\System32\wlms\wlms.exe | wlms.exe
+pool: 0xffff94895e54e450 | eprocess: 0xffff94895e54e4c0 | \ProgramData\Microsoft\Windows Defender\Platform\4.18.2005.5-0\NisSrv.exe | NisSrv.exe
+pool: 0xffff94895e929410 | eprocess: 0xffff94895e929480 | \Windows\System32\smartscreen.exe | smartscreen.ex
+pool: 0xffff94895e92a000 | eprocess: 0xffff94895e92a080 | \Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe | Code.exe
+pool: 0xffff94895e941250 | eprocess: 0xffff94895e9412c0 | \Windows\System32\Windows.WARP.JITService.exe | Windows.WARP.J
+pool: 0xffff94895e951230 | eprocess: 0xffff94895e9512c0 | \ProgramData\Microsoft\Windows Defender\Platform\4.18.2005.5-0\MsMpEng.exe | MsMpEng.exe
+pool: 0xffff94895e970000 | eprocess: 0xffff94895e970080 | \Windows\SystemApps\Microsoft.Windows.Cortana_cw5n1h2txyewy\SearchUI.exe | SearchUI.exe
+pool: 0xffff94895eaaf3b0 | eprocess: 0xffff94895eaaf440 | \Windows\System32\sihost.exe | sihost.exe
+pool: 0xffff94895eaee420 | eprocess: 0xffff94895eaee480 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895eaf5430 | eprocess: 0xffff94895eaf54c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895eaf8430 | eprocess: 0xffff94895eaf84c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895eb4f000 | eprocess: 0xffff94895eb4f080 |  | svchost.exe
+pool: 0xffff94895eb57310 | eprocess: 0xffff94895eb57380 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895eb5b430 | eprocess: 0xffff94895eb5b4c0 | \Windows\System32\taskhostw.exe | taskhostw.exe
+pool: 0xffff94895ebbd340 | eprocess: 0xffff94895ebbd3c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895ebc23b0 | eprocess: 0xffff94895ebc2440 | \Windows\System32\ctfmon.exe | ctfmon.exe
+pool: 0xffff94895ec48380 | eprocess: 0xffff94895ec48400 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895ec5e000 | eprocess: 0xffff94895ec5e080 |  | userinit.exe
+pool: 0xffff94895ec62000 | eprocess: 0xffff94895ec62080 | \Windows\explorer.exe | explorer.exe
+pool: 0xffff94895ec70000 | eprocess: 0xffff94895ec70080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895ec77000 | eprocess: 0xffff94895ec77080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895ec93430 | eprocess: 0xffff94895ec934c0 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895eccc450 | eprocess: 0xffff94895eccc4c0 | \Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe | Code.exe
+pool: 0xffff94895ece5000 | eprocess: 0xffff94895ece5080 | \Windows\System32\dllhost.exe | dllhost.exe
+pool: 0xffff94895edca000 | eprocess: 0xffff94895edca080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895edda000 | eprocess: 0xffff94895edda080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895edf6000 | eprocess: 0xffff94895edf6080 | \Windows\SystemApps\Microsoft.Windows.StartMenuExperienceHost_cw5n1h2txyewy\StartMenuExperienceHost.exe | StartMenuExper
+pool: 0xffff94895ef1b420 | eprocess: 0xffff94895ef1b480 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffff94895efb9000 | eprocess: 0xffff94895efb9080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895f089420 | eprocess: 0xffff94895f089480 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffff94895f118420 | eprocess: 0xffff94895f118480 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffff94895f119000 | eprocess: 0xffff94895f119080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895f122310 | eprocess: 0xffff94895f122380 | \Windows\System32\SearchIndexer.exe | SearchIndexer.
+pool: 0xffff94895f19e000 | eprocess: 0xffff94895f19e080 | \Windows\System32\Windows.WARP.JITService.exe | Windows.WARP.J
+pool: 0xffff94895f202040 | eprocess: 0xffff94895f2020c0 | \Windows\SystemApps\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\MicrosoftEdge.exe | MicrosoftEdge.
+pool: 0xffff94895f207440 | eprocess: 0xffff94895f2074c0 | \Windows\System32\ApplicationFrameHost.exe | ApplicationFra
+pool: 0xffff94895f2673c0 | eprocess: 0xffff94895f267440 | \Windows\System32\cmd.exe | cmd.exe
+pool: 0xffff94895f2c8000 | eprocess: 0xffff94895f2c8080 | \Windows\System32\SgrmBroker.exe | SgrmBroker.exe
+pool: 0xffff94895f2db000 | eprocess: 0xffff94895f2db080 | \Program Files\WindowsApps\Microsoft.SkypeApp_14.56.102.0_x64__kzf8qxf38zg5c\SkypeBackgroundHost.exe | SkypeBackgroun
+pool: 0xffff94895f2dd000 | eprocess: 0xffff94895f2dd080 | \Program Files\WindowsApps\Microsoft.SkypeApp_14.56.102.0_x64__kzf8qxf38zg5c\SkypeApp.exe | SkypeApp.exe
+pool: 0xffff94895f3be420 | eprocess: 0xffff94895f3be480 | \Windows\System32\browser_broker.exe | browser_broker
+pool: 0xffff94895f3c5000 | eprocess: 0xffff94895f3c5080 | \Program Files\WindowsApps\Microsoft.YourPhone_1.20041.91.0_x64__8wekyb3d8bbwe\YourPhone.exe | YourPhone.exe
+pool: 0xffff94895f3ce390 | eprocess: 0xffff94895f3ce400 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895f419000 | eprocess: 0xffff94895f419080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895f449000 | eprocess: 0xffff94895f449080 | \Program Files\WindowsApps\Microsoft.WindowsStore_12005.1001.1.0_x64__8wekyb3d8bbwe\WinStore.App.exe | WinStore.App.e
+pool: 0xffff94895f44b420 | eprocess: 0xffff94895f44b480 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffff94895f4b1000 | eprocess: 0xffff94895f4b1080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895f4e5000 | eprocess: 0xffff94895f4e5080 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffff94895f4e91d0 | eprocess: 0xffff94895f4e9240 | \Windows\System32\MicrosoftEdgeCP.exe | MicrosoftEdgeC
+pool: 0xffff94895f571420 | eprocess: 0xffff94895f571480 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffff94895f588040 | eprocess: 0xffff94895f5880c0 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffff94895f58e000 | eprocess: 0xffff94895f58e080 | \Windows\System32\VBoxTray.exe | VBoxTray.exe
+pool: 0xffff94895f5c7000 | eprocess: 0xffff94895f5c7080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff94895f603000 | eprocess: 0xffff94895f603080 | \Windows\System32\MicrosoftEdgeSH.exe | MicrosoftEdgeS
+pool: 0xffff94895f7c7000 | eprocess: 0xffff94895f7c7080 | \Users\User\AppData\Local\Microsoft\OneDrive\OneDrive.exe | OneDrive.exe
+pool: 0xffff94895f7c8000 | eprocess: 0xffff94895f7c8080 | \Windows\System32\SecurityHealthSystray.exe | SecurityHealth
+pool: 0xffff94895f7ca320 | eprocess: 0xffff94895f7ca380 | \Windows\System32\SecurityHealthService.exe | SecurityHealth
+pool: 0xffff94895fce6040 | eprocess: 0xffff94895fce60c0 | \Windows\System32\backgroundTaskHost.exe | backgroundTask
+pool: 0xffff94895fdd2000 | eprocess: 0xffff94895fdd2080 | \Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe | Code.exe
+pool: 0xffff94895ffce000 | eprocess: 0xffff94895ffce080 |  | MicrosoftEdgeC
+pool: 0xffff94895ffe2000 | eprocess: 0xffff94895ffe2080 | \Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe | Code.exe
+pool: 0xffff94895ffef000 | eprocess: 0xffff94895ffef080 | \Windows\System32\backgroundTaskHost.exe | backgroundTask
+pool: 0xffff94895fff2400 | eprocess: 0xffff94895fff2480 | \Windows\System32\conhost.exe | conhost.exe
+pool: 0xffff9489600c5040 | eprocess: 0xffff9489600c50c0 | \Users\User\AppData\Local\Programs\Microsoft VS Code\Code.exe | Code.exe
+pool: 0xffff9489600cf2b0 | eprocess: 0xffff9489600cf340 | \Users\User\Desktop\lpus-0.3-alpha\target\release\eprocess_scan.exe | eprocess_scan.
+pool: 0xffff9489602ec000 | eprocess: 0xffff9489602ec080 | \Windows\System32\dllhost.exe | dllhost.exe
+pool: 0xffff9489602f0000 | eprocess: 0xffff9489602f0080 |  | conhost.exe
+pool: 0xffff9489602f5000 | eprocess: 0xffff9489602f5080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff9489603ca000 | eprocess: 0xffff9489603ca080 | \Windows\System32\Windows.WARP.JITService.exe | Windows.WARP.J
+pool: 0xffff948960acc000 | eprocess: 0xffff948960acc080 | \Windows\System32\svchost.exe | svchost.exe
+pool: 0xffff948960ad3000 | eprocess: 0xffff948960ad3080 | \Windows\System32\RuntimeBroker.exe | RuntimeBroker.
+pool: 0xffff9489610de000 | eprocess: 0xffff9489610de080 | \Windows\System32\MicrosoftEdgeCP.exe | MicrosoftEdgeC
+NtUnloadDriver() -> 0x0
