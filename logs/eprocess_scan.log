@@ -1,0 +1,138 @@
+PDB for Amd64, guid: 8b11040a-5928-757b-1139-0ac78f6b6925, age: 1
+
+NtLoadDriver()   -> 0x0
+pool: 0xffffe282a0463000 | eprocess: 0xffffe282a0463080 | pid: 1088 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a0465010 | eprocess: 0xffffe282a0465080 | pid: 1032 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a046b160 | eprocess: 0xffffe282a046b1c0 | pid: 4 | ppid: 0 | name: System | path: 
+pool: 0xffffe282a047e000 | eprocess: 0xffffe282a047e080 | pid: 1080 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a0482260 | eprocess: 0xffffe282a04822c0 | pid: 1812 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a04b6000 | eprocess: 0xffffe282a04b6080 | pid: 1220 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a04ed000 | eprocess: 0xffffe282a04ed080 | pid: 1276 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a050d000 | eprocess: 0xffffe282a050d080 | pid: 1148 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a0511000 | eprocess: 0xffffe282a0511080 | pid: 1156 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a31d04d0 | eprocess: 0xffffe282a31d0540 | pid: 288 | ppid: 4 | name: smss.exe | path: \Windows\System32\smss.exe
+pool: 0xffffe282a3cbe1f0 | eprocess: 0xffffe282a3cbe280 | pid: 6736 | ppid: 756 | name: smartscreen.ex | path: \Windows\System32\smartscreen.exe
+pool: 0xffffe282a3cd94d0 | eprocess: 0xffffe282a3cd9540 | pid: 4976 | ppid: 4868 | name: Windows.WARP.J | path: \Windows\System32\Windows.WARP.JITService.exe
+pool: 0xffffe282a3d45000 | eprocess: 0xffffe282a3d45080 | pid: 808 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a3d4b000 | eprocess: 0xffffe282a3d4b080 | pid: 452 | ppid: 376 | name: wininit.exe | path: \Windows\System32\wininit.exe
+pool: 0xffffe282a3d500b0 | eprocess: 0xffffe282a3d50140 | pid: 460 | ppid: 444 | name: csrss.exe | path: \Windows\System32\csrss.exe
+pool: 0xffffe282a3d65000 | eprocess: 0xffffe282a3d65080 | pid: 512 | ppid: 444 | name: winlogon.exe | path: \Windows\System32\winlogon.exe
+pool: 0xffffe282a3dc90d0 | eprocess: 0xffffe282a3dc9140 | pid: 560 | ppid: 452 | name: services.exe | path: \Windows\System32\services.exe
+pool: 0xffffe282a3dd50b0 | eprocess: 0xffffe282a3dd5140 | pid: 584 | ppid: 452 | name: lsass.exe | path: \Windows\System32\lsass.exe
+pool: 0xffffe282a3e910b0 | eprocess: 0xffffe282a3e91140 | pid: 384 | ppid: 376 | name: csrss.exe | path: \Windows\System32\csrss.exe
+pool: 0xffffe282a3f08260 | eprocess: 0xffffe282a3f082c0 | pid: 4964 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a4c2b2d0 | eprocess: 0xffffe282a4c2b340 | pid: 660 | ppid: 512 | name: fontdrvhost.ex | path: \Windows\System32\fontdrvhost.exe
+pool: 0xffffe282a4c2f000 | eprocess: 0xffffe282a4c2f080 | pid: 668 | ppid: 452 | name: fontdrvhost.ex | path: \Windows\System32\fontdrvhost.exe
+pool: 0xffffe282a4c76290 | eprocess: 0xffffe282a4c76300 | pid: 684 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a4cd1280 | eprocess: 0xffffe282a4cd1300 | pid: 756 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a4e06290 | eprocess: 0xffffe282a4e06300 | pid: 852 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a4e9a0e0 | eprocess: 0xffffe282a4e9a140 | pid: 928 | ppid: 512 | name: LogonUI.exe | path: 
+pool: 0xffffe282a4e9c240 | eprocess: 0xffffe282a4e9c2c0 | pid: 936 | ppid: 512 | name: dwm.exe | path: \Windows\System32\dwm.exe
+pool: 0xffffe282a4f61290 | eprocess: 0xffffe282a4f61300 | pid: 1008 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a4f68310 | eprocess: 0xffffe282a4f68380 | pid: 1020 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a4f76340 | eprocess: 0xffffe282a4f763c0 | pid: 336 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a4fc62c0 | eprocess: 0xffffe282a4fc6340 | pid: 348 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a60c3340 | eprocess: 0xffffe282a60c33c0 | pid: 376 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a623c000 | eprocess: 0xffffe282a623c080 | pid: 1456 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a623f2b0 | eprocess: 0xffffe282a623f340 | pid: 1300 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a628f320 | eprocess: 0xffffe282a628f380 | pid: 1312 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a62c3270 | eprocess: 0xffffe282a62c3300 | pid: 1372 | ppid: 560 | name: VBoxService.ex | path: \Windows\System32\VBoxService.exe
+pool: 0xffffe282a62c62b0 | eprocess: 0xffffe282a62c6340 | pid: 1464 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a62ca290 | eprocess: 0xffffe282a62ca300 | pid: 1484 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a64d6000 | eprocess: 0xffffe282a64d6040 | pid: 1548 | ppid: 4 | name: MemCompression | path: 
+pool: 0xffffe282a64d9280 | eprocess: 0xffffe282a64d9300 | pid: 1560 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a64dc320 | eprocess: 0xffffe282a64dc380 | pid: 1568 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a65242d0 | eprocess: 0xffffe282a6524340 | pid: 1608 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a653a320 | eprocess: 0xffffe282a653a380 | pid: 1628 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a653f000 | eprocess: 0xffffe282a653f080 | pid: 2108 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a6546320 | eprocess: 0xffffe282a6546380 | pid: 1668 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a659c320 | eprocess: 0xffffe282a659c380 | pid: 1772 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a659e000 | eprocess: 0xffffe282a659e080 | pid: 1780 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a6652350 | eprocess: 0xffffe282a66523c0 | pid: 1832 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a665d000 | eprocess: 0xffffe282a665d080 | pid: 1388 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a665e000 | eprocess: 0xffffe282a665e080 | pid: 1320 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a666b000 | eprocess: 0xffffe282a666b080 | pid: 2020 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a666c000 | eprocess: 0xffffe282a666c080 | pid: 2012 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a666e000 | eprocess: 0xffffe282a666e080 | pid: 1936 | ppid: 1032 | name: CompatTelRunne | path: \Windows\System32\CompatTelRunner.exe
+pool: 0xffffe282a6670000 | eprocess: 0xffffe282a6670080 | pid: 1920 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a6673000 | eprocess: 0xffffe282a6673080 | pid: 1900 | ppid: 560 | name: spoolsv.exe | path: \Windows\System32\spoolsv.exe
+pool: 0xffffe282a67eb000 | eprocess: 0xffffe282a67eb080 | pid: 2384 | ppid: 560 | name: MsMpEng.exe | path: \ProgramData\Microsoft\Windows Defender\Platform\4.18.2005.5-0\MsMpEng.exe
+pool: 0xffffe282a67ec000 | eprocess: 0xffffe282a67ec080 | pid: 2376 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a67ed000 | eprocess: 0xffffe282a67ed080 | pid: 2368 | ppid: 560 | name: ruby.exe | path: \Program Files\Puppet Labs\Puppet\sys\ruby\bin\ruby.exe
+pool: 0xffffe282a67f0000 | eprocess: 0xffffe282a67f0080 | pid: 2296 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a67f2000 | eprocess: 0xffffe282a67f2080 | pid: 2272 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a67f4000 | eprocess: 0xffffe282a67f4080 | pid: 2252 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a67f6000 | eprocess: 0xffffe282a67f6080 | pid: 2240 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a67f7000 | eprocess: 0xffffe282a67f7080 | pid: 2220 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a6802040 | eprocess: 0xffffe282a68020c0 | pid: 2200 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a694c260 | eprocess: 0xffffe282a694c2c0 | pid: 1896 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a694d000 | eprocess: 0xffffe282a694d080 | pid: 3016 | ppid: 2964 | name: dasHost.exe | path: \Windows\System32\dasHost.exe
+pool: 0xffffe282a6950000 | eprocess: 0xffffe282a6950080 | pid: 2964 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a6953000 | eprocess: 0xffffe282a6953080 | pid: 2728 | ppid: 560 | name: sppsvc.exe | path: \Windows\System32\sppsvc.exe
+pool: 0xffffe282a6956040 | eprocess: 0xffffe282a69560c0 | pid: 2500 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a6959000 | eprocess: 0xffffe282a6959080 | pid: 2444 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a695c000 | eprocess: 0xffffe282a695c080 | pid: 2400 | ppid: 560 | name: wlms.exe | path: \Windows\System32\wlms\wlms.exe
+pool: 0xffffe282a6d1e450 | eprocess: 0xffffe282a6d1e4c0 | pid: 3316 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a6d26000 | eprocess: 0xffffe282a6d26080 | pid: 3256 | ppid: 1032 | name: taskhostw.exe | path: \Windows\System32\taskhostw.exe
+pool: 0xffffe282a6d29000 | eprocess: 0xffffe282a6d29080 | pid: 6516 | ppid: 756 | name: RuntimeBroker. | path: \Windows\System32\RuntimeBroker.exe
+pool: 0xffffe282a6d2a000 | eprocess: 0xffffe282a6d2a080 | pid: 3172 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a6d2b000 | eprocess: 0xffffe282a6d2b080 | pid: 6804 | ppid: 560 | name: SecurityHealth | path: \Windows\System32\SecurityHealthService.exe
+pool: 0xffffe282a6d2d000 | eprocess: 0xffffe282a6d2d080 | pid: 3140 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a6d2f000 | eprocess: 0xffffe282a6d2f080 | pid: 3108 | ppid: 1148 | name: sihost.exe | path: \Windows\System32\sihost.exe
+pool: 0xffffe282a6d30000 | eprocess: 0xffffe282a6d30080 | pid: 4372 | ppid: 756 | name: SearchUI.exe | path: \Windows\SystemApps\Microsoft.Windows.Cortana_cw5n1h2txyewy\SearchUI.exe
+pool: 0xffffe282a6d35040 | eprocess: 0xffffe282a6d350c0 | pid: 2192 | ppid: 560 | name: NisSrv.exe | path: \ProgramData\Microsoft\Windows Defender\Platform\4.18.2005.5-0\NisSrv.exe
+pool: 0xffffe282a6ece000 | eprocess: 0xffffe282a6ece080 | pid: 4016 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a6ed0000 | eprocess: 0xffffe282a6ed0080 | pid: 3892 | ppid: 3788 | name: explorer.exe | path: \Windows\explorer.exe
+pool: 0xffffe282a6ed1000 | eprocess: 0xffffe282a6ed1080 | pid: 3224 | ppid: 3892 | name: OneDrive.exe | path: \Users\IEUser\AppData\Local\Microsoft\OneDrive\OneDrive.exe
+pool: 0xffffe282a6ed3000 | eprocess: 0xffffe282a6ed3080 | pid: 3808 | ppid: 1936 | name: conhost.exe | path: \Windows\System32\conhost.exe
+pool: 0xffffe282a6ed4000 | eprocess: 0xffffe282a6ed4080 | pid: 6296 | ppid: 5824 | name: SearchProtocol | path: \Windows\System32\SearchProtocolHost.exe
+pool: 0xffffe282a6ed5000 | eprocess: 0xffffe282a6ed5080 | pid: 3788 | ppid: 512 | name: userinit.exe | path: 
+pool: 0xffffe282a6ed7000 | eprocess: 0xffffe282a6ed7080 | pid: 3752 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a6ed9000 | eprocess: 0xffffe282a6ed9080 | pid: 3656 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a6edc040 | eprocess: 0xffffe282a6edc0c0 | pid: 3548 | ppid: 3460 | name: ctfmon.exe | path: \Windows\System32\ctfmon.exe
+pool: 0xffffe282a6edf000 | eprocess: 0xffffe282a6edf080 | pid: 3468 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a6ee0000 | eprocess: 0xffffe282a6ee0080 | pid: 3460 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a722d310 | eprocess: 0xffffe282a722d380 | pid: 5068 | ppid: 756 | name: backgroundTask | path: \Windows\System32\backgroundTaskHost.exe
+pool: 0xffffe282a724f000 | eprocess: 0xffffe282a724f080 | pid: 4256 | ppid: 756 | name: ShellExperienc | path: \Windows\SystemApps\ShellExperienceHost_cw5n1h2txyewy\ShellExperienceHost.exe
+pool: 0xffffe282a72f02d0 | eprocess: 0xffffe282a72f0340 | pid: 6612 | ppid: 756 | name: RuntimeBroker. | path: \Windows\System32\RuntimeBroker.exe
+pool: 0xffffe282a7437370 | eprocess: 0xffffe282a7437400 | pid: 4548 | ppid: 756 | name: RuntimeBroker. | path: \Windows\System32\RuntimeBroker.exe
+pool: 0xffffe282a74bc000 | eprocess: 0xffffe282a74bc080 | pid: 6012 | ppid: 756 | name: RuntimeBroker. | path: \Windows\System32\RuntimeBroker.exe
+pool: 0xffffe282a74cf000 | eprocess: 0xffffe282a74cf080 | pid: 7592 | ppid: 7584 | name: conhost.exe | path: \Windows\System32\conhost.exe
+pool: 0xffffe282a74f43a0 | eprocess: 0xffffe282a74f4400 | pid: 4632 | ppid: 756 | name: ApplicationFra | path: \Windows\System32\ApplicationFrameHost.exe
+pool: 0xffffe282a75484d0 | eprocess: 0xffffe282a7548540 | pid: 6776 | ppid: 3892 | name: SecurityHealth | path: \Windows\System32\SecurityHealthSystray.exe
+pool: 0xffffe282a7564040 | eprocess: 0xffffe282a75640c0 | pid: 4668 | ppid: 756 | name: MicrosoftEdge. | path: \Windows\SystemApps\Microsoft.MicrosoftEdge_8wekyb3d8bbwe\MicrosoftEdge.exe
+pool: 0xffffe282a75a2000 | eprocess: 0xffffe282a75a2080 | pid: 5636 | ppid: 756 | name: LockApp.exe | path: \Windows\SystemApps\Microsoft.LockApp_cw5n1h2txyewy\LockApp.exe
+pool: 0xffffe282a768a320 | eprocess: 0xffffe282a768a380 | pid: 4868 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a768f380 | eprocess: 0xffffe282a768f400 | pid: 4876 | ppid: 756 | name: browser_broker | path: \Windows\System32\browser_broker.exe
+pool: 0xffffe282a7724040 | eprocess: 0xffffe282a77240c0 | pid: 1604 | ppid: 756 | name: backgroundTask | path: \Windows\System32\backgroundTaskHost.exe
+pool: 0xffffe282a7740290 | eprocess: 0xffffe282a7740300 | pid: 3364 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a778f040 | eprocess: 0xffffe282a778f0c0 | pid: 736 | ppid: 756 | name: YourPhone.exe | path: \Program Files\WindowsApps\Microsoft.YourPhone_1.20051.93.0_x64__8wekyb3d8bbwe\YourPhone.exe
+pool: 0xffffe282a77e1370 | eprocess: 0xffffe282a77e1400 | pid: 4128 | ppid: 756 | name: RuntimeBroker. | path: \Windows\System32\RuntimeBroker.exe
+pool: 0xffffe282a7813040 | eprocess: 0xffffe282a78130c0 | pid: 5204 | ppid: 756 | name: SkypeBackgroun | path: \Program Files\WindowsApps\Microsoft.SkypeApp_14.56.102.0_x64__kzf8qxf38zg5c\SkypeBackgroundHost.exe
+pool: 0xffffe282a78171d0 | eprocess: 0xffffe282a7817240 | pid: 5260 | ppid: 756 | name: SkypeApp.exe | path: \Program Files\WindowsApps\Microsoft.SkypeApp_14.56.102.0_x64__kzf8qxf38zg5c\SkypeApp.exe
+pool: 0xffffe282a781b1d0 | eprocess: 0xffffe282a781b240 | pid: 5284 | ppid: 756 | name: MicrosoftEdgeC | path: \Windows\System32\MicrosoftEdgeCP.exe
+pool: 0xffffe282a78a4040 | eprocess: 0xffffe282a78a40c0 | pid: 5384 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a78b3000 | eprocess: 0xffffe282a78b3080 | pid: 5432 | ppid: 4128 | name: MicrosoftEdgeS | path: \Windows\System32\MicrosoftEdgeSH.exe
+pool: 0xffffe282a78bb290 | eprocess: 0xffffe282a78bb300 | pid: 5504 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a79f1000 | eprocess: 0xffffe282a79f1080 | pid: 5756 | ppid: 756 | name: backgroundTask | path: \Windows\System32\backgroundTaskHost.exe
+pool: 0xffffe282a7a1c370 | eprocess: 0xffffe282a7a1c400 | pid: 5704 | ppid: 756 | name: RuntimeBroker. | path: \Windows\System32\RuntimeBroker.exe
+pool: 0xffffe282a7a44290 | eprocess: 0xffffe282a7a44300 | pid: 5824 | ppid: 560 | name: SearchIndexer. | path: \Windows\System32\SearchIndexer.exe
+pool: 0xffffe282a7a90320 | eprocess: 0xffffe282a7a90380 | pid: 5904 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a7b02040 | eprocess: 0xffffe282a7b020c0 | pid: 7900 | ppid: 7584 | name: eprocess_scan. | path: \Users\IEUser\Downloads\eprocess_scan.exe
+pool: 0xffffe282a7b03000 | eprocess: 0xffffe282a7b03080 | pid: 6820 | ppid: 2368 | name: cmd.exe | path: 
+pool: 0xffffe282a7b0e000 | eprocess: 0xffffe282a7b0e080 | pid: 6164 | ppid: 756 | name: RuntimeBroker. | path: \Windows\System32\RuntimeBroker.exe
+pool: 0xffffe282a7b20430 | eprocess: 0xffffe282a7b204c0 | pid: 5936 | ppid: 756 | name: RuntimeBroker. | path: \Windows\System32\RuntimeBroker.exe
+pool: 0xffffe282a7b4a000 | eprocess: 0xffffe282a7b4a080 | pid: 6860 | ppid: 756 | name: RuntimeBroker. | path: \Windows\System32\RuntimeBroker.exe
+pool: 0xffffe282a7ba32c0 | eprocess: 0xffffe282a7ba3340 | pid: 6232 | ppid: 756 | name: WmiPrvSE.exe | path: \Windows\System32\wbem\WmiPrvSE.exe
+pool: 0xffffe282a7cea000 | eprocess: 0xffffe282a7cea080 | pid: 6456 | ppid: 5824 | name: SearchFilterHo | path: \Windows\System32\SearchFilterHost.exe
+pool: 0xffffe282a7e7f000 | eprocess: 0xffffe282a7e7f080 | pid: 7028 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a7e843a0 | eprocess: 0xffffe282a7e84400 | pid: 7000 | ppid: 3892 | name: VBoxTray.exe | path: \Windows\System32\VBoxTray.exe
+pool: 0xffffe282a7ed23c0 | eprocess: 0xffffe282a7ed2440 | pid: 7104 | ppid: 756 | name: dllhost.exe | path: \Windows\System32\dllhost.exe
+pool: 0xffffe282a7ed8000 | eprocess: 0xffffe282a7ed8080 | pid: 5672 | ppid: 6820 | name: ruby.exe | path: 
+pool: 0xffffe282a7f15000 | eprocess: 0xffffe282a7f15080 | pid: 7656 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a7f16000 | eprocess: 0xffffe282a7f16080 | pid: 6392 | ppid: 756 | name: WindowsInterna | path: \Windows\SystemApps\InputApp_cw5n1h2txyewy\WindowsInternal.ComposableShell.Experiences.TextInput.InputApp.exe
+pool: 0xffffe282a80f12b0 | eprocess: 0xffffe282a80f1340 | pid: 6904 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a811a340 | eprocess: 0xffffe282a811a3c0 | pid: 7184 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a81cd290 | eprocess: 0xffffe282a81cd300 | pid: 7288 | ppid: 560 | name: svchost.exe | path: \Windows\System32\svchost.exe
+pool: 0xffffe282a81ce000 | eprocess: 0xffffe282a81ce080 | pid: 7584 | ppid: 3892 | name: cmd.exe | path: \Windows\System32\cmd.exe
+NtUnloadDriver() -> 0x0

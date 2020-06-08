@@ -203,6 +203,11 @@ impl DriverState {
             let minimum_data_size = eprocess_size + pool_header_size;
             Ok(minimum_data_size)
         }
+        else if tag == b"Thre" {
+            let ethread_size = self.pdb_store.get_offset_r("_EPROCESS.struct_size")?;
+            let minimum_data_size = ethread_size + pool_header_size;
+            Ok(minimum_data_size)
+        }
         else if tag == b"File" {
             let file_object_size = self.pdb_store.get_offset_r("_FILE_OBJECT.struct_size")?;
             let minimum_data_size = file_object_size + pool_header_size;
@@ -290,7 +295,8 @@ impl DriverState {
 
                 Ok([first_va, last_va])
             },
-            WindowsVersion::Windows10_2019 => {
+            WindowsVersion::Windows10_2019 |
+            WindowsVersion::Windows10_2018 => {
                 let mistate = ntosbase + self.pdb_store.get_offset_r("MiState")?;
                 let system_node_ptr = self.pdb_store.addr_decompose(
                                         mistate, "_MI_SYSTEM_INFORMATION.Hardware.SystemNodeInformation")?;
