@@ -5,7 +5,8 @@ use chrono::{DateTime};
 use std::time::{UNIX_EPOCH, Duration};
 
 use lpus::{
-    driver_state::{DriverState /* , EprocessPoolChunk */}
+    driver_state::{DriverState /* , EprocessPoolChunk */},
+    address::Address
 };
 
 #[allow(dead_code)]
@@ -28,28 +29,17 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     // let eprocess_scan_head = driver.scan_active_head(ntosbase)?;
     // let mut eprocess_list: Vec<EprocessPoolChunk> = Vec::new();
-    driver.scan_pool(b"Proc", |pool_addr, header, data_addr| {
+    driver.scan_pool(b"Proc", "_EPROCESS", |pool_addr, header, data_addr| {
         let chunk_size = (header[2] as u64) * 16u64;
 
         let eprocess_size = driver.pdb_store.get_offset_r("_EPROCESS.struct_size")?;
-        let eprocess_name_offset = driver.pdb_store.get_offset_r("_EPROCESS.ImageFileName")?;
-        let eprocess_create_time_offset = driver.pdb_store.get_offset_r("_EPROCESS.CreateTime")?;
-        let eprocess_image_file_offset = driver.pdb_store.get_offset_r("_EPROCESS.ImageFilePointer")?;
-        let eprocess_pid_offset = driver.pdb_store.get_offset_r("_EPROCESS.UniqueProcessId")?;
-        let eprocess_ppid_offset = driver.pdb_store.get_offset_r("_EPROCESS.InheritedFromUniqueProcessId")?;
-        // let eprocess_exit_time_offset = driver.pdb_store.get_offset_r("_EPROCESS.ExitTime")?;
-        let fob_filename_offset = driver.pdb_store.get_offset_r("_FILE_OBJECT.FileName")?;
 
-        let eprocess_valid_start = data_addr;
-        let eprocess_valid_end = (pool_addr + chunk_size) - eprocess_size;
-        let mut try_eprocess_ptr = eprocess_valid_start;
+        let eprocess_valid_start = &data_addr;
+        let eprocess_valid_end = Address::from_base((pool_addr.address() + chunk_size) - eprocess_size);
+        let mut try_eprocess_ptr = Address::from_base(eprocess_valid_start.address());
 
-        let mut create_time = 0u64;
-        // let mut exit_time = 0u64;
         while try_eprocess_ptr <= eprocess_valid_end {
-            driver.deref_addr(try_eprocess_ptr + eprocess_create_time_offset, &mut create_time);
-            // driver.deref_addr(try_eprocess_ptr + eprocess_exit_time_offset, &mut exit_time);
-            // using heuristics to eliminate false positive
+            let create_time: u64 = driver.decompose(&try_eprocess_ptr, "_EPROCESS.CreateTime")?;
             if driver.windows_ffi.valid_process_time(create_time) {
                 break;
             }
@@ -59,33 +49,27 @@ fn main() -> Result<(), Box<dyn Error>> {
             return Ok(false);
         }
 
-        let eprocess_ptr = try_eprocess_ptr;
+        let eprocess_ptr = &try_eprocess_ptr;
 
-        let mut image_name = [0u8; 15];
-        let mut image_file_ptr = 0u64;
-        let mut ppid = 0u64;
-        let mut pid = 0u64;
+        let pid: u64 = driver.decompose(eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
+        let ppid: u64 = driver.decompose(eprocess_ptr, "_EPROCESS.InheritedFromUniqueProcessId")?;
+        let image_name: Vec<u8> = driver.decompose_array(eprocess_ptr, "_EPROCESS.ImageFileName", 15)?;
+        let unicode_str_ptr = driver.address_of(eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")?;
 
-        driver.deref_addr(eprocess_ptr + eprocess_ppid_offset, &mut ppid);
-        driver.deref_addr(eprocess_ptr + eprocess_pid_offset, &mut pid);
-
-        driver.deref_addr(eprocess_ptr + eprocess_name_offset, &mut image_name);
-        driver.deref_addr(eprocess_ptr + eprocess_image_file_offset, &mut image_file_ptr);
-
-        let binary_path =
-            if image_file_ptr != 0 {
-                driver.get_unicode_string(image_file_ptr + fob_filename_offset, true)?
-            } else {
-                "".to_string()
-            };
         let eprocess_name =
             if let Ok(name) = from_utf8(&image_name) {
                 name.to_string().trim_end_matches(char::from(0)).to_string()
             } else {
                 "".to_string()
             };
+        let binary_path =
+            if unicode_str_ptr != 0 {
+                driver.get_unicode_string(unicode_str_ptr, true)?
+            } else {
+                "".to_string()
+            };
 
-        println!("pool: 0x{:x} | eprocess: 0x{:x} | pid: {} | ppid: {} | name: {} | path: {}",
+        println!("pool: {} | eprocess: {} | pid: {} | ppid: {} | name: {} | path: {}",
                  pool_addr, eprocess_ptr, pid, ppid, eprocess_name, binary_path);
         // eprocess_list.push(EprocessPoolChunk {
         //     pool_addr,

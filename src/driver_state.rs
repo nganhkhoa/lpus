@@ -1,3 +1,5 @@
+use std::default::Default;
+use std::clone::Clone;
 use std::error::Error;
 // use std::io::{Error, ErrorKind};
 use std::ffi::c_void;
@@ -10,6 +12,7 @@ use winapi::um::winioctl::{
     METHOD_IN_DIRECT, METHOD_OUT_DIRECT, /* METHOD_BUFFERED, */ METHOD_NEITHER
 };
 
+use crate::address::Address;
 use crate::pdb_store::{PdbStore, parse_pdb};
 use crate::windows::{WindowsFFI, WindowsVersion};
 use crate::ioctl_protocol::{
@@ -100,79 +103,84 @@ impl DriverState {
         self.windows_ffi.unload_driver()
     }
 
-    pub fn get_kernel_base(&self) -> u64 {
+    pub fn get_kernel_base(&self) -> Address {
         let mut ntosbase = 0u64;
         self.windows_ffi.device_io(DriverAction::GetKernelBase.get_code(),
                                    &mut Nothing, &mut ntosbase);
-        // println!("ntosbase: 0x{:x}", self.ntosbase);
-        ntosbase
+        Address::from_base(ntosbase)
     }
 
-    pub fn scan_active_head(&self) -> BoxResult<Vec<EprocessPoolChunk>> {
-        let ntosbase = self.get_kernel_base();
-        let ps_active_head = ntosbase + self.pdb_store.get_offset_r("PsActiveProcessHead")?;
-        let flink_offset = self.pdb_store.get_offset_r("_LIST_ENTRY.Flink")?;
-        let eprocess_link_offset = self.pdb_store.get_offset_r("_EPROCESS.ActiveProcessLinks")?;
-        let eprocess_name_offset = self.pdb_store.get_offset_r("_EPROCESS.ImageFileName")?;
+    // pub fn scan_active_head(&self) -> BoxResult<Vec<EprocessPoolChunk>> {
+    //     let ntosbase = self.get_kernel_base();
+    //     let ps_active_head = ntosbase + self.pdb_store.get_offset_r("PsActiveProcessHead")?;
+    //     let flink_offset = self.pdb_store.get_offset_r("_LIST_ENTRY.Flink")?;
+    //     let eprocess_link_offset = self.pdb_store.get_offset_r("_EPROCESS.ActiveProcessLinks")?;
+    //     let eprocess_name_offset = self.pdb_store.get_offset_r("_EPROCESS.ImageFileName")?;
+    //
+    //     let mut ptr = ps_active_head;
+    //     self.deref_addr((ptr + flink_offset).get(), &mut ptr);
+    //
+    //     let mut result: Vec<EprocessPoolChunk> = Vec::new();
+    //     while ptr != ps_active_head {
+    //         let mut image_name = [0u8; 15];
+    //         let eprocess = ptr - eprocess_link_offset;
+    //         self.deref_addr(eprocess + eprocess_name_offset, &mut image_name);
+    //         match std::str::from_utf8(&image_name) {
+    //             Ok(n) => {
+    //                 result.push(EprocessPoolChunk {
+    //                     pool_addr: 0,
+    //                     eprocess_addr: eprocess,
+    //                     eprocess_name: n.to_string()
+    //                                     .trim_end_matches(char::from(0))
+    //                                     .to_string(),
+    //                     create_time: 0,
+    //                     exit_time: 0
+    //
+    //                 });
+    //             },
+    //             _ => {}
+    //         };
+    //         self.deref_addr(ptr + flink_offset, &mut ptr);
+    //     }
+    //     Ok(result)
+    // }
 
-        let mut ptr = ps_active_head;
-        self.deref_addr(ptr + flink_offset, &mut ptr);
-
-        let mut result: Vec<EprocessPoolChunk> = Vec::new();
-        while ptr != ps_active_head {
-            let mut image_name = [0u8; 15];
-            let eprocess = ptr - eprocess_link_offset;
-            self.deref_addr(eprocess + eprocess_name_offset, &mut image_name);
-            match std::str::from_utf8(&image_name) {
-                Ok(n) => {
-                    result.push(EprocessPoolChunk {
-                        pool_addr: 0,
-                        eprocess_addr: eprocess,
-                        eprocess_name: n.to_string()
-                                        .trim_end_matches(char::from(0))
-                                        .to_string(),
-                        create_time: 0,
-                        exit_time: 0
-
-                    });
-                },
-                _ => {}
-            };
-            self.deref_addr(ptr + flink_offset, &mut ptr);
-        }
-        Ok(result)
-    }
-
-    pub fn scan_pool<F>(&self, tag: &[u8; 4], mut handler: F) -> BoxResult<bool>
-                        where F: FnMut(u64, &[u8], u64) -> BoxResult<bool>
+    pub fn scan_pool<F>(&self, tag: &[u8; 4], expected_struct: &str, mut handler: F) -> BoxResult<bool>
+                        where F: FnMut(Address, &[u8], Address) -> BoxResult<bool>
                         // F(Pool Address, Pool Header Data, Pool Data Address)
                         // TODO: Pool Header as a real struct
     {
-        let ntosbase = self.get_kernel_base();
+        // TODO: make generator, in hold: https://github.com/rust-lang/rust/issues/43122
+        // Making this function a generator will turn the call to a for loop
+        // https://docs.rs/gen-iter/0.2.0/gen_iter/
+        // >> More flexibility in code
         let pool_header_size = self.pdb_store.get_offset_r("_POOL_HEADER.struct_size")?;
-        let minimum_block_size = self.get_minimum_block_size(tag)?;
+        let minimum_block_size = self.pdb_store.get_offset_r(&format!("{}.struct_size", expected_struct))?
+                               + pool_header_size;
         let code = DriverAction::ScanPoolRemote.get_code();
-        let range = self.get_nonpaged_range(ntosbase)?;
-        let start_address = range[0];
-        let end_address = range[1];
+        let ntosbase = self.get_kernel_base();
+        let [start_address, end_address] = self.get_nonpaged_range(&ntosbase)?;
+
+        println!("kernel base: {}; non-paged pool (start, end): ({}, {})", ntosbase, start_address, end_address);
+
         let mut ptr = start_address;
         while ptr < end_address {
+            let mut next_found = 0u64;
             let mut input = InputData {
-                scan_range: ScanPoolData::new(&[ptr, end_address], tag)
+                scan_range: ScanPoolData::new(&[ptr.address(), end_address.address()], tag)
             };
-            self.windows_ffi.device_io(code, &mut input, &mut ptr);
-            // println!("found: 0x{:x}", ptr);
+            self.windows_ffi.device_io(code, &mut input, &mut next_found);
+            ptr = Address::from_base(next_found);
             if ptr >= end_address {
                 break;
             }
 
-            let pool_addr = ptr;
-            let mut header = vec![0u8; pool_header_size as usize];
-            self.deref_addr_ptr(pool_addr, header.as_mut_ptr(), pool_header_size);
+            let pool_addr = Address::from_base(ptr.address());
+            let header: Vec<u8> = self.deref_array(&pool_addr, pool_header_size);
             let chunk_size = (header[2] as u64) * 16u64;
 
-            if pool_addr + chunk_size > end_address {
-                // the chunk found is not a valid chunk for sure
+            if pool_addr.address() + chunk_size > end_address.address() {
+                // the chunk surpasses the non page pool range
                 break;
             }
 
@@ -182,10 +190,11 @@ impl DriverState {
                 continue;
             }
 
-            let success = handler(pool_addr, &header, pool_addr + pool_header_size)?;
+            let data_addr = Address::from_base(pool_addr.address() + pool_header_size);
+
+            let success = handler(pool_addr, &header, data_addr)?;
             if success {
-                ptr += chunk_size; /* pass this chunk */
-                // ptr += 0x4;
+                ptr += chunk_size; /* skip this chunk */
             }
             else {
                 ptr += 0x4; /* search next */
@@ -194,32 +203,42 @@ impl DriverState {
         Ok(true)
     }
 
-    fn get_minimum_block_size(&self, tag: &[u8; 4]) -> BoxResult<u64> {
-        // Proc -> _EPROCESS
-        // Thre -> _KTHREAD
-        let pool_header_size = self.pdb_store.get_offset_r("_POOL_HEADER.struct_size")?;
-        if tag == b"Proc" {
-            let eprocess_size = self.pdb_store.get_offset_r("_EPROCESS.struct_size")?;
-            let minimum_data_size = eprocess_size + pool_header_size;
-            Ok(minimum_data_size)
-        }
-        else if tag == b"Thre" {
-            let ethread_size = self.pdb_store.get_offset_r("_EPROCESS.struct_size")?;
-            let minimum_data_size = ethread_size + pool_header_size;
-            Ok(minimum_data_size)
-        }
-        else if tag == b"File" {
-            let file_object_size = self.pdb_store.get_offset_r("_FILE_OBJECT.struct_size")?;
-            let minimum_data_size = file_object_size + pool_header_size;
-            Ok(minimum_data_size)
-        }
-        else {
-            Err("Tag unknown".into())
-        }
+    pub fn address_of(&self, addr: &Address, name: &str) -> BoxResult<u64> {
+        let resolver = |p| { self.deref_addr_new(p) };
+        let r = self.pdb_store.decompose(&addr, &name)?;
+        Ok(r.get(&resolver))
     }
 
+    pub fn decompose<T: Default>(&self, addr: &Address, name: &str) -> BoxResult<T> {
+        // interface to pdb_store.decompose
+        let resolver = |p| { self.deref_addr_new(p) };
+        let r: T = self.deref_addr_new(self.pdb_store.decompose(&addr, &name)?.get(&resolver));
+        Ok(r)
+    }
+
+    pub fn decompose_array<T: Default + Clone>(&self, addr: &Address, name: &str, len: u64) -> BoxResult<Vec<T>> {
+        // interface to pdb_store.decompose for array
+        let r: Vec<T> = self.deref_array(&self.pdb_store.decompose(&addr, &name)?, len);
+        Ok(r)
+    }
+
+    pub fn deref_addr_new<T: Default>(&self, addr: u64) -> T {
+        let mut r: T = Default::default();
+        if addr != 0 {
+            self.deref_addr(addr, &mut r);
+        }
+        r
+    }
+
+    pub fn deref_array<T: Default + Clone>(&self, addr: &Address, len: u64) -> Vec<T> {
+        let resolver = |p| { self.deref_addr_new(p) };
+        let mut r: Vec<T> = vec![Default::default(); len as usize];
+        self.deref_addr_ptr(addr.get(&resolver), r.as_mut_ptr(), len);
+        r
+    }
+
+    // #[deprecated(note="use deref_addr_new<T>")]
     pub fn deref_addr<T>(&self, addr: u64, outbuf: &mut T) {
-        // println!("deref addr: 0x{:x}", addr);
         let code = DriverAction::DereferenceAddress.get_code();
         let size: usize = size_of_val(outbuf);
         let mut input = InputData {
@@ -228,10 +247,10 @@ impl DriverState {
                 size: size as u64
             }
         };
-        // unsafe { println!("Dereference {} bytes at 0x{:x}", input.deref_addr.size, input.deref_addr.addr) };
         self.windows_ffi.device_io(code, &mut input, outbuf);
     }
 
+    // #[deprecated(note="use deref_array<T>")]
     pub fn deref_addr_ptr<T>(&self, addr: u64, outptr: *mut T, output_len: u64) {
         let code = DriverAction::DereferenceAddress.get_code();
         let mut input = InputData {
@@ -256,7 +275,6 @@ impl DriverState {
         self.deref_addr(capacity_addr, &mut capacity);
         self.deref_addr(buffer_ptr, &mut bufaddr);
 
-        // println!("unicode str: 0x{:x} size: 0x{:x} capacity: 0x{:x}", bufaddr, strlen, capacity);
         if bufaddr == 0 || strlen > capacity || strlen == 0 || strlen % 2 != 0 {
             return Err("Unicode string is empty".into());
         }
@@ -267,54 +285,53 @@ impl DriverState {
 
         let mut buf = vec![0u16; (strlen / 2) as usize];
         self.deref_addr_ptr(bufaddr, buf.as_mut_ptr(), strlen as u64);
+        // TODO: BUG with deref_array, len is wrong,
+        // >> the size of vector is strlen / 2
+        // >> the size to dereference is strlen
+        // XXX: use Vec<u8> and turn to Vec<u16>
+        // let buf: Vec<u16> = self.deref_array(&Address::from_base(bufaddr), (strlen / 2) as u64);
 
         Ok(String::from_utf16(&buf)?)
     }
 
-    pub fn get_nonpaged_range(&self, ntosbase: u64) -> BoxResult<[u64; 2]> {
+    pub fn get_nonpaged_range(&self, ntosbase: &Address) -> BoxResult<[Address; 2]> {
         // TODO: Add support for other Windows version here
         match self.windows_ffi.short_version {
             WindowsVersion::Windows10FastRing => {
-                let mistate = ntosbase + self.pdb_store.get_offset_r("MiState")?;
-                let system_node_ptr = self.pdb_store.addr_decompose(
-                                        mistate, "_MI_SYSTEM_INFORMATION.Hardware.SystemNodeNonPagedPool")?;
-                let mut system_node_addr = 0u64;
-                self.deref_addr(system_node_ptr, &mut system_node_addr);
-
-                let mut first_va = 0u64;
-                let mut last_va = 0u64;
-                self.deref_addr(
-                    system_node_addr
-                    + self.pdb_store.get_offset_r("_MI_SYSTEM_NODE_NONPAGED_POOL.NonPagedPoolFirstVa")?,
-                    &mut first_va);
-
-                self.deref_addr(
-                    system_node_addr
-                    + self.pdb_store.get_offset_r("_MI_SYSTEM_NODE_NONPAGED_POOL.NonPagedPoolLastVa")?,
-                    &mut last_va);
-
+                let mistate = ntosbase.clone() + self.pdb_store.get_offset_r("MiState")?;
+                let path_first_va: String = vec![
+                    "_MI_SYSTEM_INFORMATION",
+                    "Hardware",
+                    "SystemNodeNonPagedPool",
+                    "NonPagedPoolFirstVa"
+                ].join(".");
+                let path_last_va: String = vec![
+                    "_MI_SYSTEM_INFORMATION",
+                    "Hardware",
+                    "SystemNodeNonPagedPool",
+                    "NonPagedPoolLastVa"
+                ].join(".");
+                let first_va = Address::from_base(self.decompose(&mistate, &path_first_va)?);
+                let last_va = Address::from_base(self.decompose(&mistate, &path_last_va)?);
                 Ok([first_va, last_va])
             },
             WindowsVersion::Windows10_2019 |
             WindowsVersion::Windows10_2018 => {
-                let mistate = ntosbase + self.pdb_store.get_offset_r("MiState")?;
-                let system_node_ptr = self.pdb_store.addr_decompose(
-                                        mistate, "_MI_SYSTEM_INFORMATION.Hardware.SystemNodeInformation")?;
-                let mut system_node_addr = 0u64;
-                self.deref_addr(system_node_ptr, &mut system_node_addr);
-
-                let mut first_va = 0u64;
-                let mut last_va = 0u64;
-                self.deref_addr(
-                    system_node_addr
-                    + self.pdb_store.get_offset_r("_MI_SYSTEM_NODE_INFORMATION.NonPagedPoolFirstVa")?,
-                    &mut first_va);
-
-                self.deref_addr(
-                    system_node_addr
-                    + self.pdb_store.get_offset_r("_MI_SYSTEM_NODE_INFORMATION.NonPagedPoolLastVa")?,
-                    &mut last_va);
-
+                let mistate = ntosbase.clone() + self.pdb_store.get_offset_r("MiState")?;
+                let path_first_va: String = vec![
+                    "_MI_SYSTEM_INFORMATION",
+                    "Hardware",
+                    "SystemNodeInformation",
+                    "NonPagedPoolFirstVa"
+                ].join(".");
+                let path_last_va: String = vec![
+                    "_MI_SYSTEM_INFORMATION",
+                    "Hardware",
+                    "SystemNodeInformation",
+                    "NonPagedPoolLastVa"
+                ].join(".");
+                let first_va = Address::from_base(self.decompose(&mistate, &path_first_va)?);
+                let last_va = Address::from_base(self.decompose(&mistate, &path_last_va)?);
                 Ok([first_va, last_va])
             },
             _ => {

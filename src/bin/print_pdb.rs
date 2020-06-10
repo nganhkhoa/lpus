@@ -1,7 +1,8 @@
 use std::error::Error;
 
 use lpus::{
-    driver_state::{DriverState}
+    driver_state::{DriverState},
+    address::Address
 };
 
 fn main() -> Result<(), Box<dyn Error>> {

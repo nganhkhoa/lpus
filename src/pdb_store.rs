@@ -9,8 +9,9 @@ use pdb::{
     PDB, SymbolData, TypeData, ClassType, ModifierType, Rva,
     FallibleIterator, TypeFinder, TypeIndex
 };
-
 use app_dirs::{AppInfo, AppDataType, app_dir};
+
+use crate::address::Address;
 
 const APP_INFO: AppInfo = AppInfo { name: "lpus", author: "nganhkhoa" };
 
@@ -82,6 +83,36 @@ impl PdbStore {
                 }
             },
             None => Err(format!("Struct {} not found", name_part[0]).into())
+        }
+    }
+
+    pub fn decompose(&self, source: &Address, full_name: &str) -> BoxResult<Address> {
+        // println!("decompose {}", full_name);
+        if !full_name.contains(".") {
+            return Err("Not decomposable".into());
+        }
+
+        let mut name_part: Vec<&str> = full_name.split_terminator('.').collect();
+        let mut next: Vec<_> = name_part.drain(2..).collect();
+        let member_info = self.structs.get(name_part[0])
+                          .ok_or(format!("No struct {}", name_part[0]))?;
+        let (memtype, offset) = member_info.get(name_part[1])
+                                .ok_or(format!("No member {} in {}", name_part[1], name_part[0]))?;
+
+        if next.len() == 0 {
+            return Ok(source.clone() + *offset);
+        }
+        if memtype.contains("*") {
+            let mut t = memtype.clone(); // remove *
+            t.pop();
+            next.insert(0, &t);
+            let p = Address::from_ptr(source.clone() + *offset);
+            self.decompose(&p, &next.join("."))
+
+        }
+        else {
+            next.insert(0, memtype);
+            self.decompose(&(source.clone() + *offset), &next.join("."))
         }
     }
 
