@@ -265,6 +265,10 @@ impl DriverState {
     }
 
     pub fn get_unicode_string(&self, unicode_str_addr: u64, deref: bool) -> BoxResult<String> {
+        if unicode_str_addr == 0 {
+            return Err("Not a valid address".into());
+        }
+
         let mut strlen = 0u16;
         let mut capacity = 0u16;
         let mut bufaddr = 0u64;
