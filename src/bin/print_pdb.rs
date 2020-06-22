@@ -1,6 +1,9 @@
 use std::error::Error;
 // use std::time::{SystemTime, UNIX_EPOCH};
 
+use rustyline::error::ReadlineError;
+use rustyline::Editor;
+
 use lpus::{
     driver_state::{DriverState},
 };
@@ -21,6 +24,37 @@ fn main() -> Result<(), Box<dyn Error>> {
     let driver = DriverState::new();
     driver.windows_ffi.print_version();
     driver.pdb_store.print_default_information();
+
+    let mut rl = Editor::<()>::new();
+    if rl.load_history("history.lpus").is_err() {
+        println!("No previous history.");
+    }
+    loop {
+        let readline = rl.readline(">> ");
+        match readline {
+            Ok(line) => {
+                rl.add_history_entry(line.as_str());
+                println!("Line: {}", line);
+                // TODO: add parser here
+                if let Err(e) = driver.pdb_store.dt(&line) {
+                    println!("{}", e);
+                }
+            },
+            Err(ReadlineError::Interrupted) => {
+                println!("CTRL-C");
+                break
+            },
+            Err(ReadlineError::Eof) => {
+                println!("CTRL-D");
+                break
+            },
+            Err(err) => {
+                println!("Error: {:?}", err);
+                break
+            }
+        }
+    }
+    rl.save_history("history.lpus").unwrap();
 
     Ok(())
 }

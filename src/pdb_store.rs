@@ -194,6 +194,29 @@ impl PdbStore {
             }
         }
     }
+
+    pub fn dt(&self, struct_name: &str) -> BoxResult<()> {
+        let member_info = self.structs.get(struct_name).ok_or(format!("no struct named {}", struct_name))?;
+        let (_, struct_size) = member_info.get("struct_size").ok_or("")?;
+        println!("// 0x{:x} bytes", struct_size);
+        println!("struct {} {{", struct_name);
+
+        // Vec<(offset, type, name)>
+        let mut members: Vec<(u64, String, String)> = Vec::new();
+        for (name, (t, offset)) in member_info.iter() {
+            if name != "struct_size" {
+                members.push((*offset, t.to_string(), name.to_string()));
+            }
+        }
+        members.sort_by(|(o1,_,_), (o2,_,_)| o1.partial_cmp(o2).unwrap());
+
+        for (offset, memtype, member) in members.iter() {
+            println!("  +0x{:x} {} {};", offset, memtype, member);
+        }
+
+        println!("}} // {}", struct_name);
+        Ok(())
+    }
 }
 
 fn get_type_as_str(type_finder: &TypeFinder, typ: &TypeIndex) -> String {

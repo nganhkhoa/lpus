@@ -323,3 +323,208 @@ pub fn scan_kernel_module(driver: &DriverState) -> BoxResult<Vec<Value>> {
 
     Ok(result)
 }
+
+pub fn traverse_loadedmodulelist(driver: &DriverState) -> BoxResult<Vec<Value>> {
+    let mut result: Vec<Value> = Vec::new();
+
+    let ntosbase = driver.get_kernel_base();
+    let module_list_head = ntosbase + driver.pdb_store.get_offset_r("PsLoadedModuleList")?;
+
+    let mut ptr: u64 = driver.decompose(&module_list_head, "_LIST_ENTRY.Flink")?;
+    while ptr != module_list_head.address() {
+        let mod_addr = Address::from_base(ptr);
+
+        let dllbase: u64 = driver.decompose(&mod_addr, "_KLDR_DATA_TABLE_ENTRY.DllBase")?;
+        let entry: u64 = driver.decompose(&mod_addr, "_KLDR_DATA_TABLE_ENTRY.EntryPoint")?;
+        let size: u64 = driver.decompose(&mod_addr, "_KLDR_DATA_TABLE_ENTRY.SizeOfImage")?;
+        let fullname_ptr = driver.address_of(&mod_addr, "_KLDR_DATA_TABLE_ENTRY.FullDllName")?;
+        let basename_ptr = driver.address_of(&mod_addr, "_KLDR_DATA_TABLE_ENTRY.BaseDllName")?;
+
+        let fullname = driver.get_unicode_string(fullname_ptr)
+                       .unwrap_or("".to_string());
+        let basename = driver.get_unicode_string(basename_ptr)
+                       .unwrap_or("".to_string());
+        result.push(json!({
+            "address": format!("0x{:x}", mod_addr.address()),
+            "type": "_KLDR_DATA_TABLE_ENTRY",
+            "dllbase": format!("0x{:x}", dllbase),
+            "entry": format!("0x{:x}", entry),
+            "size": format!("0x{:x}", size),
+            "FullName": fullname,
+            "BaseName": basename
+        }));
+
+        ptr = driver.decompose(&mod_addr, "_KLDR_DATA_TABLE_ENTRY.InLoadOrderLinks.Flink")?;
+    }
+
+    Ok(result)
+}
+
+// dx Debugger.Utility.Collections.FromListEntry( *(nt!_LIST_ENTRY*)&(nt!PsActiveProcessHead), "nt!_EPROCESS", "ActiveProcessLinks")
+pub fn traverse_activehead(driver: &DriverState) -> BoxResult<Vec<Value>> {
+    let mut result: Vec<Value> = Vec::new();
+
+    let ntosbase = driver.get_kernel_base();
+    let process_list_head = ntosbase + driver.pdb_store.get_offset_r("PsActiveProcessHead")?;
+    let eprocess_listentry_offset = driver.pdb_store.get_offset_r("_EPROCESS.ActiveProcessLinks")?;
+
+    let mut ptr: u64 = driver.decompose(&process_list_head, "_LIST_ENTRY.Flink")?;
+    while ptr != process_list_head.address() {
+        let eprocess_ptr = Address::from_base(ptr - eprocess_listentry_offset);
+
+        let pid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
+        let ppid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.InheritedFromUniqueProcessId")?;
+        let image_name: Vec<u8> = driver.decompose_array(&eprocess_ptr, "_EPROCESS.ImageFileName", 15)?;
+        let unicode_str_ptr = driver.address_of(&eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")?;
+
+        let eprocess_name =
+            if let Ok(name) = from_utf8(&image_name) {
+                name.to_string().trim_end_matches(char::from(0)).to_string()
+            } else {
+                "".to_string()
+            };
+        let binary_path = driver.get_unicode_string(unicode_str_ptr)
+                          .unwrap_or("".to_string());
+
+        result.push(json!({
+            "address": format!("0x{:x}", &eprocess_ptr.address()),
+            "type": "_EPROCESS",
+            "pid": pid,
+            "ppid": ppid,
+            "name": eprocess_name,
+            "path": binary_path
+        }));
+
+        ptr = driver.decompose(&eprocess_ptr, "_EPROCESS.ActiveProcessLinks.Flink")?;
+    }
+
+    Ok(result)
+}
+
+// TODO: where is afd!
+// dx Debugger.Utility.Collections.FromListEntry( *(nt!_LIST_ENTRY*)&(afd!AfdEndpointListHead), "nt!_EPROCESS", "ActiveProcessLinks")
+// pub fn traverse_afdendpoint(driver: &DriverState) -> BoxResult<Vec<Value>> {
+//     let mut result: Vec<Value> = Vec::new();
+//
+//     let ntosbase = driver.get_kernel_base();
+//     let process_list_head = ntosbase + driver.pdb_store.get_offset_r("PsActiveProcessHead")?;
+//     let eprocess_listentry_offset = driver.pdb_store.get_offset_r("_EPROCESS.ActiveProcessLinks")?;
+//
+//     let mut ptr: u64 = driver.decompose(&process_list_head, "_LIST_ENTRY.Flink")?;
+//     while ptr != process_list_head.address() {
+//         let eprocess_ptr = Address::from_base(ptr - eprocess_listentry_offset);
+//
+//         let pid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
+//         let ppid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.InheritedFromUniqueProcessId")?;
+//         let image_name: Vec<u8> = driver.decompose_array(&eprocess_ptr, "_EPROCESS.ImageFileName", 15)?;
+//         let unicode_str_ptr = driver.address_of(&eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")?;
+//
+//         let eprocess_name =
+//             if let Ok(name) = from_utf8(&image_name) {
+//                 name.to_string().trim_end_matches(char::from(0)).to_string()
+//             } else {
+//                 "".to_string()
+//             };
+//         let binary_path = driver.get_unicode_string(unicode_str_ptr)
+//                           .unwrap_or("".to_string());
+//
+//         result.push(json!({
+//             "address": format!("0x{:x}", &eprocess_ptr.address()),
+//             "type": "_EPROCESS",
+//             "pid": pid,
+//             "ppid": ppid,
+//             "name": eprocess_name,
+//             "path": binary_path
+//         }));
+//
+//         ptr = driver.decompose(&eprocess_ptr, "_EPROCESS.ActiveProcessLinks.Flink")?;
+//     }
+//
+//     Ok(result)
+// }
+
+// dx Debugger.Utility.Collections.FromListEntry( *(nt!_LIST_ENTRY*)&(nt!KiProcessListHead), "nt!_KPROCESS", "ProcessListEntry").Select( p => new {Process = (nt!_EPROCESS*)&p )
+pub fn traverse_kiprocesslist(driver: &DriverState) -> BoxResult<Vec<Value>> {
+    let mut result: Vec<Value> = Vec::new();
+
+    let ntosbase = driver.get_kernel_base();
+    let process_list_head = ntosbase + driver.pdb_store.get_offset_r("KiProcessListHead")?;
+    let eprocess_listentry_offset = driver.pdb_store.get_offset_r("_KPROCESS.ProcessListEntry")?;
+
+    let mut ptr: u64 = driver.decompose(&process_list_head, "_LIST_ENTRY.Flink")?;
+    while ptr != process_list_head.address() {
+        let eprocess_ptr = Address::from_base(ptr - eprocess_listentry_offset);
+
+        let pid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
+        let ppid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.InheritedFromUniqueProcessId")?;
+        let image_name: Vec<u8> = driver.decompose_array(&eprocess_ptr, "_EPROCESS.ImageFileName", 15)?;
+        let unicode_str_ptr = driver.address_of(&eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")?;
+
+        let eprocess_name =
+            if let Ok(name) = from_utf8(&image_name) {
+                name.to_string().trim_end_matches(char::from(0)).to_string()
+            } else {
+                "".to_string()
+            };
+        let binary_path = driver.get_unicode_string(unicode_str_ptr)
+                          .unwrap_or("".to_string());
+
+        result.push(json!({
+            "address": format!("0x{:x}", &eprocess_ptr.address()),
+            "type": "_EPROCESS",
+            "pid": pid,
+            "ppid": ppid,
+            "name": eprocess_name,
+            "path": binary_path
+        }));
+
+        ptr = driver.decompose(&eprocess_ptr, "_KPROCESS.ProcessListEntry.Flink")?;
+    }
+
+    Ok(result)
+}
+
+// dx Debugger.Utility.Collections.FromListEntry(*(nt!_LIST_ENTRY*)&nt!HandleTableListHead, "nt!_HANDLE_TABLE", "HandleTableList").Where(h => h.QuotaProcess != 0).Select( qp => new {Process= qp.QuotaProcess} )
+pub fn traverse_handletable(driver: &DriverState) -> BoxResult<Vec<Value>> {
+    let mut result: Vec<Value> = Vec::new();
+
+    let ntosbase = driver.get_kernel_base();
+    let process_list_head = ntosbase + driver.pdb_store.get_offset_r("HandleTableListHead")?;
+    let handle_list_offset = driver.pdb_store.get_offset_r("_HANDLE_TABLE.HandleTableList")?;
+
+    let mut ptr: u64 = driver.decompose(&process_list_head, "_LIST_ENTRY.Flink")?;
+    while ptr != process_list_head.address() {
+        let handle_ptr = Address::from_base(ptr - handle_list_offset);
+        let quota_process: u64 = driver.decompose(&handle_ptr, "_HANDLE_TABLE.QuotaProcess")?;
+
+        if quota_process != 0 {
+            let eprocess_ptr = Address::from_base(quota_process);
+            let pid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
+            let ppid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.InheritedFromUniqueProcessId")?;
+            let image_name: Vec<u8> = driver.decompose_array(&eprocess_ptr, "_EPROCESS.ImageFileName", 15)?;
+            let unicode_str_ptr = driver.address_of(&eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")?;
+
+            let eprocess_name =
+                if let Ok(name) = from_utf8(&image_name) {
+                    name.to_string().trim_end_matches(char::from(0)).to_string()
+                } else {
+                    "".to_string()
+                };
+            let binary_path = driver.get_unicode_string(unicode_str_ptr)
+                            .unwrap_or("".to_string());
+
+            result.push(json!({
+                "address": format!("0x{:x}", &eprocess_ptr.address()),
+                "type": "_EPROCESS",
+                "pid": pid,
+                "ppid": ppid,
+                "name": eprocess_name,
+                "path": binary_path
+            }));
+        }
+
+        ptr = driver.decompose(&handle_ptr, "_HANDLE_TABLE.HandleTableList.Flink")?;
+    }
+
+    Ok(result)
+}
