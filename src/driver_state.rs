@@ -3,7 +3,7 @@ use std::clone::Clone;
 use std::error::Error;
 // use std::io::{Error, ErrorKind};
 use std::ffi::c_void;
-use std::mem::{size_of_val};
+use std::mem::{size_of_val, size_of};
 
 use winapi::shared::ntdef::{NTSTATUS};
 use winapi::shared::minwindef::{DWORD};
@@ -233,7 +233,8 @@ impl DriverState {
     pub fn deref_array<T: Default + Clone>(&self, addr: &Address, len: u64) -> Vec<T> {
         let resolver = |p| { self.deref_addr_new(p) };
         let mut r: Vec<T> = vec![Default::default(); len as usize];
-        self.deref_addr_ptr(addr.get(&resolver), r.as_mut_ptr(), len);
+        let size_in_byte = (len as usize) * size_of::<T>();
+        self.deref_addr_ptr(addr.get(&resolver), r.as_mut_ptr(), size_in_byte as u64);
         r
     }
 
@@ -251,20 +252,20 @@ impl DriverState {
     }
 
     // #[deprecated(note="use deref_array<T>")]
-    pub fn deref_addr_ptr<T>(&self, addr: u64, outptr: *mut T, output_len: u64) {
+    pub fn deref_addr_ptr<T>(&self, addr: u64, outptr: *mut T, output_len_as_byte: u64) {
         let code = DriverAction::DereferenceAddress.get_code();
         let mut input = InputData {
             deref_addr: DerefAddr {
                 addr,
-                size: output_len
+                size: output_len_as_byte
             }
         };
         self.windows_ffi.device_io_raw(code,
                                        &mut input as *mut _ as *mut c_void, size_of_val(&input) as DWORD,
-                                       outptr as *mut c_void, output_len as DWORD);
+                                       outptr as *mut c_void, output_len_as_byte as DWORD);
     }
 
-    pub fn get_unicode_string(&self, unicode_str_addr: u64, deref: bool) -> BoxResult<String> {
+    pub fn get_unicode_string(&self, unicode_str_addr: u64) -> BoxResult<String> {
         if unicode_str_addr == 0 {
             return Err("Not a valid address".into());
         }
@@ -281,10 +282,6 @@ impl DriverState {
 
         if bufaddr == 0 || strlen > capacity || strlen == 0 || strlen % 2 != 0 {
             return Err("Unicode string is empty".into());
-        }
-
-        if !deref {
-            return Ok("".to_string());
         }
 
         let mut buf = vec![0u16; (strlen / 2) as usize];

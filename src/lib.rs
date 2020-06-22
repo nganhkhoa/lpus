@@ -50,7 +50,7 @@ pub fn scan_eprocess(driver: &DriverState) -> BoxResult<Vec<Value>> {
             } else {
                 "".to_string()
             };
-        let binary_path = driver.get_unicode_string(unicode_str_ptr, true)
+        let binary_path = driver.get_unicode_string(unicode_str_ptr)
                           .unwrap_or("".to_string());
 
         result.push(json!({
@@ -104,15 +104,15 @@ pub fn scan_file(driver: &DriverState) -> BoxResult<Vec<Value>> {
             if read_ok == 0 {
                 "[NOT READABLE]".to_string()
             }
-            else if let Ok(n) = driver.get_unicode_string(filename_ptr, true) {
+            else if let Ok(n) = driver.get_unicode_string(filename_ptr) {
                 n
             }
             else {
                 "[NOT A VALID _UNICODE_STRING]".to_string()
             };
-        let devicename = driver.get_unicode_string(devicename_ptr, true)
+        let devicename = driver.get_unicode_string(devicename_ptr)
                          .unwrap_or("".to_string());
-        let hardware = driver.get_unicode_string(hardware_ptr, true)
+        let hardware = driver.get_unicode_string(hardware_ptr)
                        .unwrap_or("".to_string());
         result.push(json!({
             "pool": format!("0x{:x}", pool_addr.address()),
@@ -165,7 +165,7 @@ pub fn scan_ethread(driver: &DriverState) -> BoxResult<Vec<Value>> {
         let unicode_str_ptr: u64 = driver.address_of(ethread_ptr, "_ETHREAD.ThreadName")?;
 
         let thread_name =
-            if let Ok(name) = driver.get_unicode_string(unicode_str_ptr, true) {
+            if let Ok(name) = driver.get_unicode_string(unicode_str_ptr) {
                 name
             }
             else {
@@ -222,7 +222,7 @@ pub fn scan_mutant(driver: &DriverState) -> BoxResult<Vec<Value>> {
         let unicode_str_ptr: u64 = driver.address_of(&ethread_ptr, "_ETHREAD.ThreadName")?;
 
         let thread_name =
-            if let Ok(name) = driver.get_unicode_string(unicode_str_ptr, true) {
+            if let Ok(name) = driver.get_unicode_string(unicode_str_ptr) {
                 name
             }
             else {
@@ -269,17 +269,54 @@ pub fn scan_driver(driver: &DriverState) -> BoxResult<Vec<Value>> {
 
         let devicename_ptr = driver.address_of(dob_addr, "_DRIVER_OBJECT.DriverName")?;
         let hardware_ptr: u64 = driver.decompose(dob_addr, "_DRIVER_OBJECT.HardwareDatabase")?;
+        let major_function: Vec<u64> = driver.decompose_array(dob_addr, "_DRIVER_OBJECT.MajorFunction", 28)?;
 
-        let devicename = driver.get_unicode_string(devicename_ptr, true)
+        let devicename = driver.get_unicode_string(devicename_ptr)
                          .unwrap_or("".to_string());
-        let hardware = driver.get_unicode_string(hardware_ptr, true)
+        let hardware = driver.get_unicode_string(hardware_ptr)
                        .unwrap_or("".to_string());
         result.push(json!({
             "pool": format!("0x{:x}", pool_addr.address()),
             "address": format!("0x{:x}", dob_addr.address()),
             "type": "_DRIVER_OBJECT",
             "device": devicename,
-            "hardware": hardware
+            "hardware": hardware,
+            "major_function": major_function.into_iter()
+                              .map(|func| format!("0x{:x}", func))
+                              .collect::<Vec<String>>()
+        }));
+        Ok(true)
+    })?;
+
+    Ok(result)
+}
+
+pub fn scan_kernel_module(driver: &DriverState) -> BoxResult<Vec<Value>> {
+    let mut result: Vec<Value> = Vec::new();
+
+    driver.scan_pool(b"MmLd", "_KLDR_DATA_TABLE_ENTRY", |pool_addr, _, data_addr| {
+        // By reversing, this structure does not have any header
+        let mod_addr = &data_addr;
+
+        let dllbase: u64 = driver.decompose(mod_addr, "_KLDR_DATA_TABLE_ENTRY.DllBase")?;
+        let entry: u64 = driver.decompose(mod_addr, "_KLDR_DATA_TABLE_ENTRY.EntryPoint")?;
+        let size: u64 = driver.decompose(mod_addr, "_KLDR_DATA_TABLE_ENTRY.SizeOfImage")?;
+        let fullname_ptr = driver.address_of(mod_addr, "_KLDR_DATA_TABLE_ENTRY.FullDllName")?;
+        let basename_ptr = driver.address_of(mod_addr, "_KLDR_DATA_TABLE_ENTRY.BaseDllName")?;
+
+        let fullname = driver.get_unicode_string(fullname_ptr)
+                       .unwrap_or("".to_string());
+        let basename = driver.get_unicode_string(basename_ptr)
+                       .unwrap_or("".to_string());
+        result.push(json!({
+            "pool": format!("0x{:x}", pool_addr.address()),
+            "address": format!("0x{:x}", mod_addr.address()),
+            "type": "_KLDR_DATA_TABLE_ENTRY",
+            "dllbase": format!("0x{:x}", dllbase),
+            "entry": format!("0x{:x}", entry),
+            "size": format!("0x{:x}", size),
+            "FullName": fullname,
+            "BaseName": basename
         }));
         Ok(true)
     })?;
