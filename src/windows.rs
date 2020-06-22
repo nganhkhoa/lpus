@@ -212,6 +212,15 @@ impl WindowsFFI {
         );
     }
 
+    pub fn to_epoch(&self, filetime: u64) -> u64 {
+        let windows_epoch_diff = 11644473600000 * 10000;
+        if filetime < windows_epoch_diff {
+            return 0;
+        }
+        let process_time_epoch = (filetime - windows_epoch_diff) / 10000;
+        process_time_epoch
+    }
+
     pub fn valid_process_time(&self, filetime: u64) -> bool {
         // https://www.frenk.com/2009/12/convert-filetime-to-unix-timestamp/
         let windows_epoch_diff = 11644473600000 * 10000;

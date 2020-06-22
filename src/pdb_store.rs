@@ -422,7 +422,7 @@ pub fn parse_pdb() -> BoxResult<PdbStore> {
         match typ.parse() {
             Ok(TypeData::Class(ClassType {name, fields: Some(fields), size, ..})) => {
                 let mut struct_fields = HashMap::new();
-                struct_fields.insert("struct_size".to_string(), ("u32".to_string(), size as u64));
+                struct_fields.insert("struct_size".to_string(), ("U32".to_string(), size as u64));
                 match type_finder.find(fields).unwrap().parse().unwrap() {
                     TypeData::FieldList(list) => {
                         for field in list.fields {
@@ -439,6 +439,17 @@ pub fn parse_pdb() -> BoxResult<PdbStore> {
             },
             _ => {}
         }
+    }
+
+    {
+        // https://github.com/Zer0Mem0ry/ntoskrnl/blob/master/Include/mm.h#L1107
+        let mut unload_driver_member = HashMap::new();
+        unload_driver_member.insert("struct_size".to_string(), ("U32".to_string(), 0x30));
+        unload_driver_member.insert("Name".to_string(), ("_UNICODE_STRING".to_string(), 0));
+        unload_driver_member.insert("StartAddress".to_string(), ("PVOID".to_string(), 0x10));
+        unload_driver_member.insert("EndAddress".to_string(), ("PVOID".to_string(), 0x18));
+        unload_driver_member.insert("CurrentTime".to_string(), ("_LARGE_INTEGER".to_string(), 0x20));
+        struct_extracted.insert("_UNLOADED_DRIVERS".to_string(), unload_driver_member);
     }
 
     Ok(PdbStore {

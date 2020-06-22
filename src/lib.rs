@@ -528,3 +528,40 @@ pub fn traverse_handletable(driver: &DriverState) -> BoxResult<Vec<Value>> {
 
     Ok(result)
 }
+
+pub fn traverse_unloadeddrivers(driver: &DriverState) -> BoxResult<Vec<Value>> {
+    let mut result: Vec<Value> = Vec::new();
+    let ntosbase = driver.get_kernel_base();
+    let unload_array_ptr = ntosbase.clone() + driver.pdb_store.get_offset_r("MmUnloadedDrivers")?;
+    let num_unload_ptr = ntosbase.clone() + driver.pdb_store.get_offset_r("MmLastUnloadedDriver")?;
+
+    let unload_array = driver.deref_addr_new::<u64>(unload_array_ptr.address());
+    if unload_array == 0 {
+        return Err("The unload driver list is null".into());
+    }
+
+    // by reversing MmLocateUnloadedDriver
+    let num_unload = driver.deref_addr_new::<u32>(num_unload_ptr.address()) as u64;
+    let bound =
+        if num_unload > 0x32 { 0x32 }
+        else { num_unload };
+    let drivers = (0..bound).map(|i| Address::from_base(unload_array + (i * 0x28)));
+
+    for driver_addr in drivers {
+        let name = driver.get_unicode_string(driver_addr.address()).unwrap_or("".to_string());
+        let start_addr: u64 = driver.decompose(&driver_addr, "_UNLOADED_DRIVERS.StartAddress")?;
+        let end_addr: u64 = driver.decompose(&driver_addr, "_UNLOADED_DRIVERS.EndAddress")?;
+        let current_time: u64 = driver.decompose(&driver_addr, "_UNLOADED_DRIVERS.CurrentTime")?;
+
+        result.push(json!({
+            "address": format!("0x{:x}", driver_addr.address()),
+            "type": "_UNLOADED_DRIVERS",
+            "name": name,
+            "start_addr": format!("0x{:x}", start_addr),
+            "end_addr": format!("0x{:x}", end_addr),
+            "current_time": driver.windows_ffi.to_epoch(current_time)
+        }));
+    }
+
+    Ok(result)
+}
