@@ -18,6 +18,7 @@ widestring = "0.4.0"
 winapi = { version = "0.3.8", features = ["libloaderapi", "processthreadsapi", "winbase", "securitybaseapi", "handleapi", "winnt", "winreg", "fileapi", "ioapiset", "winioctl", "errhandlingapi", "sysinfoapi"] }
 reqwest = { version = "0.10.1", features = ["blocking"] }
 serde_json = "1.0.55"
+parse_int = "0.4.0"
 # repl dependencies
 rustyline = "6.2.0"
 pest = "2.1.3"

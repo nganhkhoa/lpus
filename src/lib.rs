@@ -15,6 +15,110 @@ use address::Address;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
+pub fn get_irp_name(idx: usize) -> String {
+    let irp_names = vec![
+        "IRP_MJ_CREATE",
+        "IRP_MJ_CREATE_NAMED_PIPE",
+        "IRP_MJ_CLOSE",
+        "IRP_MJ_READ",
+        "IRP_MJ_WRITE",
+        "IRP_MJ_QUERY_INFORMATION",
+        "IRP_MJ_SET_INFORMATION",
+        "IRP_MJ_QUERY_EA",
+        "IRP_MJ_SET_EA",
+        "IRP_MJ_FLUSH_BUFFERS",
+        "IRP_MJ_QUERY_VOLUME_INFORMATION",
+        "IRP_MJ_SET_VOLUME_INFORMATION",
+        "IRP_MJ_DIRECTORY_CONTROL",
+        "IRP_MJ_FILE_SYSTEM_CONTROL",
+        "IRP_MJ_DEVICE_CONTROL",
+        "IRP_MJ_INTERNAL_DEVICE_CONTROL",
+        "IRP_MJ_SHUTDOWN",
+        "IRP_MJ_LOCK_CONTROL",
+        "IRP_MJ_CLEANUP",
+        "IRP_MJ_CREATE_MAILSLOT",
+        "IRP_MJ_QUERY_SECURITY",
+        "IRP_MJ_SET_SECURITY",
+        "IRP_MJ_POWER",
+        "IRP_MJ_SYSTEM_CONTROL",
+        "IRP_MJ_DEVICE_CHANGE",
+        "IRP_MJ_QUERY_QUOTA",
+        "IRP_MJ_SET_QUOTA",
+        "IRP_MJ_PNP"
+    ].iter().map(|x| x.to_string()).collect::<Vec<String>>();
+
+    if let Some(name) = irp_names.get(idx) {
+        name.clone()
+    }
+    else {
+        "UNKNOWN".to_string()
+    }
+}
+
+fn get_device_type(typ: u32) -> String {
+    match typ {
+        0x00000027 => "FILE_DEVICE_8042_PORT",
+        0x00000032 => "FILE_DEVICE_ACPI",
+        0x00000029 => "FILE_DEVICE_BATTERY",
+        0x00000001 => "FILE_DEVICE_BEEP",
+        0x0000002a => "FILE_DEVICE_BUS_EXTENDER",
+        0x00000002 => "FILE_DEVICE_CD_ROM",
+        0x00000003 => "FILE_DEVICE_CD_ROM_FILE_SYSTEM",
+        0x00000030 => "FILE_DEVICE_CHANGER",
+        0x00000004 => "FILE_DEVICE_CONTROLLER",
+        0x00000005 => "FILE_DEVICE_DATALINK",
+        0x00000006 => "FILE_DEVICE_DFS",
+        0x00000035 => "FILE_DEVICE_DFS_FILE_SYSTEM",
+        0x00000036 => "FILE_DEVICE_DFS_VOLUME",
+        0x00000007 => "FILE_DEVICE_DISK",
+        0x00000008 => "FILE_DEVICE_DISK_FILE_SYSTEM",
+        0x00000033 => "FILE_DEVICE_DVD",
+        0x00000009 => "FILE_DEVICE_FILE_SYSTEM",
+        0x0000003a => "FILE_DEVICE_FIPS",
+        0x00000034 => "FILE_DEVICE_FULLSCREEN_VIDEO",
+        0x0000000a => "FILE_DEVICE_INPORT_PORT",
+        0x0000000b => "FILE_DEVICE_KEYBOARD",
+        0x0000002f => "FILE_DEVICE_KS",
+        0x00000039 => "FILE_DEVICE_KSEC",
+        0x0000000c => "FILE_DEVICE_MAILSLOT",
+        0x0000002d => "FILE_DEVICE_MASS_STORAGE",
+        0x0000000d => "FILE_DEVICE_MIDI_IN",
+        0x0000000e => "FILE_DEVICE_MIDI_OUT",
+        0x0000002b => "FILE_DEVICE_MODEM",
+        0x0000000f => "FILE_DEVICE_MOUSE",
+        0x00000010 => "FILE_DEVICE_MULTI_UNC_PROVIDER",
+        0x00000011 => "FILE_DEVICE_NAMED_PIPE",
+        0x00000012 => "FILE_DEVICE_NETWORK",
+        0x00000013 => "FILE_DEVICE_NETWORK_BROWSER",
+        0x00000014 => "FILE_DEVICE_NETWORK_FILE_SYSTEM",
+        0x00000028 => "FILE_DEVICE_NETWORK_REDIRECTOR",
+        0x00000015 => "FILE_DEVICE_NULL",
+        0x00000016 => "FILE_DEVICE_PARALLEL_PORT",
+        0x00000017 => "FILE_DEVICE_PHYSICAL_NETCARD",
+        0x00000018 => "FILE_DEVICE_PRINTER",
+        0x00000019 => "FILE_DEVICE_SCANNER",
+        0x0000001c => "FILE_DEVICE_SCREEN",
+        0x00000037 => "FILE_DEVICE_SERENUM",
+        0x0000001a => "FILE_DEVICE_SERIAL_MOUSE_PORT",
+        0x0000001b => "FILE_DEVICE_SERIAL_PORT",
+        0x00000031 => "FILE_DEVICE_SMARTCARD",
+        0x0000002e => "FILE_DEVICE_SMB",
+        0x0000001d => "FILE_DEVICE_SOUND",
+        0x0000001e => "FILE_DEVICE_STREAMS",
+        0x0000001f => "FILE_DEVICE_TAPE",
+        0x00000020 => "FILE_DEVICE_TAPE_FILE_SYSTEM",
+        0x00000038 => "FILE_DEVICE_TERMSRV",
+        0x00000021 => "FILE_DEVICE_TRANSPORT",
+        0x00000022 => "FILE_DEVICE_UNKNOWN",
+        0x0000002c => "FILE_DEVICE_VDM",
+        0x00000023 => "FILE_DEVICE_VIDEO",
+        0x00000024 => "FILE_DEVICE_VIRTUAL_DISK",
+        0x00000025 => "FILE_DEVICE_WAVE_IN",
+        0x00000026 => "FILE_DEVICE_WAVE_OUT",
+        _ => "UNKNOWN"
+    }.to_string()
+}
+
 pub fn scan_eprocess(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
     driver.scan_pool(b"Proc", "_EPROCESS", |pool_addr, header, data_addr| {
@@ -268,13 +372,53 @@ pub fn scan_driver(driver: &DriverState) -> BoxResult<Vec<Value>> {
         let dob_addr = &try_ptr;
 
         let devicename_ptr = driver.address_of(dob_addr, "_DRIVER_OBJECT.DriverName")?;
+        let servicekey_ptr = driver.address_of(dob_addr, "_DRIVER_OBJECT.DriverExtension.ServiceKeyName")?;
         let hardware_ptr: u64 = driver.decompose(dob_addr, "_DRIVER_OBJECT.HardwareDatabase")?;
         let major_function: Vec<u64> = driver.decompose_array(dob_addr, "_DRIVER_OBJECT.MajorFunction", 28)?;
+        let start: u64 = driver.decompose(dob_addr, "_DRIVER_OBJECT.DriverStart")?;
+        let init: u64 = driver.decompose(dob_addr, "_DRIVER_OBJECT.DriverInit")?;
+        let unload: u64 = driver.decompose(dob_addr, "_DRIVER_OBJECT.DriverUnload")?;
+        let size: u64 = driver.decompose(dob_addr, "_DRIVER_OBJECT.DriverSize")?;
 
         let devicename = driver.get_unicode_string(devicename_ptr)
                          .unwrap_or("".to_string());
         let hardware = driver.get_unicode_string(hardware_ptr)
                        .unwrap_or("".to_string());
+        let servicekey = driver.get_unicode_string(servicekey_ptr)
+                         .unwrap_or("".to_string());
+
+        // device tree walk
+        let devices = {
+            let mut driver_devices: Vec<Value> = Vec::new();
+            let mut device_ptr: u64 = driver.decompose(dob_addr, "_DRIVER_OBJECT.DeviceObject")?;
+            while device_ptr != 0 {
+                let addr = Address::from_base(device_ptr);
+                let device_type: u32 = driver.decompose(&addr, "_DEVICE_OBJECT.DeviceType")?;
+
+                // get attached devices
+                let mut attached_ptr: u64 = driver.decompose(&addr, "_DEVICE_OBJECT.AttachedDevice")?;
+                let mut attached_devices: Vec<Value> = Vec::new();
+                while attached_ptr != 0 {
+                    let attached = Address::from_base(attached_ptr);
+                    let attached_device_type: u32 = driver.decompose(&attached, "_DEVICE_OBJECT.DeviceType")?;
+                    attached_devices.push(json!({
+                        "address": format!("0x{:x}", attached_ptr),
+                        "type": "_DEVICE_OBJECT",
+                        "devicetype": get_device_type(attached_device_type)
+                    }));
+                    attached_ptr = driver.decompose(&attached, "_DEVICE_OBJECT.AttachedDevice")?;
+                }
+                driver_devices.push(json!({
+                    "address": format!("0x{:x}", device_ptr),
+                    "type": "_DEVICE_OBJECT",
+                    "devicetype": get_device_type(device_type),
+                    "attached": attached_devices
+                }));
+                device_ptr = driver.decompose(&addr, "_DEVICE_OBJECT.NextDevice")?;
+            }
+            driver_devices
+        };
+
         result.push(json!({
             "pool": format!("0x{:x}", pool_addr.address()),
             "address": format!("0x{:x}", dob_addr.address()),
@@ -283,7 +427,13 @@ pub fn scan_driver(driver: &DriverState) -> BoxResult<Vec<Value>> {
             "hardware": hardware,
             "major_function": major_function.into_iter()
                               .map(|func| format!("0x{:x}", func))
-                              .collect::<Vec<String>>()
+                              .collect::<Vec<String>>(),
+            "servicekey": servicekey,
+            "start": format!("0x{:x}", start),
+            "init": format!("0x{:x}", init),
+            "unload": format!("0x{:x}", unload),
+            "size": format!("0x{:x}", size),
+            "devicetree": devices
         }));
         Ok(true)
     })?;
