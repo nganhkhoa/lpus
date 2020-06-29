@@ -1,2 +1,5 @@
 [target.x86_64-pc-windows-msvc]
+# CRT static to make run on machine without VC++
+# https://github.com/rust-lang/rust/pull/66801#issuecomment-558947376
+# >>  "-Clink-args=/subsystem:console,5.02"
 rustflags = ["-Ctarget-feature=+crt-static"]

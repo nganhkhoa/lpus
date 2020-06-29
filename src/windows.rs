@@ -29,14 +29,17 @@ const STR_DRIVER_REGISTRY_PATH: &str = "\\Registry\\Machine\\System\\CurrentCont
 #[allow(dead_code)]
 #[derive(Debug, Copy, Clone)]
 pub enum WindowsVersion {
+    Windows7,
+    Windows8,
+    Windows10Legacy,
     Windows10_2015,
     Windows10_2016,
     Windows10_2017,
     Windows10_2018,
     Windows10_2019,
     Windows10_2020,
-    Windows10FastRing,
-    Windows10VersionUnknown
+    WindowsFastRing,
+    WindowsUnknown
 }
 
 #[allow(dead_code)]
@@ -142,11 +145,19 @@ impl WindowsFFI {
         rtl_get_version(&mut version_info);
 
         let short_version = match version_info.dwBuildNumber {
+            // 2600 => WindowsVersion::WindowsXP,
+            // 6000 | 6001 | 6002 => WindowsVersion::WindowsVista,
+            7600 | 7601 => WindowsVersion::Windows7,
+            9200 | 9600 => WindowsVersion::Windows8,
+            10240 => WindowsVersion::Windows10Legacy,
+            10586 => WindowsVersion::Windows10_2015,
+            14393 => WindowsVersion::Windows10_2016,
+            15063 | 16299 => WindowsVersion::Windows10_2017,
             17134 | 17763 => WindowsVersion::Windows10_2018,
-            18362 | 18363 => WindowsVersion::Windows10_2019,
+            18363 | 18362 => WindowsVersion::Windows10_2019,
             19041 => WindowsVersion::Windows10_2020,
-            _ if version_info.dwBuildNumber >= 19536 => WindowsVersion::Windows10FastRing,
-            _ => WindowsVersion::Windows10VersionUnknown
+            x if x >= 19536 => WindowsVersion::WindowsFastRing,
+            _ => WindowsVersion::WindowsUnknown
         };
 
         Self {

@@ -160,8 +160,11 @@ impl fmt::Display for Address {
         if let Some(p) = &self.pointer {
             write!(f, "*({}) + 0x{:x}", *p, self.offset)
         }
-        else {
+        else if self.offset != 0 {
             write!(f, "0x{:x} + 0x{:x}", self.base, self.offset)
+        }
+        else {
+            write!(f, "0x{:x}", self.base)
         }
     }
 }

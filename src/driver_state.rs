@@ -191,13 +191,12 @@ impl DriverState {
             }
 
             let data_addr = Address::from_base(pool_addr.address() + pool_header_size);
-
             let success = handler(pool_addr, &header, data_addr)?;
             if success {
-                ptr += chunk_size; /* skip this chunk */
+                ptr += chunk_size; // skip this chunk
             }
             else {
-                ptr += 0x4; /* search next */
+                ptr += 0x4; // search next
             }
         }
         Ok(true)
@@ -298,7 +297,7 @@ impl DriverState {
     pub fn get_nonpaged_range(&self, ntosbase: &Address) -> BoxResult<[Address; 2]> {
         // TODO: Add support for other Windows version here
         match self.windows_ffi.short_version {
-            WindowsVersion::Windows10FastRing => {
+            WindowsVersion::WindowsFastRing => {
                 let mistate = ntosbase.clone() + self.pdb_store.get_offset_r("MiState")?;
                 let path_first_va: String = vec![
                     "_MI_SYSTEM_INFORMATION",
@@ -333,6 +332,13 @@ impl DriverState {
                 ].join(".");
                 let first_va = Address::from_base(self.decompose(&mistate, &path_first_va)?);
                 let last_va = Address::from_base(self.decompose(&mistate, &path_last_va)?);
+                Ok([first_va, last_va])
+            },
+            WindowsVersion::Windows7 => {
+                let path_first_va = ntosbase.clone() + self.pdb_store.get_offset_r("MmNonPagedPoolStart")?;
+                let path_last_va = ntosbase.clone() + self.pdb_store.get_offset_r("MiNonPagedPoolEnd")?;
+                let first_va = Address::from_base(self.deref_addr_new(path_first_va.address()));
+                let last_va = Address::from_base(self.deref_addr_new(path_last_va.address()));
                 Ok([first_va, last_va])
             },
             _ => {

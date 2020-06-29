@@ -143,10 +143,13 @@ pub fn scan_eprocess(driver: &DriverState) -> BoxResult<Vec<Value>> {
 
         let eprocess_ptr = &try_eprocess_ptr;
 
+        println!("EPROCESS: 0x{:x}", eprocess_ptr.address());
+
         let pid: u64 = driver.decompose(eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
         let ppid: u64 = driver.decompose(eprocess_ptr, "_EPROCESS.InheritedFromUniqueProcessId")?;
         let image_name: Vec<u8> = driver.decompose_array(eprocess_ptr, "_EPROCESS.ImageFileName", 15)?;
-        let unicode_str_ptr = driver.address_of(eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")?;
+        let unicode_str_ptr = driver.address_of(eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")
+                              .unwrap_or(0); // ImageFilePointer is Windows 10+
 
         let eprocess_name =
             if let Ok(name) = from_utf8(&image_name) {
@@ -525,7 +528,8 @@ pub fn traverse_activehead(driver: &DriverState) -> BoxResult<Vec<Value>> {
         let pid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
         let ppid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.InheritedFromUniqueProcessId")?;
         let image_name: Vec<u8> = driver.decompose_array(&eprocess_ptr, "_EPROCESS.ImageFileName", 15)?;
-        let unicode_str_ptr = driver.address_of(&eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")?;
+        let unicode_str_ptr = driver.address_of(&eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")
+                              .unwrap_or(0);
 
         let eprocess_name =
             if let Ok(name) = from_utf8(&image_name) {
@@ -608,7 +612,8 @@ pub fn traverse_kiprocesslist(driver: &DriverState) -> BoxResult<Vec<Value>> {
         let pid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
         let ppid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.InheritedFromUniqueProcessId")?;
         let image_name: Vec<u8> = driver.decompose_array(&eprocess_ptr, "_EPROCESS.ImageFileName", 15)?;
-        let unicode_str_ptr = driver.address_of(&eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")?;
+        let unicode_str_ptr = driver.address_of(&eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")
+                              .unwrap_or(0);
 
         let eprocess_name =
             if let Ok(name) = from_utf8(&image_name) {
@@ -652,7 +657,8 @@ pub fn traverse_handletable(driver: &DriverState) -> BoxResult<Vec<Value>> {
             let pid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
             let ppid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.InheritedFromUniqueProcessId")?;
             let image_name: Vec<u8> = driver.decompose_array(&eprocess_ptr, "_EPROCESS.ImageFileName", 15)?;
-            let unicode_str_ptr = driver.address_of(&eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")?;
+            let unicode_str_ptr = driver.address_of(&eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")
+                                  .unwrap_or(0);
 
             let eprocess_name =
                 if let Ok(name) = from_utf8(&image_name) {
