@@ -25,6 +25,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     driver.windows_ffi.print_version();
     driver.pdb_store.print_default_information();
 
+    println!("{}", to_epoch(0xfffffa80018cb688));
+    println!("{}", to_epoch(0x01d64ecd8b295318));
+
     let mut rl = Editor::<()>::new();
     if rl.load_history("history.lpus").is_err() {
         println!("No previous history.");

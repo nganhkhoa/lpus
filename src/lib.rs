@@ -121,7 +121,10 @@ fn get_device_type(typ: u32) -> String {
 
 pub fn scan_eprocess(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
-    driver.scan_pool(b"Proc", "_EPROCESS", |pool_addr, header, data_addr| {
+    let tag =
+        if driver.use_old_tag() { b"Pro\xe3" }
+        else { b"Proc" };
+    driver.scan_pool(tag, "_EPROCESS", |pool_addr, header, data_addr| {
         let chunk_size = (header[2] as u64) * 16u64;
 
         let eprocess_size = driver.pdb_store.get_offset_r("_EPROCESS.struct_size")?;
@@ -142,14 +145,11 @@ pub fn scan_eprocess(driver: &DriverState) -> BoxResult<Vec<Value>> {
         }
 
         let eprocess_ptr = &try_eprocess_ptr;
-
-        println!("EPROCESS: 0x{:x}", eprocess_ptr.address());
-
         let pid: u64 = driver.decompose(eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
         let ppid: u64 = driver.decompose(eprocess_ptr, "_EPROCESS.InheritedFromUniqueProcessId")?;
         let image_name: Vec<u8> = driver.decompose_array(eprocess_ptr, "_EPROCESS.ImageFileName", 15)?;
         let unicode_str_ptr = driver.address_of(eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")
-                              .unwrap_or(0); // ImageFilePointer is Windows 10+
+                              .unwrap_or(0); // ImageFilePointer is after Windows 10 Anniversary
 
         let eprocess_name =
             if let Ok(name) = from_utf8(&image_name) {
@@ -177,7 +177,10 @@ pub fn scan_eprocess(driver: &DriverState) -> BoxResult<Vec<Value>> {
 pub fn scan_file(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
 
-    driver.scan_pool(b"File", "_FILE_OBJECT", |pool_addr, header, data_addr| {
+    let tag =
+        if driver.use_old_tag() { b"Fil\xe5" }
+        else { b"File" };
+    driver.scan_pool(tag, "_FILE_OBJECT", |pool_addr, header, data_addr| {
         let chunk_size = (header[2] as u64) * 16u64;
 
         let fob_size = driver.pdb_store.get_offset_r("_FILE_OBJECT.struct_size")?;
@@ -246,30 +249,41 @@ pub fn scan_file(driver: &DriverState) -> BoxResult<Vec<Value>> {
 pub fn scan_ethread(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
 
-    driver.scan_pool(b"Thre", "_ETHREAD", |pool_addr, header, data_addr| {
+    let tag =
+        if driver.use_old_tag() { b"Thr\xe5" }
+        else { b"Thre" };
+    driver.scan_pool(tag, "_ETHREAD", |pool_addr, header, data_addr| {
         let chunk_size = (header[2] as u64) * 16u64;
 
+        let object_header_size = driver.pdb_store.get_offset_r("_OBJECT_HEADER.struct_size")?;
+        let header_size = driver.pdb_store.get_offset_r("_POOL_HEADER.struct_size")?;
         let ethread_size = driver.pdb_store.get_offset_r("_ETHREAD.struct_size")?;
         let ethread_valid_start = &data_addr;
         let ethread_valid_end = (pool_addr.clone() + chunk_size) - ethread_size;
         let mut try_ethread_ptr = ethread_valid_start.clone();
 
-        while try_ethread_ptr <= ethread_valid_end {
-            let create_time: u64 = driver.decompose(&try_ethread_ptr, "_ETHREAD.CreateTime")?;
-            if driver.windows_ffi.valid_process_time(create_time) {
-                break;
-            }
-            try_ethread_ptr += 0x4;        // search exhaustively
+        if chunk_size == header_size + object_header_size + ethread_size {
+            try_ethread_ptr = ethread_valid_end.clone();
         }
-        if try_ethread_ptr > ethread_valid_end {
-            return Ok(false);
+        else {
+            while try_ethread_ptr <= ethread_valid_end {
+                let create_time: u64 = driver.decompose(&try_ethread_ptr, "_ETHREAD.CreateTime")?;
+                if driver.windows_ffi.valid_process_time(create_time) {
+                    break;
+                }
+                try_ethread_ptr += 0x4;        // search exhaustively
+            }
+            if try_ethread_ptr > ethread_valid_end {
+                return Ok(false);
+            }
         }
 
         let ethread_ptr = &try_ethread_ptr;
 
         let pid: u64 = driver.decompose(ethread_ptr, "_ETHREAD.Cid.UniqueProcess")?;
         let tid: u64 = driver.decompose(ethread_ptr, "_ETHREAD.Cid.UniqueThread")?;
-        let unicode_str_ptr: u64 = driver.address_of(ethread_ptr, "_ETHREAD.ThreadName")?;
+        let unicode_str_ptr: u64 = driver.address_of(ethread_ptr, "_ETHREAD.ThreadName")
+                                   .unwrap_or(0); // ThreadName is after Windows 10 Anniversary
 
         let thread_name =
             if let Ok(name) = driver.get_unicode_string(unicode_str_ptr) {
@@ -300,7 +314,10 @@ pub fn scan_mutant(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let ntosbase = driver.get_kernel_base();
     let [start, end] = driver.get_nonpaged_range(&ntosbase)?;
 
-    driver.scan_pool(b"Muta", "_KMUTANT", |pool_addr, header, data_addr| {
+    let tag =
+        if driver.use_old_tag() { b"Mut\xe1" }
+        else { b"Muta" };
+    driver.scan_pool(tag, "_KMUTANT", |pool_addr, header, data_addr| {
         let chunk_size = (header[2] as u64) * 16u64;
 
         let kmutant_size = driver.pdb_store.get_offset_r("_KMUTANT.struct_size")?;
@@ -353,7 +370,10 @@ pub fn scan_mutant(driver: &DriverState) -> BoxResult<Vec<Value>> {
 pub fn scan_driver(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
 
-    driver.scan_pool(b"Driv", "_DRIVER_OBJECT", |pool_addr, header, data_addr| {
+    let tag =
+        if driver.use_old_tag() { b"Dri\xf6" }
+        else { b"Driv" };
+    driver.scan_pool(tag, "_DRIVER_OBJECT", |pool_addr, header, data_addr| {
         let chunk_size = (header[2] as u64) * 16u64;
 
         let dob_size = driver.pdb_store.get_offset_r("_DRIVER_OBJECT.struct_size")?;
@@ -447,15 +467,15 @@ pub fn scan_driver(driver: &DriverState) -> BoxResult<Vec<Value>> {
 pub fn scan_kernel_module(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
 
-    driver.scan_pool(b"MmLd", "_KLDR_DATA_TABLE_ENTRY", |pool_addr, _, data_addr| {
+    driver.scan_pool(b"MmLd", "_LDR_DATA_TABLE_ENTRY", |pool_addr, _, data_addr| {
         // By reversing, this structure does not have any header
         let mod_addr = &data_addr;
 
-        let dllbase: u64 = driver.decompose(mod_addr, "_KLDR_DATA_TABLE_ENTRY.DllBase")?;
-        let entry: u64 = driver.decompose(mod_addr, "_KLDR_DATA_TABLE_ENTRY.EntryPoint")?;
-        let size: u64 = driver.decompose(mod_addr, "_KLDR_DATA_TABLE_ENTRY.SizeOfImage")?;
-        let fullname_ptr = driver.address_of(mod_addr, "_KLDR_DATA_TABLE_ENTRY.FullDllName")?;
-        let basename_ptr = driver.address_of(mod_addr, "_KLDR_DATA_TABLE_ENTRY.BaseDllName")?;
+        let dllbase: u64 = driver.decompose(mod_addr, "_LDR_DATA_TABLE_ENTRY.DllBase")?;
+        let entry: u64 = driver.decompose(mod_addr, "_LDR_DATA_TABLE_ENTRY.EntryPoint")?;
+        let size: u64 = driver.decompose(mod_addr, "_LDR_DATA_TABLE_ENTRY.SizeOfImage")?;
+        let fullname_ptr = driver.address_of(mod_addr, "_LDR_DATA_TABLE_ENTRY.FullDllName")?;
+        let basename_ptr = driver.address_of(mod_addr, "_LDR_DATA_TABLE_ENTRY.BaseDllName")?;
 
         let fullname = driver.get_unicode_string(fullname_ptr)
                        .unwrap_or("".to_string());
@@ -464,7 +484,7 @@ pub fn scan_kernel_module(driver: &DriverState) -> BoxResult<Vec<Value>> {
         result.push(json!({
             "pool": format!("0x{:x}", pool_addr.address()),
             "address": format!("0x{:x}", mod_addr.address()),
-            "type": "_KLDR_DATA_TABLE_ENTRY",
+            "type": "_LDR_DATA_TABLE_ENTRY",
             "dllbase": format!("0x{:x}", dllbase),
             "entry": format!("0x{:x}", entry),
             "size": format!("0x{:x}", size),
@@ -487,11 +507,11 @@ pub fn traverse_loadedmodulelist(driver: &DriverState) -> BoxResult<Vec<Value>> 
     while ptr != module_list_head.address() {
         let mod_addr = Address::from_base(ptr);
 
-        let dllbase: u64 = driver.decompose(&mod_addr, "_KLDR_DATA_TABLE_ENTRY.DllBase")?;
-        let entry: u64 = driver.decompose(&mod_addr, "_KLDR_DATA_TABLE_ENTRY.EntryPoint")?;
-        let size: u64 = driver.decompose(&mod_addr, "_KLDR_DATA_TABLE_ENTRY.SizeOfImage")?;
-        let fullname_ptr = driver.address_of(&mod_addr, "_KLDR_DATA_TABLE_ENTRY.FullDllName")?;
-        let basename_ptr = driver.address_of(&mod_addr, "_KLDR_DATA_TABLE_ENTRY.BaseDllName")?;
+        let dllbase: u64 = driver.decompose(&mod_addr, "_LDR_DATA_TABLE_ENTRY.DllBase")?;
+        let entry: u64 = driver.decompose(&mod_addr, "_LDR_DATA_TABLE_ENTRY.EntryPoint")?;
+        let size: u64 = driver.decompose(&mod_addr, "_LDR_DATA_TABLE_ENTRY.SizeOfImage")?;
+        let fullname_ptr = driver.address_of(&mod_addr, "_LDR_DATA_TABLE_ENTRY.FullDllName")?;
+        let basename_ptr = driver.address_of(&mod_addr, "_LDR_DATA_TABLE_ENTRY.BaseDllName")?;
 
         let fullname = driver.get_unicode_string(fullname_ptr)
                        .unwrap_or("".to_string());
@@ -499,7 +519,7 @@ pub fn traverse_loadedmodulelist(driver: &DriverState) -> BoxResult<Vec<Value>> 
                        .unwrap_or("".to_string());
         result.push(json!({
             "address": format!("0x{:x}", mod_addr.address()),
-            "type": "_KLDR_DATA_TABLE_ENTRY",
+            "type": "_LDR_DATA_TABLE_ENTRY",
             "dllbase": format!("0x{:x}", dllbase),
             "entry": format!("0x{:x}", entry),
             "size": format!("0x{:x}", size),
@@ -507,7 +527,7 @@ pub fn traverse_loadedmodulelist(driver: &DriverState) -> BoxResult<Vec<Value>> 
             "BaseName": basename
         }));
 
-        ptr = driver.decompose(&mod_addr, "_KLDR_DATA_TABLE_ENTRY.InLoadOrderLinks.Flink")?;
+        ptr = driver.decompose(&mod_addr, "_LDR_DATA_TABLE_ENTRY.InLoadOrderLinks.Flink")?;
     }
 
     Ok(result)

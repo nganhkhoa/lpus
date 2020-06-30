@@ -103,6 +103,20 @@ impl DriverState {
         self.windows_ffi.unload_driver()
     }
 
+    pub fn is_supported(&self) -> bool {
+        self.windows_ffi.short_version.is_supported()
+    }
+
+    pub fn use_old_tag(&self) -> bool {
+        // use old tag to scan, for Window < 8
+        if self.windows_ffi.short_version < WindowsVersion::Windows8 {
+            true
+        }
+        else {
+            false
+        }
+    }
+
     pub fn get_kernel_base(&self) -> Address {
         let mut ntosbase = 0u64;
         self.windows_ffi.device_io(DriverAction::GetKernelBase.get_code(),
@@ -110,46 +124,12 @@ impl DriverState {
         Address::from_base(ntosbase)
     }
 
-    // pub fn scan_active_head(&self) -> BoxResult<Vec<EprocessPoolChunk>> {
-    //     let ntosbase = self.get_kernel_base();
-    //     let ps_active_head = ntosbase + self.pdb_store.get_offset_r("PsActiveProcessHead")?;
-    //     let flink_offset = self.pdb_store.get_offset_r("_LIST_ENTRY.Flink")?;
-    //     let eprocess_link_offset = self.pdb_store.get_offset_r("_EPROCESS.ActiveProcessLinks")?;
-    //     let eprocess_name_offset = self.pdb_store.get_offset_r("_EPROCESS.ImageFileName")?;
-    //
-    //     let mut ptr = ps_active_head;
-    //     self.deref_addr((ptr + flink_offset).get(), &mut ptr);
-    //
-    //     let mut result: Vec<EprocessPoolChunk> = Vec::new();
-    //     while ptr != ps_active_head {
-    //         let mut image_name = [0u8; 15];
-    //         let eprocess = ptr - eprocess_link_offset;
-    //         self.deref_addr(eprocess + eprocess_name_offset, &mut image_name);
-    //         match std::str::from_utf8(&image_name) {
-    //             Ok(n) => {
-    //                 result.push(EprocessPoolChunk {
-    //                     pool_addr: 0,
-    //                     eprocess_addr: eprocess,
-    //                     eprocess_name: n.to_string()
-    //                                     .trim_end_matches(char::from(0))
-    //                                     .to_string(),
-    //                     create_time: 0,
-    //                     exit_time: 0
-    //
-    //                 });
-    //             },
-    //             _ => {}
-    //         };
-    //         self.deref_addr(ptr + flink_offset, &mut ptr);
-    //     }
-    //     Ok(result)
-    // }
-
     pub fn scan_pool<F>(&self, tag: &[u8; 4], expected_struct: &str, mut handler: F) -> BoxResult<bool>
                         where F: FnMut(Address, &[u8], Address) -> BoxResult<bool>
                         // F(Pool Address, Pool Header Data, Pool Data Address)
                         // TODO: Pool Header as a real struct
     {
+        // TODO: scan large pool
         // TODO: make generator, in hold: https://github.com/rust-lang/rust/issues/43122
         // Making this function a generator will turn the call to a for loop
         // https://docs.rs/gen-iter/0.2.0/gen_iter/
@@ -161,7 +141,8 @@ impl DriverState {
         let ntosbase = self.get_kernel_base();
         let [start_address, end_address] = self.get_nonpaged_range(&ntosbase)?;
 
-        println!("kernel base: {}; non-paged pool (start, end): ({}, {})", ntosbase, start_address, end_address);
+        println!("kernel base: {}; non-paged pool (start, end): ({}, {}); tag: {:?} {}",
+                 ntosbase, start_address, end_address, tag, expected_struct);
 
         let mut ptr = start_address;
         while ptr < end_address {
@@ -191,7 +172,7 @@ impl DriverState {
             }
 
             let data_addr = Address::from_base(pool_addr.address() + pool_header_size);
-            let success = handler(pool_addr, &header, data_addr)?;
+            let success = handler(pool_addr, &header, data_addr).unwrap_or(false);
             if success {
                 ptr += chunk_size; // skip this chunk
             }

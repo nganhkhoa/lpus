@@ -27,7 +27,7 @@ use winapi::um::winreg::{RegCreateKeyExA, RegSetValueExA, RegCloseKey, HKEY_LOCA
 const STR_DRIVER_REGISTRY_PATH: &str = "\\Registry\\Machine\\System\\CurrentControlSet\\Services\\lpus";
 
 #[allow(dead_code)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd)]
 pub enum WindowsVersion {
     Windows7,
     Windows8,
@@ -40,6 +40,23 @@ pub enum WindowsVersion {
     Windows10_2020,
     WindowsFastRing,
     WindowsUnknown
+}
+
+impl WindowsVersion {
+    pub fn not_supported(self) -> bool {
+        match self {
+            WindowsVersion::Windows10Legacy |
+            WindowsVersion::Windows10_2015  |
+            WindowsVersion::Windows10_2016  |
+            WindowsVersion::Windows10_2017  |
+            WindowsVersion::Windows8        |
+            WindowsVersion::WindowsUnknown => true,
+            _ => false
+        }
+    }
+    pub fn is_supported(self) -> bool {
+        !self.not_supported()
+    }
 }
 
 #[allow(dead_code)]
