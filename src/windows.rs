@@ -256,9 +256,10 @@ impl WindowsFFI {
             return false;
         }
         let system_up_time_ms = unsafe { GetTickCount64() };
-        let process_time_epoch = (filetime - windows_epoch_diff) / 10000;
+        let process_time_epoch = (filetime - windows_epoch_diff) / 10000; // in milisecond
         let now_ms = SystemTime::now().duration_since(UNIX_EPOCH).expect("Time went backwards").as_millis() as u64;
-        let system_start_up_time_ms = now_ms - system_up_time_ms;
+        let system_start_up_time_ms =
+            now_ms - system_up_time_ms - (10 * 3600 * 1000/* 10 minutes penalty */);
 
         if process_time_epoch < system_start_up_time_ms {
             false

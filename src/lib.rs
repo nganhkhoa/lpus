@@ -6,14 +6,27 @@ pub mod windows;
 pub mod ioctl_protocol;
 pub mod driver_state;
 pub mod address;
+pub mod object;
 
 use std::error::Error;
-use std::str::{from_utf8};
+use chrono::{DateTime, TimeZone, Local};
 use serde_json::{json, Value};
+
 use driver_state::DriverState;
 use address::Address;
+use object::*;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
+
+pub fn to_epoch(filetime: u64) -> DateTime<Local> {
+    // return seconds from epoch
+    let windows_epoch_diff = 11_644_473_600_000 * 10_000;
+    if filetime < windows_epoch_diff {
+        return Local.timestamp(0, 0);
+    }
+    let filetime_epoch = (filetime - windows_epoch_diff) / 10_000_000;
+    Local.timestamp(filetime_epoch as i64, 0)
+}
 
 pub fn get_irp_name(idx: usize) -> String {
     let irp_names = vec![
@@ -144,31 +157,7 @@ pub fn scan_eprocess(driver: &DriverState) -> BoxResult<Vec<Value>> {
             return Ok(false);
         }
 
-        let eprocess_ptr = &try_eprocess_ptr;
-        let pid: u64 = driver.decompose(eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
-        let ppid: u64 = driver.decompose(eprocess_ptr, "_EPROCESS.InheritedFromUniqueProcessId")?;
-        let image_name: Vec<u8> = driver.decompose_array(eprocess_ptr, "_EPROCESS.ImageFileName", 15)?;
-        let unicode_str_ptr = driver.address_of(eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")
-                              .unwrap_or(0); // ImageFilePointer is after Windows 10 Anniversary
-
-        let eprocess_name =
-            if let Ok(name) = from_utf8(&image_name) {
-                name.to_string().trim_end_matches(char::from(0)).to_string()
-            } else {
-                "".to_string()
-            };
-        let binary_path = driver.get_unicode_string(unicode_str_ptr)
-                          .unwrap_or("".to_string());
-
-        result.push(json!({
-            "pool": format!("0x{:x}", pool_addr.address()),
-            "address": format!("0x{:x}", eprocess_ptr.address()),
-            "type": "_EPROCESS",
-            "pid": pid,
-            "ppid": ppid,
-            "name": eprocess_name,
-            "path": binary_path
-        }));
+        result.push(make_eprocess(driver, &try_eprocess_ptr)?);
         Ok(true)
     })?;
     Ok(result)
@@ -278,29 +267,7 @@ pub fn scan_ethread(driver: &DriverState) -> BoxResult<Vec<Value>> {
             }
         }
 
-        let ethread_ptr = &try_ethread_ptr;
-
-        let pid: u64 = driver.decompose(ethread_ptr, "_ETHREAD.Cid.UniqueProcess")?;
-        let tid: u64 = driver.decompose(ethread_ptr, "_ETHREAD.Cid.UniqueThread")?;
-        let unicode_str_ptr: u64 = driver.address_of(ethread_ptr, "_ETHREAD.ThreadName")
-                                   .unwrap_or(0); // ThreadName is after Windows 10 Anniversary
-
-        let thread_name =
-            if let Ok(name) = driver.get_unicode_string(unicode_str_ptr) {
-                name
-            }
-            else {
-                "".to_string()
-            };
-
-        result.push(json!({
-            "pool": format!("0x{:x}", pool_addr.address()),
-            "address": format!("0x{:x}", ethread_ptr.address()),
-            "type": "_ETHREAD",
-            "pid": pid,
-            "tid": tid,
-            "name": thread_name
-        }));
+        result.push(make_ethread(driver, &try_ethread_ptr)?);
         Ok(true)
     })?;
 
@@ -308,64 +275,64 @@ pub fn scan_ethread(driver: &DriverState) -> BoxResult<Vec<Value>> {
 }
 
 // Unstable, do not use
-pub fn scan_mutant(driver: &DriverState) -> BoxResult<Vec<Value>> {
-    let mut result: Vec<Value> = Vec::new();
-
-    let ntosbase = driver.get_kernel_base();
-    let [start, end] = driver.get_nonpaged_range(&ntosbase)?;
-
-    let tag =
-        if driver.use_old_tag() { b"Mut\xe1" }
-        else { b"Muta" };
-    driver.scan_pool(tag, "_KMUTANT", |pool_addr, header, data_addr| {
-        let chunk_size = (header[2] as u64) * 16u64;
-
-        let kmutant_size = driver.pdb_store.get_offset_r("_KMUTANT.struct_size")?;
-
-        let kmutant_valid_start = data_addr;
-        let kmutant_valid_end = (pool_addr.clone() + chunk_size) - kmutant_size;
-        let mut try_kmutant_ptr = kmutant_valid_start.clone();
-
-        while try_kmutant_ptr <= kmutant_valid_end {
-            // TODO: Stronger constrain
-            let kthread_ptr = driver.address_of(&try_kmutant_ptr, "_KMUTANT.OwnerThread")?;
-            if kthread_ptr > start.address() && kthread_ptr < end.address() {
-                break;
-            }
-            try_kmutant_ptr += 0x4;        // search exhaustively
-        }
-        if try_kmutant_ptr > kmutant_valid_end {
-            return Ok(false);
-        }
-
-        let kmutant_ptr = try_kmutant_ptr;
-        let ethread_ptr = Address::from_base(driver.address_of(&kmutant_ptr, "_KMUTANT.OwnerThread")?);
-
-        let pid: u64 = driver.decompose(&ethread_ptr, "_ETHREAD.Cid.UniqueProcess")?;
-        let tid: u64 = driver.decompose(&ethread_ptr, "_ETHREAD.Cid.UniqueThread")?;
-        let unicode_str_ptr: u64 = driver.address_of(&ethread_ptr, "_ETHREAD.ThreadName")?;
-
-        let thread_name =
-            if let Ok(name) = driver.get_unicode_string(unicode_str_ptr) {
-                name
-            }
-            else {
-                "".to_string()
-            };
-
-        result.push(json!({
-            "pool": format!("0x{:x}", pool_addr.address()),
-            "address": format!("0x{:x}", ethread_ptr.address()),
-            "type": "_KMUTANT",
-            "pid": pid,
-            "tid": tid,
-            "name": thread_name
-        }));
-        Ok(true)
-    })?;
-
-    Ok(result)
-}
+// pub fn scan_mutant(driver: &DriverState) -> BoxResult<Vec<Value>> {
+//     let mut result: Vec<Value> = Vec::new();
+//
+//     let ntosbase = driver.get_kernel_base();
+//     let [start, end] = driver.get_nonpaged_range(&ntosbase)?;
+//
+//     let tag =
+//         if driver.use_old_tag() { b"Mut\xe1" }
+//         else { b"Muta" };
+//     driver.scan_pool(tag, "_KMUTANT", |pool_addr, header, data_addr| {
+//         let chunk_size = (header[2] as u64) * 16u64;
+//
+//         let kmutant_size = driver.pdb_store.get_offset_r("_KMUTANT.struct_size")?;
+//
+//         let kmutant_valid_start = data_addr;
+//         let kmutant_valid_end = (pool_addr.clone() + chunk_size) - kmutant_size;
+//         let mut try_kmutant_ptr = kmutant_valid_start.clone();
+//
+//         while try_kmutant_ptr <= kmutant_valid_end {
+//             // TODO: Stronger constrain
+//             let kthread_ptr = driver.address_of(&try_kmutant_ptr, "_KMUTANT.OwnerThread")?;
+//             if kthread_ptr > start.address() && kthread_ptr < end.address() {
+//                 break;
+//             }
+//             try_kmutant_ptr += 0x4;        // search exhaustively
+//         }
+//         if try_kmutant_ptr > kmutant_valid_end {
+//             return Ok(false);
+//         }
+//
+//         let kmutant_ptr = try_kmutant_ptr;
+//         let ethread_ptr = Address::from_base(driver.address_of(&kmutant_ptr, "_KMUTANT.OwnerThread")?);
+//
+//         let pid: u64 = driver.decompose(&ethread_ptr, "_ETHREAD.Cid.UniqueProcess")?;
+//         let tid: u64 = driver.decompose(&ethread_ptr, "_ETHREAD.Cid.UniqueThread")?;
+//         let unicode_str_ptr: u64 = driver.address_of(&ethread_ptr, "_ETHREAD.ThreadName")?;
+//
+//         let thread_name =
+//             if let Ok(name) = driver.get_unicode_string(unicode_str_ptr) {
+//                 name
+//             }
+//             else {
+//                 "".to_string()
+//             };
+//
+//         result.push(json!({
+//             "pool": format!("0x{:x}", pool_addr.address()),
+//             "address": format!("0x{:x}", ethread_ptr.address()),
+//             "type": "_KMUTANT",
+//             "pid": pid,
+//             "tid": tid,
+//             "name": thread_name
+//         }));
+//         Ok(true)
+//     })?;
+//
+//     Ok(result)
+// }
 
 pub fn scan_driver(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
@@ -382,7 +349,6 @@ pub fn scan_driver(driver: &DriverState) -> BoxResult<Vec<Value>> {
 
         while try_ptr <= valid_end {
             // No documentation on type constrain
-            // let ftype: u16 = driver.decompose(&try_ptr, "_DRIVER_OBJECT.Type")?;
             let size: u16 = driver.decompose(&try_ptr, "_DRIVER_OBJECT.Size")?;
             if (size as u64) == dob_size /* && ftype == 5u16 */ {
                 break;
@@ -392,72 +358,7 @@ pub fn scan_driver(driver: &DriverState) -> BoxResult<Vec<Value>> {
         if try_ptr > valid_end {
             return Ok(false);
         }
-        let dob_addr = &try_ptr;
-
-        let devicename_ptr = driver.address_of(dob_addr, "_DRIVER_OBJECT.DriverName")?;
-        let servicekey_ptr = driver.address_of(dob_addr, "_DRIVER_OBJECT.DriverExtension.ServiceKeyName")?;
-        let hardware_ptr: u64 = driver.decompose(dob_addr, "_DRIVER_OBJECT.HardwareDatabase")?;
-        let major_function: Vec<u64> = driver.decompose_array(dob_addr, "_DRIVER_OBJECT.MajorFunction", 28)?;
-        let start: u64 = driver.decompose(dob_addr, "_DRIVER_OBJECT.DriverStart")?;
-        let init: u64 = driver.decompose(dob_addr, "_DRIVER_OBJECT.DriverInit")?;
-        let unload: u64 = driver.decompose(dob_addr, "_DRIVER_OBJECT.DriverUnload")?;
-        let size: u64 = driver.decompose(dob_addr, "_DRIVER_OBJECT.DriverSize")?;
-
-        let devicename = driver.get_unicode_string(devicename_ptr)
-                         .unwrap_or("".to_string());
-        let hardware = driver.get_unicode_string(hardware_ptr)
-                       .unwrap_or("".to_string());
-        let servicekey = driver.get_unicode_string(servicekey_ptr)
-                         .unwrap_or("".to_string());
-
-        // device tree walk
-        let devices = {
-            let mut driver_devices: Vec<Value> = Vec::new();
-            let mut device_ptr: u64 = driver.decompose(dob_addr, "_DRIVER_OBJECT.DeviceObject")?;
-            while device_ptr != 0 {
-                let addr = Address::from_base(device_ptr);
-                let device_type: u32 = driver.decompose(&addr, "_DEVICE_OBJECT.DeviceType")?;
-
-                // get attached devices
-                let mut attached_ptr: u64 = driver.decompose(&addr, "_DEVICE_OBJECT.AttachedDevice")?;
-                let mut attached_devices: Vec<Value> = Vec::new();
-                while attached_ptr != 0 {
-                    let attached = Address::from_base(attached_ptr);
-                    let attached_device_type: u32 = driver.decompose(&attached, "_DEVICE_OBJECT.DeviceType")?;
-                    attached_devices.push(json!({
-                        "address": format!("0x{:x}", attached_ptr),
-                        "type": "_DEVICE_OBJECT",
-                        "devicetype": get_device_type(attached_device_type)
-                    }));
-                    attached_ptr = driver.decompose(&attached, "_DEVICE_OBJECT.AttachedDevice")?;
-                }
-                driver_devices.push(json!({
-                    "address": format!("0x{:x}", device_ptr),
-                    "type": "_DEVICE_OBJECT",
-                    "devicetype": get_device_type(device_type),
-                    "attached": attached_devices
-                }));
-                device_ptr = driver.decompose(&addr, "_DEVICE_OBJECT.NextDevice")?;
-            }
-            driver_devices
-        };
-
-        result.push(json!({
-            "pool": format!("0x{:x}", pool_addr.address()),
-            "address": format!("0x{:x}", dob_addr.address()),
-            "type": "_DRIVER_OBJECT",
-            "device": devicename,
-            "hardware": hardware,
-            "major_function": major_function.into_iter()
-                              .map(|func| format!("0x{:x}", func))
-                              .collect::<Vec<String>>(),
-            "servicekey": servicekey,
-            "start": format!("0x{:x}", start),
-            "init": format!("0x{:x}", init),
-            "unload": format!("0x{:x}", unload),
-            "size": format!("0x{:x}", size),
-            "devicetree": devices
-        }));
+        result.push(make_driver(driver, &try_ptr)?);
         Ok(true)
     })?;
 
@@ -467,30 +368,9 @@ pub fn scan_driver(driver: &DriverState) -> BoxResult<Vec<Value>> {
 pub fn scan_kernel_module(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
 
-    driver.scan_pool(b"MmLd", "_LDR_DATA_TABLE_ENTRY", |pool_addr, _, data_addr| {
+    driver.scan_pool(b"MmLd", "_LDR_DATA_TABLE_ENTRY", |_pool_addr, _, data_addr| {
         // By reversing, this structure does not have any header
-        let mod_addr = &data_addr;
-
-        let dllbase: u64 = driver.decompose(mod_addr, "_LDR_DATA_TABLE_ENTRY.DllBase")?;
-        let entry: u64 = driver.decompose(mod_addr, "_LDR_DATA_TABLE_ENTRY.EntryPoint")?;
-        let size: u64 = driver.decompose(mod_addr, "_LDR_DATA_TABLE_ENTRY.SizeOfImage")?;
-        let fullname_ptr = driver.address_of(mod_addr, "_LDR_DATA_TABLE_ENTRY.FullDllName")?;
-        let basename_ptr = driver.address_of(mod_addr, "_LDR_DATA_TABLE_ENTRY.BaseDllName")?;
-
-        let fullname = driver.get_unicode_string(fullname_ptr)
-                       .unwrap_or("".to_string());
-        let basename = driver.get_unicode_string(basename_ptr)
-                       .unwrap_or("".to_string());
-        result.push(json!({
-            "pool": format!("0x{:x}", pool_addr.address()),
-            "address": format!("0x{:x}", mod_addr.address()),
-            "type": "_LDR_DATA_TABLE_ENTRY",
-            "dllbase": format!("0x{:x}", dllbase),
-            "entry": format!("0x{:x}", entry),
-            "size": format!("0x{:x}", size),
-            "FullName": fullname,
-            "BaseName": basename
-        }));
+        result.push(make_ldr(driver, &data_addr)?);
         Ok(true)
     })?;
 
@@ -498,37 +378,13 @@ pub fn scan_kernel_module(driver: &DriverState) -> BoxResult<Vec<Value>> {
 }
 
 pub fn traverse_loadedmodulelist(driver: &DriverState) -> BoxResult<Vec<Value>> {
-    let mut result: Vec<Value> = Vec::new();
 
     let ntosbase = driver.get_kernel_base();
     let module_list_head = ntosbase + driver.pdb_store.get_offset_r("PsLoadedModuleList")?;
 
-    let mut ptr: u64 = driver.decompose(&module_list_head, "_LIST_ENTRY.Flink")?;
-    while ptr != module_list_head.address() {
-        let mod_addr = Address::from_base(ptr);
-
-        let dllbase: u64 = driver.decompose(&mod_addr, "_LDR_DATA_TABLE_ENTRY.DllBase")?;
-        let entry: u64 = driver.decompose(&mod_addr, "_LDR_DATA_TABLE_ENTRY.EntryPoint")?;
-        let size: u64 = driver.decompose(&mod_addr, "_LDR_DATA_TABLE_ENTRY.SizeOfImage")?;
-        let fullname_ptr = driver.address_of(&mod_addr, "_LDR_DATA_TABLE_ENTRY.FullDllName")?;
-        let basename_ptr = driver.address_of(&mod_addr, "_LDR_DATA_TABLE_ENTRY.BaseDllName")?;
-
-        let fullname = driver.get_unicode_string(fullname_ptr)
-                       .unwrap_or("".to_string());
-        let basename = driver.get_unicode_string(basename_ptr)
-                       .unwrap_or("".to_string());
-        result.push(json!({
-            "address": format!("0x{:x}", mod_addr.address()),
-            "type": "_LDR_DATA_TABLE_ENTRY",
-            "dllbase": format!("0x{:x}", dllbase),
-            "entry": format!("0x{:x}", entry),
-            "size": format!("0x{:x}", size),
-            "FullName": fullname,
-            "BaseName": basename
-        }));
-
-        ptr = driver.decompose(&mod_addr, "_LDR_DATA_TABLE_ENTRY.InLoadOrderLinks.Flink")?;
-    }
+    let result =
+        make_list_entry(driver, module_list_head.clone(), "_LDR_DATA_TABLE_ENTRY.InLoadOrderLinks")?
+        .iter().map(|x| make_ldr(driver, &x).unwrap_or(json!({}))).collect();
 
     Ok(result)
 }
@@ -541,34 +397,11 @@ pub fn traverse_activehead(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let process_list_head = ntosbase + driver.pdb_store.get_offset_r("PsActiveProcessHead")?;
     let eprocess_listentry_offset = driver.pdb_store.get_offset_r("_EPROCESS.ActiveProcessLinks")?;
 
+    // TODO: make_list_entry
     let mut ptr: u64 = driver.decompose(&process_list_head, "_LIST_ENTRY.Flink")?;
     while ptr != process_list_head.address() {
         let eprocess_ptr = Address::from_base(ptr - eprocess_listentry_offset);
-
-        let pid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
-        let ppid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.InheritedFromUniqueProcessId")?;
-        let image_name: Vec<u8> = driver.decompose_array(&eprocess_ptr, "_EPROCESS.ImageFileName", 15)?;
-        let unicode_str_ptr = driver.address_of(&eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")
-                              .unwrap_or(0);
-
-        let eprocess_name =
-            if let Ok(name) = from_utf8(&image_name) {
-                name.to_string().trim_end_matches(char::from(0)).to_string()
-            } else {
-                "".to_string()
-            };
-        let binary_path = driver.get_unicode_string(unicode_str_ptr)
-                          .unwrap_or("".to_string());
-
-        result.push(json!({
-            "address": format!("0x{:x}", &eprocess_ptr.address()),
-            "type": "_EPROCESS",
-            "pid": pid,
-            "ppid": ppid,
-            "name": eprocess_name,
-            "path": binary_path
-        }));
-
+        result.push(make_eprocess(driver, &eprocess_ptr)?);
         ptr = driver.decompose(&eprocess_ptr, "_EPROCESS.ActiveProcessLinks.Flink")?;
     }
 
@@ -625,33 +458,11 @@ pub fn traverse_kiprocesslist(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let process_list_head = ntosbase + driver.pdb_store.get_offset_r("KiProcessListHead")?;
     let eprocess_listentry_offset = driver.pdb_store.get_offset_r("_KPROCESS.ProcessListEntry")?;
 
+    // TODO: make_list_entry
     let mut ptr: u64 = driver.decompose(&process_list_head, "_LIST_ENTRY.Flink")?;
     while ptr != process_list_head.address() {
         let eprocess_ptr = Address::from_base(ptr - eprocess_listentry_offset);
-
-        let pid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
-        let ppid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.InheritedFromUniqueProcessId")?;
-        let image_name: Vec<u8> = driver.decompose_array(&eprocess_ptr, "_EPROCESS.ImageFileName", 15)?;
-        let unicode_str_ptr = driver.address_of(&eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")
-                              .unwrap_or(0);
-
-        let eprocess_name =
-            if let Ok(name) = from_utf8(&image_name) {
-                name.to_string().trim_end_matches(char::from(0)).to_string()
-            } else {
-                "".to_string()
-            };
-        let binary_path = driver.get_unicode_string(unicode_str_ptr)
-                          .unwrap_or("".to_string());
-
-        result.push(json!({
-            "address": format!("0x{:x}", &eprocess_ptr.address()),
-            "type": "_EPROCESS",
-            "pid": pid,
-            "ppid": ppid,
-            "name": eprocess_name,
-            "path": binary_path
-        }));
+        result.push(make_eprocess(driver, &eprocess_ptr)?);
 
         ptr = driver.decompose(&eprocess_ptr, "_KPROCESS.ProcessListEntry.Flink")?;
     }
@@ -674,29 +485,7 @@ pub fn traverse_handletable(driver: &DriverState) -> BoxResult<Vec<Value>> {
 
         if quota_process != 0 {
             let eprocess_ptr = Address::from_base(quota_process);
-            let pid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
-            let ppid: u64 = driver.decompose(&eprocess_ptr, "_EPROCESS.InheritedFromUniqueProcessId")?;
-            let image_name: Vec<u8> = driver.decompose_array(&eprocess_ptr, "_EPROCESS.ImageFileName", 15)?;
-            let unicode_str_ptr = driver.address_of(&eprocess_ptr, "_EPROCESS.ImageFilePointer.FileName")
-                                  .unwrap_or(0);
-
-            let eprocess_name =
-                if let Ok(name) = from_utf8(&image_name) {
-                    name.to_string().trim_end_matches(char::from(0)).to_string()
-                } else {
-                    "".to_string()
-                };
-            let binary_path = driver.get_unicode_string(unicode_str_ptr)
-                            .unwrap_or("".to_string());
-
-            result.push(json!({
-                "address": format!("0x{:x}", &eprocess_ptr.address()),
-                "type": "_EPROCESS",
-                "pid": pid,
-                "ppid": ppid,
-                "name": eprocess_name,
-                "path": binary_path
-            }));
+            result.push(make_eprocess(driver, &eprocess_ptr)?);
         }
 
         ptr = driver.decompose(&handle_ptr, "_HANDLE_TABLE.HandleTableList.Flink")?;
