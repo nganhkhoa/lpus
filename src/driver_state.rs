@@ -1,24 +1,24 @@
-use std::default::Default;
 use std::clone::Clone;
+use std::default::Default;
 use std::error::Error;
 // use std::io::{Error, ErrorKind};
 use std::ffi::c_void;
-use std::mem::{size_of_val, size_of};
+use std::mem::{size_of, size_of_val};
 
-use winapi::shared::ntdef::{NTSTATUS};
-use winapi::shared::minwindef::{DWORD};
+use winapi::shared::minwindef::DWORD;
+use winapi::shared::ntdef::NTSTATUS;
 use winapi::um::winioctl::{
-    CTL_CODE, FILE_ANY_ACCESS,
-    METHOD_IN_DIRECT, METHOD_OUT_DIRECT, /* METHOD_BUFFERED, */ METHOD_NEITHER
+    CTL_CODE, FILE_ANY_ACCESS, METHOD_IN_DIRECT, /* METHOD_BUFFERED, */ METHOD_NEITHER,
+    METHOD_OUT_DIRECT,
 };
 
 use crate::address::Address;
-use crate::pdb_store::{PdbStore, parse_pdb};
-use crate::windows::{WindowsFFI, WindowsVersion};
 use crate::ioctl_protocol::{
-    InputData, OffsetData, DerefAddr, ScanPoolData, /* HideProcess, */
-    /* OutputData, */ Nothing
+    DerefAddr, InputData, /* OutputData, */ Nothing, OffsetData,
+    ScanPoolData, /* HideProcess, */
 };
+use crate::pdb_store::{parse_pdb, PdbStore};
+use crate::windows::{WindowsFFI, WindowsVersion};
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
@@ -42,19 +42,33 @@ pub enum DriverAction {
     ScanPool,
     ScanPoolRemote,
     DereferenceAddress,
-    HideProcess
+    HideProcess,
 }
 
 impl DriverAction {
     pub fn get_code(&self) -> DWORD {
         match self {
-            DriverAction::SetupOffset => CTL_CODE(SIOCTL_TYPE, 0x900, METHOD_IN_DIRECT, FILE_ANY_ACCESS),
-            DriverAction::GetKernelBase => CTL_CODE(SIOCTL_TYPE, 0x901, METHOD_OUT_DIRECT, FILE_ANY_ACCESS),
-            DriverAction::ScanPsActiveHead => CTL_CODE(SIOCTL_TYPE, 0x902, METHOD_NEITHER, FILE_ANY_ACCESS),
-            DriverAction::ScanPool => CTL_CODE(SIOCTL_TYPE, 0x903, METHOD_IN_DIRECT, FILE_ANY_ACCESS),
-            DriverAction::ScanPoolRemote => CTL_CODE(SIOCTL_TYPE, 0x904, METHOD_IN_DIRECT, FILE_ANY_ACCESS),
-            DriverAction::DereferenceAddress => CTL_CODE(SIOCTL_TYPE, 0xA00, METHOD_OUT_DIRECT, FILE_ANY_ACCESS),
-            DriverAction::HideProcess => CTL_CODE(SIOCTL_TYPE, 0xA01, METHOD_IN_DIRECT, FILE_ANY_ACCESS)
+            DriverAction::SetupOffset => {
+                CTL_CODE(SIOCTL_TYPE, 0x900, METHOD_IN_DIRECT, FILE_ANY_ACCESS)
+            }
+            DriverAction::GetKernelBase => {
+                CTL_CODE(SIOCTL_TYPE, 0x901, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
+            }
+            DriverAction::ScanPsActiveHead => {
+                CTL_CODE(SIOCTL_TYPE, 0x902, METHOD_NEITHER, FILE_ANY_ACCESS)
+            }
+            DriverAction::ScanPool => {
+                CTL_CODE(SIOCTL_TYPE, 0x903, METHOD_IN_DIRECT, FILE_ANY_ACCESS)
+            }
+            DriverAction::ScanPoolRemote => {
+                CTL_CODE(SIOCTL_TYPE, 0x904, METHOD_IN_DIRECT, FILE_ANY_ACCESS)
+            }
+            DriverAction::DereferenceAddress => {
+                CTL_CODE(SIOCTL_TYPE, 0xA00, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
+            }
+            DriverAction::HideProcess => {
+                CTL_CODE(SIOCTL_TYPE, 0xA01, METHOD_IN_DIRECT, FILE_ANY_ACCESS)
+            }
         }
     }
 }
@@ -65,7 +79,7 @@ pub struct EprocessPoolChunk {
     pub eprocess_addr: u64,
     pub eprocess_name: String,
     pub create_time: u64,
-    pub exit_time: u64
+    pub exit_time: u64,
 }
 
 impl PartialEq for EprocessPoolChunk {
@@ -85,17 +99,20 @@ impl DriverState {
     pub fn new() -> Self {
         Self {
             pdb_store: parse_pdb().expect("Cannot get PDB file"),
-            windows_ffi: WindowsFFI::new()
+            windows_ffi: WindowsFFI::new(),
         }
     }
 
     pub fn startup(&mut self) -> NTSTATUS {
         let s = self.windows_ffi.load_driver();
         let mut input = InputData {
-            offset_value: OffsetData::new(&self.pdb_store, self.windows_ffi.short_version)
+            offset_value: OffsetData::new(&self.pdb_store, self.windows_ffi.short_version),
         };
-        self.windows_ffi.device_io(DriverAction::SetupOffset.get_code(),
-                                   &mut input, &mut Nothing);
+        self.windows_ffi.device_io(
+            DriverAction::SetupOffset.get_code(),
+            &mut input,
+            &mut Nothing,
+        );
         s
     }
 
@@ -111,23 +128,30 @@ impl DriverState {
         // use old tag to scan, for Window < 8
         if self.windows_ffi.short_version < WindowsVersion::Windows8 {
             true
-        }
-        else {
+        } else {
             false
         }
     }
 
     pub fn get_kernel_base(&self) -> Address {
         let mut ntosbase = 0u64;
-        self.windows_ffi.device_io(DriverAction::GetKernelBase.get_code(),
-                                   &mut Nothing, &mut ntosbase);
+        self.windows_ffi.device_io(
+            DriverAction::GetKernelBase.get_code(),
+            &mut Nothing,
+            &mut ntosbase,
+        );
         Address::from_base(ntosbase)
     }
 
-    pub fn scan_pool<F>(&self, tag: &[u8; 4], expected_struct: &str, mut handler: F) -> BoxResult<bool>
-                        where F: FnMut(Address, &[u8], Address) -> BoxResult<bool>
-                        // F(Pool Address, Pool Header Data, Pool Data Address)
-                        // TODO: Pool Header as a real struct
+    pub fn scan_pool<F>(
+        &self,
+        tag: &[u8; 4],
+        expected_struct: &str,
+        mut handler: F,
+    ) -> BoxResult<bool>
+    where
+        F: FnMut(Address, &[u8], Address) -> BoxResult<bool>, // F(Pool Address, Pool Header Data, Pool Data Address)
+                                                              // TODO: Pool Header as a real struct
     {
         // TODO: scan large pool
         // TODO: make generator, in hold: https://github.com/rust-lang/rust/issues/43122
@@ -135,22 +159,27 @@ impl DriverState {
         // https://docs.rs/gen-iter/0.2.0/gen_iter/
         // >> More flexibility in code
         let pool_header_size = self.pdb_store.get_offset_r("_POOL_HEADER.struct_size")?;
-        let minimum_block_size = self.pdb_store.get_offset_r(&format!("{}.struct_size", expected_struct))?
-                               + pool_header_size;
+        let minimum_block_size = self
+            .pdb_store
+            .get_offset_r(&format!("{}.struct_size", expected_struct))?
+            + pool_header_size;
         let code = DriverAction::ScanPoolRemote.get_code();
         let ntosbase = self.get_kernel_base();
         let [start_address, end_address] = self.get_nonpaged_range(&ntosbase)?;
 
-        println!("kernel base: {}; non-paged pool (start, end): ({}, {}); tag: {:?} {}",
-                 ntosbase, start_address, end_address, tag, expected_struct);
+        println!(
+            "kernel base: {}; non-paged pool (start, end): ({}, {}); tag: {:?} {}",
+            ntosbase, start_address, end_address, tag, expected_struct
+        );
 
         let mut ptr = start_address;
         while ptr < end_address {
             let mut next_found = 0u64;
             let mut input = InputData {
-                scan_range: ScanPoolData::new(&[ptr.address(), end_address.address()], tag)
+                scan_range: ScanPoolData::new(&[ptr.address(), end_address.address()], tag),
             };
-            self.windows_ffi.device_io(code, &mut input, &mut next_found);
+            self.windows_ffi
+                .device_io(code, &mut input, &mut next_found);
             ptr = Address::from_base(next_found);
             if ptr >= end_address {
                 break;
@@ -175,8 +204,7 @@ impl DriverState {
             let success = handler(pool_addr, &header, data_addr).unwrap_or(false);
             if success {
                 ptr += chunk_size; // skip this chunk
-            }
-            else {
+            } else {
                 ptr += 0x4; // search next
             }
         }
@@ -184,19 +212,24 @@ impl DriverState {
     }
 
     pub fn address_of(&self, addr: &Address, name: &str) -> BoxResult<u64> {
-        let resolver = |p| { self.deref_addr_new(p) };
+        let resolver = |p| self.deref_addr_new(p);
         let r = self.pdb_store.decompose(&addr, &name)?;
         Ok(r.get(&resolver))
     }
 
     pub fn decompose<T: Default>(&self, addr: &Address, name: &str) -> BoxResult<T> {
         // interface to pdb_store.decompose
-        let resolver = |p| { self.deref_addr_new(p) };
+        let resolver = |p| self.deref_addr_new(p);
         let r: T = self.deref_addr_new(self.pdb_store.decompose(&addr, &name)?.get(&resolver));
         Ok(r)
     }
 
-    pub fn decompose_array<T: Default + Clone>(&self, addr: &Address, name: &str, len: u64) -> BoxResult<Vec<T>> {
+    pub fn decompose_array<T: Default + Clone>(
+        &self,
+        addr: &Address,
+        name: &str,
+        len: u64,
+    ) -> BoxResult<Vec<T>> {
         // interface to pdb_store.decompose for array
         let r: Vec<T> = self.deref_array(&self.pdb_store.decompose(&addr, &name)?, len);
         Ok(r)
@@ -211,7 +244,7 @@ impl DriverState {
     }
 
     pub fn deref_array<T: Default + Clone>(&self, addr: &Address, len: u64) -> Vec<T> {
-        let resolver = |p| { self.deref_addr_new(p) };
+        let resolver = |p| self.deref_addr_new(p);
         let mut r: Vec<T> = vec![Default::default(); len as usize];
         let size_in_byte = (len as usize) * size_of::<T>();
         self.deref_addr_ptr(addr.get(&resolver), r.as_mut_ptr(), size_in_byte as u64);
@@ -225,8 +258,8 @@ impl DriverState {
         let mut input = InputData {
             deref_addr: DerefAddr {
                 addr,
-                size: size as u64
-            }
+                size: size as u64,
+            },
         };
         self.windows_ffi.device_io(code, &mut input, outbuf);
     }
@@ -237,12 +270,16 @@ impl DriverState {
         let mut input = InputData {
             deref_addr: DerefAddr {
                 addr,
-                size: output_len_as_byte
-            }
+                size: output_len_as_byte,
+            },
         };
-        self.windows_ffi.device_io_raw(code,
-                                       &mut input as *mut _ as *mut c_void, size_of_val(&input) as DWORD,
-                                       outptr as *mut c_void, output_len_as_byte as DWORD);
+        self.windows_ffi.device_io_raw(
+            code,
+            &mut input as *mut _ as *mut c_void,
+            size_of_val(&input) as DWORD,
+            outptr as *mut c_void,
+            output_len_as_byte as DWORD,
+        );
     }
 
     pub fn get_unicode_string(&self, unicode_str_addr: u64) -> BoxResult<String> {
@@ -253,8 +290,12 @@ impl DriverState {
         let mut strlen = 0u16;
         let mut capacity = 0u16;
         let mut bufaddr = 0u64;
-        let buffer_ptr = unicode_str_addr + self.pdb_store.get_offset_r("_UNICODE_STRING.Buffer")?;
-        let capacity_addr  = unicode_str_addr + self.pdb_store.get_offset_r("_UNICODE_STRING.MaximumLength")?;
+        let buffer_ptr =
+            unicode_str_addr + self.pdb_store.get_offset_r("_UNICODE_STRING.Buffer")?;
+        let capacity_addr = unicode_str_addr
+            + self
+                .pdb_store
+                .get_offset_r("_UNICODE_STRING.MaximumLength")?;
 
         self.deref_addr(unicode_str_addr, &mut strlen);
         self.deref_addr(capacity_addr, &mut capacity);
@@ -284,48 +325,50 @@ impl DriverState {
                     "_MI_SYSTEM_INFORMATION",
                     "Hardware",
                     "SystemNodeNonPagedPool",
-                    "NonPagedPoolFirstVa"
-                ].join(".");
+                    "NonPagedPoolFirstVa",
+                ]
+                .join(".");
                 let path_last_va: String = vec![
                     "_MI_SYSTEM_INFORMATION",
                     "Hardware",
                     "SystemNodeNonPagedPool",
-                    "NonPagedPoolLastVa"
-                ].join(".");
+                    "NonPagedPoolLastVa",
+                ]
+                .join(".");
                 let first_va = Address::from_base(self.decompose(&mistate, &path_first_va)?);
                 let last_va = Address::from_base(self.decompose(&mistate, &path_last_va)?);
                 Ok([first_va, last_va])
-            },
-            WindowsVersion::Windows10_2019 |
-            WindowsVersion::Windows10_2018 => {
+            }
+            WindowsVersion::Windows10_2019 | WindowsVersion::Windows10_2018 => {
                 let mistate = ntosbase.clone() + self.pdb_store.get_offset_r("MiState")?;
                 let path_first_va: String = vec![
                     "_MI_SYSTEM_INFORMATION",
                     "Hardware",
                     "SystemNodeInformation",
-                    "NonPagedPoolFirstVa"
-                ].join(".");
+                    "NonPagedPoolFirstVa",
+                ]
+                .join(".");
                 let path_last_va: String = vec![
                     "_MI_SYSTEM_INFORMATION",
                     "Hardware",
                     "SystemNodeInformation",
-                    "NonPagedPoolLastVa"
-                ].join(".");
+                    "NonPagedPoolLastVa",
+                ]
+                .join(".");
                 let first_va = Address::from_base(self.decompose(&mistate, &path_first_va)?);
                 let last_va = Address::from_base(self.decompose(&mistate, &path_last_va)?);
                 Ok([first_va, last_va])
-            },
+            }
             WindowsVersion::Windows7 => {
-                let path_first_va = ntosbase.clone() + self.pdb_store.get_offset_r("MmNonPagedPoolStart")?;
-                let path_last_va = ntosbase.clone() + self.pdb_store.get_offset_r("MiNonPagedPoolEnd")?;
+                let path_first_va =
+                    ntosbase.clone() + self.pdb_store.get_offset_r("MmNonPagedPoolStart")?;
+                let path_last_va =
+                    ntosbase.clone() + self.pdb_store.get_offset_r("MiNonPagedPoolEnd")?;
                 let first_va = Address::from_base(self.deref_addr_new(path_first_va.address()));
                 let last_va = Address::from_base(self.deref_addr_new(path_last_va.address()));
                 Ok([first_va, last_va])
-            },
-            _ => {
-                Err("Windows version for nonpaged pool algorithm is not implemented".into())
             }
+            _ => Err("Windows version for nonpaged pool algorithm is not implemented".into()),
         }
     }
-
 }

@@ -1,19 +1,19 @@
-extern crate chrono;
 extern crate app_dirs;
+extern crate chrono;
 
+pub mod address;
+pub mod driver_state;
+pub mod ioctl_protocol;
+pub mod object;
 pub mod pdb_store;
 pub mod windows;
-pub mod ioctl_protocol;
-pub mod driver_state;
-pub mod address;
-pub mod object;
 
-use std::error::Error;
-use chrono::{DateTime, TimeZone, Local};
+use chrono::{DateTime, Local, TimeZone};
 use serde_json::{json, Value};
+use std::error::Error;
 
-use driver_state::DriverState;
 use address::Address;
+use driver_state::DriverState;
 use object::*;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
@@ -57,13 +57,15 @@ pub fn get_irp_name(idx: usize) -> String {
         "IRP_MJ_DEVICE_CHANGE",
         "IRP_MJ_QUERY_QUOTA",
         "IRP_MJ_SET_QUOTA",
-        "IRP_MJ_PNP"
-    ].iter().map(|x| x.to_string()).collect::<Vec<String>>();
+        "IRP_MJ_PNP",
+    ]
+    .iter()
+    .map(|x| x.to_string())
+    .collect::<Vec<String>>();
 
     if let Some(name) = irp_names.get(idx) {
         name.clone()
-    }
-    else {
+    } else {
         "UNKNOWN".to_string()
     }
 }
@@ -128,15 +130,18 @@ fn get_device_type(typ: u32) -> String {
         0x00000024 => "FILE_DEVICE_VIRTUAL_DISK",
         0x00000025 => "FILE_DEVICE_WAVE_IN",
         0x00000026 => "FILE_DEVICE_WAVE_OUT",
-        _ => "UNKNOWN"
-    }.to_string()
+        _ => "UNKNOWN",
+    }
+    .to_string()
 }
 
 pub fn scan_eprocess(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
-    let tag =
-        if driver.use_old_tag() { b"Pro\xe3" }
-        else { b"Proc" };
+    let tag = if driver.use_old_tag() {
+        b"Pro\xe3"
+    } else {
+        b"Proc"
+    };
     driver.scan_pool(tag, "_EPROCESS", |pool_addr, header, data_addr| {
         let chunk_size = (header[2] as u64) * 16u64;
 
@@ -151,7 +156,7 @@ pub fn scan_eprocess(driver: &DriverState) -> BoxResult<Vec<Value>> {
             if driver.windows_ffi.valid_process_time(create_time) {
                 break;
             }
-            try_eprocess_ptr += 0x4;        // search exhaustively
+            try_eprocess_ptr += 0x4; // search exhaustively
         }
         if try_eprocess_ptr > eprocess_valid_end {
             return Ok(false);
@@ -166,9 +171,11 @@ pub fn scan_eprocess(driver: &DriverState) -> BoxResult<Vec<Value>> {
 pub fn scan_file(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
 
-    let tag =
-        if driver.use_old_tag() { b"Fil\xe5" }
-        else { b"File" };
+    let tag = if driver.use_old_tag() {
+        b"Fil\xe5"
+    } else {
+        b"File"
+    };
     driver.scan_pool(tag, "_FILE_OBJECT", |pool_addr, header, data_addr| {
         let chunk_size = (header[2] as u64) * 16u64;
 
@@ -182,7 +189,7 @@ pub fn scan_file(driver: &DriverState) -> BoxResult<Vec<Value>> {
             if (size as u64) == fob_size && ftype == 5u16 {
                 break;
             }
-            try_ptr += 0x4;        // search exhaustively
+            try_ptr += 0x4; // search exhaustively
         }
         if try_ptr > valid_end {
             return Ok(false);
@@ -196,23 +203,28 @@ pub fn scan_file(driver: &DriverState) -> BoxResult<Vec<Value>> {
         let share_write_ok: u8 = driver.decompose(fob_addr, "_FILE_OBJECT.SharedWrite")?;
         let share_delete_ok: u8 = driver.decompose(fob_addr, "_FILE_OBJECT.SharedDelete")?;
         let filename_ptr = driver.address_of(fob_addr, "_FILE_OBJECT.FileName")?;
-        let devicename_ptr: u64 = driver.address_of(fob_addr, "_FILE_OBJECT.DeviceObject.DriverObject.DriverName")?;
-        let hardware_ptr: u64 = driver.decompose(fob_addr, "_FILE_OBJECT.DeviceObject.DriverObject.HardwareDatabase")?;
+        let devicename_ptr: u64 = driver.address_of(
+            fob_addr,
+            "_FILE_OBJECT.DeviceObject.DriverObject.DriverName",
+        )?;
+        let hardware_ptr: u64 = driver.decompose(
+            fob_addr,
+            "_FILE_OBJECT.DeviceObject.DriverObject.HardwareDatabase",
+        )?;
 
-        let filename =
-            if read_ok == 0 {
-                "[NOT READABLE]".to_string()
-            }
-            else if let Ok(n) = driver.get_unicode_string(filename_ptr) {
-                n
-            }
-            else {
-                "[NOT A VALID _UNICODE_STRING]".to_string()
-            };
-        let devicename = driver.get_unicode_string(devicename_ptr)
-                         .unwrap_or("".to_string());
-        let hardware = driver.get_unicode_string(hardware_ptr)
-                       .unwrap_or("".to_string());
+        let filename = if read_ok == 0 {
+            "[NOT READABLE]".to_string()
+        } else if let Ok(n) = driver.get_unicode_string(filename_ptr) {
+            n
+        } else {
+            "[NOT A VALID _UNICODE_STRING]".to_string()
+        };
+        let devicename = driver
+            .get_unicode_string(devicename_ptr)
+            .unwrap_or("".to_string());
+        let hardware = driver
+            .get_unicode_string(hardware_ptr)
+            .unwrap_or("".to_string());
         result.push(json!({
             "pool": format!("0x{:x}", pool_addr.address()),
             "address": format!("0x{:x}", fob_addr.address()),
@@ -238,13 +250,17 @@ pub fn scan_file(driver: &DriverState) -> BoxResult<Vec<Value>> {
 pub fn scan_ethread(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
 
-    let tag =
-        if driver.use_old_tag() { b"Thr\xe5" }
-        else { b"Thre" };
+    let tag = if driver.use_old_tag() {
+        b"Thr\xe5"
+    } else {
+        b"Thre"
+    };
     driver.scan_pool(tag, "_ETHREAD", |pool_addr, header, data_addr| {
         let chunk_size = (header[2] as u64) * 16u64;
 
-        let object_header_size = driver.pdb_store.get_offset_r("_OBJECT_HEADER.struct_size")?;
+        let object_header_size = driver
+            .pdb_store
+            .get_offset_r("_OBJECT_HEADER.struct_size")?;
         let header_size = driver.pdb_store.get_offset_r("_POOL_HEADER.struct_size")?;
         let ethread_size = driver.pdb_store.get_offset_r("_ETHREAD.struct_size")?;
         let ethread_valid_start = &data_addr;
@@ -253,14 +269,13 @@ pub fn scan_ethread(driver: &DriverState) -> BoxResult<Vec<Value>> {
 
         if chunk_size == header_size + object_header_size + ethread_size {
             try_ethread_ptr = ethread_valid_end.clone();
-        }
-        else {
+        } else {
             while try_ethread_ptr <= ethread_valid_end {
                 let create_time: u64 = driver.decompose(&try_ethread_ptr, "_ETHREAD.CreateTime")?;
                 if driver.windows_ffi.valid_process_time(create_time) {
                     break;
                 }
-                try_ethread_ptr += 0x4;        // search exhaustively
+                try_ethread_ptr += 0x4; // search exhaustively
             }
             if try_ethread_ptr > ethread_valid_end {
                 return Ok(false);
@@ -337,23 +352,29 @@ pub fn scan_ethread(driver: &DriverState) -> BoxResult<Vec<Value>> {
 pub fn scan_driver(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
 
-    let tag =
-        if driver.use_old_tag() { b"Dri\xf6" }
-        else { b"Driv" };
+    let tag = if driver.use_old_tag() {
+        b"Dri\xf6"
+    } else {
+        b"Driv"
+    };
     driver.scan_pool(tag, "_DRIVER_OBJECT", |pool_addr, header, data_addr| {
         let chunk_size = (header[2] as u64) * 16u64;
 
-        let dob_size = driver.pdb_store.get_offset_r("_DRIVER_OBJECT.struct_size")?;
+        let dob_size = driver
+            .pdb_store
+            .get_offset_r("_DRIVER_OBJECT.struct_size")?;
         let valid_end = (pool_addr.clone() + chunk_size) - dob_size;
         let mut try_ptr = data_addr;
 
         while try_ptr <= valid_end {
             // No documentation on type constrain
             let size: u16 = driver.decompose(&try_ptr, "_DRIVER_OBJECT.Size")?;
-            if (size as u64) == dob_size /* && ftype == 5u16 */ {
+            if (size as u64) == dob_size
+            /* && ftype == 5u16 */
+            {
                 break;
             }
-            try_ptr += 0x4;        // search exhaustively
+            try_ptr += 0x4; // search exhaustively
         }
         if try_ptr > valid_end {
             return Ok(false);
@@ -368,23 +389,31 @@ pub fn scan_driver(driver: &DriverState) -> BoxResult<Vec<Value>> {
 pub fn scan_kernel_module(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
 
-    driver.scan_pool(b"MmLd", "_LDR_DATA_TABLE_ENTRY", |_pool_addr, _, data_addr| {
-        // By reversing, this structure does not have any header
-        result.push(make_ldr(driver, &data_addr)?);
-        Ok(true)
-    })?;
+    driver.scan_pool(
+        b"MmLd",
+        "_LDR_DATA_TABLE_ENTRY",
+        |_pool_addr, _, data_addr| {
+            // By reversing, this structure does not have any header
+            result.push(make_ldr(driver, &data_addr)?);
+            Ok(true)
+        },
+    )?;
 
     Ok(result)
 }
 
 pub fn traverse_loadedmodulelist(driver: &DriverState) -> BoxResult<Vec<Value>> {
-
     let ntosbase = driver.get_kernel_base();
     let module_list_head = ntosbase + driver.pdb_store.get_offset_r("PsLoadedModuleList")?;
 
-    let result =
-        make_list_entry(driver, module_list_head.clone(), "_LDR_DATA_TABLE_ENTRY.InLoadOrderLinks")?
-        .iter().map(|x| make_ldr(driver, &x).unwrap_or(json!({}))).collect();
+    let result = make_list_entry(
+        driver,
+        module_list_head.clone(),
+        "_LDR_DATA_TABLE_ENTRY.InLoadOrderLinks",
+    )?
+    .iter()
+    .map(|x| make_ldr(driver, &x).unwrap_or(json!({})))
+    .collect();
 
     Ok(result)
 }
@@ -395,7 +424,9 @@ pub fn traverse_activehead(driver: &DriverState) -> BoxResult<Vec<Value>> {
 
     let ntosbase = driver.get_kernel_base();
     let process_list_head = ntosbase + driver.pdb_store.get_offset_r("PsActiveProcessHead")?;
-    let eprocess_listentry_offset = driver.pdb_store.get_offset_r("_EPROCESS.ActiveProcessLinks")?;
+    let eprocess_listentry_offset = driver
+        .pdb_store
+        .get_offset_r("_EPROCESS.ActiveProcessLinks")?;
 
     // TODO: make_list_entry
     let mut ptr: u64 = driver.decompose(&process_list_head, "_LIST_ENTRY.Flink")?;
@@ -456,7 +487,9 @@ pub fn traverse_kiprocesslist(driver: &DriverState) -> BoxResult<Vec<Value>> {
 
     let ntosbase = driver.get_kernel_base();
     let process_list_head = ntosbase + driver.pdb_store.get_offset_r("KiProcessListHead")?;
-    let eprocess_listentry_offset = driver.pdb_store.get_offset_r("_KPROCESS.ProcessListEntry")?;
+    let eprocess_listentry_offset = driver
+        .pdb_store
+        .get_offset_r("_KPROCESS.ProcessListEntry")?;
 
     // TODO: make_list_entry
     let mut ptr: u64 = driver.decompose(&process_list_head, "_LIST_ENTRY.Flink")?;
@@ -476,7 +509,9 @@ pub fn traverse_handletable(driver: &DriverState) -> BoxResult<Vec<Value>> {
 
     let ntosbase = driver.get_kernel_base();
     let process_list_head = ntosbase + driver.pdb_store.get_offset_r("HandleTableListHead")?;
-    let handle_list_offset = driver.pdb_store.get_offset_r("_HANDLE_TABLE.HandleTableList")?;
+    let handle_list_offset = driver
+        .pdb_store
+        .get_offset_r("_HANDLE_TABLE.HandleTableList")?;
 
     let mut ptr: u64 = driver.decompose(&process_list_head, "_LIST_ENTRY.Flink")?;
     while ptr != process_list_head.address() {
@@ -498,7 +533,8 @@ pub fn traverse_unloadeddrivers(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
     let ntosbase = driver.get_kernel_base();
     let unload_array_ptr = ntosbase.clone() + driver.pdb_store.get_offset_r("MmUnloadedDrivers")?;
-    let num_unload_ptr = ntosbase.clone() + driver.pdb_store.get_offset_r("MmLastUnloadedDriver")?;
+    let num_unload_ptr =
+        ntosbase.clone() + driver.pdb_store.get_offset_r("MmLastUnloadedDriver")?;
 
     let unload_array = driver.deref_addr_new::<u64>(unload_array_ptr.address());
     if unload_array == 0 {
@@ -507,13 +543,13 @@ pub fn traverse_unloadeddrivers(driver: &DriverState) -> BoxResult<Vec<Value>> {
 
     // by reversing MmLocateUnloadedDriver
     let num_unload = driver.deref_addr_new::<u32>(num_unload_ptr.address()) as u64;
-    let bound =
-        if num_unload > 0x32 { 0x32 }
-        else { num_unload };
+    let bound = if num_unload > 0x32 { 0x32 } else { num_unload };
     let drivers = (0..bound).map(|i| Address::from_base(unload_array + (i * 0x28)));
 
     for driver_addr in drivers {
-        let name = driver.get_unicode_string(driver_addr.address()).unwrap_or("".to_string());
+        let name = driver
+            .get_unicode_string(driver_addr.address())
+            .unwrap_or("".to_string());
         let start_addr: u64 = driver.decompose(&driver_addr, "_UNLOADED_DRIVERS.StartAddress")?;
         let end_addr: u64 = driver.decompose(&driver_addr, "_UNLOADED_DRIVERS.EndAddress")?;
         let current_time: u64 = driver.decompose(&driver_addr, "_UNLOADED_DRIVERS.CurrentTime")?;

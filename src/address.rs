@@ -1,7 +1,7 @@
-use std::rc::Rc;
-use std::ops::{Add, AddAssign, Sub, SubAssign};
 use std::cmp::Ordering;
 use std::fmt;
+use std::ops::{Add, AddAssign, Sub, SubAssign};
+use std::rc::Rc;
 
 // pub struct Object {
 //     name: String,
@@ -43,41 +43,40 @@ impl Address {
         }
     }
     fn deref<F>(&self, resolver: &F) -> Address
-        where F: Fn(u64) -> u64 {
+    where
+        F: Fn(u64) -> u64,
+    {
         match &self.pointer {
             Some(p) => {
                 let addr = p.deref(resolver);
                 // println!("deref: {} -> {}; resolve: 0x{:x}", self, addr, addr.base + addr.offset);
-                let base =
-                    if addr.base != 0 {
-                        resolver(addr.base + addr.offset)
-                    } else {
-                        0
-                    };
+                let base = if addr.base != 0 {
+                    resolver(addr.base + addr.offset)
+                } else {
+                    0
+                };
                 Address {
                     base: base,
                     pointer: None,
                     offset: self.offset,
                 }
-            },
-            None => {
-                Address {
-                    base: self.base,
-                    pointer: None,
-                    offset: self.offset,
-                }
             }
+            None => Address {
+                base: self.base,
+                pointer: None,
+                offset: self.offset,
+            },
         }
     }
     pub fn get<F>(&self, resolver: &F) -> u64
-        where F: Fn(u64) -> u64 {
+    where
+        F: Fn(u64) -> u64,
+    {
         if self.pointer.is_some() {
             self.deref(resolver).get(resolver)
-        }
-        else if self.base == 0 {
+        } else if self.base == 0 {
             0
-        }
-        else {
+        } else {
             self.base + self.offset
         }
     }
@@ -136,9 +135,10 @@ impl SubAssign<u64> for Address {
 
 impl PartialEq for Address {
     fn eq(&self, other: &Self) -> bool {
-        self.pointer.is_none() && other.pointer.is_none()
-        && self.base == other.base
-        && self.offset == other.offset
+        self.pointer.is_none()
+            && other.pointer.is_none()
+            && self.base == other.base
+            && self.offset == other.offset
     }
 }
 
@@ -146,8 +146,7 @@ impl PartialOrd for Address {
     fn partial_cmp(&self, other: &Address) -> Option<Ordering> {
         if self.pointer.is_some() || other.pointer.is_some() {
             None
-        }
-        else {
+        } else {
             let this = self.base + self.offset;
             let that = other.base + other.offset;
             Some(this.cmp(&that))
@@ -159,11 +158,9 @@ impl fmt::Display for Address {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         if let Some(p) = &self.pointer {
             write!(f, "*({}) + 0x{:x}", *p, self.offset)
-        }
-        else if self.offset != 0 {
+        } else if self.offset != 0 {
             write!(f, "0x{:x} + 0x{:x}", self.base, self.offset)
-        }
-        else {
+        } else {
             write!(f, "0x{:x}", self.base)
         }
     }
@@ -174,7 +171,7 @@ impl Clone for Address {
         Address {
             base: self.base,
             pointer: self.pointer.clone(),
-            offset: self.offset
+            offset: self.offset,
         }
     }
 }

@@ -4,9 +4,7 @@ use std::error::Error;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
-use lpus::{
-    driver_state::{DriverState},
-};
+use lpus::driver_state::DriverState;
 
 pub fn to_epoch(filetime: u64) -> u64 {
     // https://www.frenk.com/2009/12/convert-filetime-to-unix-timestamp/
@@ -42,18 +40,18 @@ fn main() -> Result<(), Box<dyn Error>> {
                 if let Err(e) = driver.pdb_store.dt(&line) {
                     println!("{}", e);
                 }
-            },
+            }
             Err(ReadlineError::Interrupted) => {
                 println!("CTRL-C");
-                break
-            },
+                break;
+            }
             Err(ReadlineError::Eof) => {
                 println!("CTRL-D");
-                break
-            },
+                break;
+            }
             Err(err) => {
                 println!("Error: {:?}", err);
-                break
+                break;
             }
         }
     }

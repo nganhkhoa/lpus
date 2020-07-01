@@ -25,47 +25,94 @@ impl OffsetData {
         // This is too much, most of the functionality has been move to the frontend
         match windows_version {
             WindowsVersion::WindowsFastRing => Self {
-                eprocess_name_offset: pdb_store.get_offset("_EPROCESS.ImageFileName").unwrap_or(0u64),
-                eprocess_link_offset: pdb_store.get_offset("_EPROCESS.ActiveProcessLinks").unwrap_or(0u64),
+                eprocess_name_offset: pdb_store
+                    .get_offset("_EPROCESS.ImageFileName")
+                    .unwrap_or(0u64),
+                eprocess_link_offset: pdb_store
+                    .get_offset("_EPROCESS.ActiveProcessLinks")
+                    .unwrap_or(0u64),
                 list_blink_offset: pdb_store.get_offset("_LIST_ENTRY.Blink").unwrap_or(0u64),
                 process_head_offset: pdb_store.get_offset("PsActiveProcessHead").unwrap_or(0u64),
                 mistate_offset: pdb_store.get_offset("MiState").unwrap_or(0u64),
-                hardware_offset: pdb_store.get_offset("_MI_SYSTEM_INFORMATION.Hardware").unwrap_or(0u64),
-                system_node_offset: pdb_store.get_offset("_MI_HARDWARE_STATE.SystemNodeNonPagedPool").unwrap_or(0u64),
-                first_va_offset: pdb_store.get_offset("_MI_SYSTEM_NODE_NONPAGED_POOL.NonPagedPoolFirstVa").unwrap_or(0u64),
-                last_va_offset: pdb_store.get_offset("_MI_SYSTEM_NODE_NONPAGED_POOL.NonPagedPoolLastVa").unwrap_or(0u64),
+                hardware_offset: pdb_store
+                    .get_offset("_MI_SYSTEM_INFORMATION.Hardware")
+                    .unwrap_or(0u64),
+                system_node_offset: pdb_store
+                    .get_offset("_MI_HARDWARE_STATE.SystemNodeNonPagedPool")
+                    .unwrap_or(0u64),
+                first_va_offset: pdb_store
+                    .get_offset("_MI_SYSTEM_NODE_NONPAGED_POOL.NonPagedPoolFirstVa")
+                    .unwrap_or(0u64),
+                last_va_offset: pdb_store
+                    .get_offset("_MI_SYSTEM_NODE_NONPAGED_POOL.NonPagedPoolLastVa")
+                    .unwrap_or(0u64),
                 large_page_table_offset: pdb_store.get_offset("PoolBigPageTable").unwrap_or(0u64),
-                large_page_size_offset: pdb_store.get_offset("PoolBigPageTableSize").unwrap_or(0u64),
-                pool_chunk_size: pdb_store.get_offset("_POOL_HEADER.struct_size").unwrap_or(0u64),
+                large_page_size_offset: pdb_store
+                    .get_offset("PoolBigPageTableSize")
+                    .unwrap_or(0u64),
+                pool_chunk_size: pdb_store
+                    .get_offset("_POOL_HEADER.struct_size")
+                    .unwrap_or(0u64),
             },
-            WindowsVersion::Windows10_2019 |
-            WindowsVersion::Windows10_2018 => Self {
-                eprocess_name_offset: pdb_store.get_offset("_EPROCESS.ImageFileName").unwrap_or(0u64),
-                eprocess_link_offset: pdb_store.get_offset("_EPROCESS.ActiveProcessLinks").unwrap_or(0u64),
+            WindowsVersion::Windows10_2019 | WindowsVersion::Windows10_2018 => Self {
+                eprocess_name_offset: pdb_store
+                    .get_offset("_EPROCESS.ImageFileName")
+                    .unwrap_or(0u64),
+                eprocess_link_offset: pdb_store
+                    .get_offset("_EPROCESS.ActiveProcessLinks")
+                    .unwrap_or(0u64),
                 list_blink_offset: pdb_store.get_offset("_LIST_ENTRY.Blink").unwrap_or(0u64),
                 process_head_offset: pdb_store.get_offset("PsActiveProcessHead").unwrap_or(0u64),
                 mistate_offset: pdb_store.get_offset("MiState").unwrap_or(0u64),
-                hardware_offset: pdb_store.get_offset("_MI_SYSTEM_INFORMATION.Hardware").unwrap_or(0u64),
-                system_node_offset: pdb_store.get_offset("_MI_HARDWARE_STATE.SystemNodeInformation").unwrap_or(0u64),
-                first_va_offset: pdb_store.get_offset("_MI_SYSTEM_NODE_INFORMATION.NonPagedPoolFirstVa").unwrap_or(0u64),
-                last_va_offset: pdb_store.get_offset("_MI_SYSTEM_NODE_INFORMATION.NonPagedPoolLastVa").unwrap_or(0u64),
+                hardware_offset: pdb_store
+                    .get_offset("_MI_SYSTEM_INFORMATION.Hardware")
+                    .unwrap_or(0u64),
+                system_node_offset: pdb_store
+                    .get_offset("_MI_HARDWARE_STATE.SystemNodeInformation")
+                    .unwrap_or(0u64),
+                first_va_offset: pdb_store
+                    .get_offset("_MI_SYSTEM_NODE_INFORMATION.NonPagedPoolFirstVa")
+                    .unwrap_or(0u64),
+                last_va_offset: pdb_store
+                    .get_offset("_MI_SYSTEM_NODE_INFORMATION.NonPagedPoolLastVa")
+                    .unwrap_or(0u64),
                 large_page_table_offset: pdb_store.get_offset("PoolBigPageTable").unwrap_or(0u64),
-                large_page_size_offset: pdb_store.get_offset("PoolBigPageTableSize").unwrap_or(0u64),
-                pool_chunk_size: pdb_store.get_offset("_POOL_HEADER.struct_size").unwrap_or(0u64),
+                large_page_size_offset: pdb_store
+                    .get_offset("PoolBigPageTableSize")
+                    .unwrap_or(0u64),
+                pool_chunk_size: pdb_store
+                    .get_offset("_POOL_HEADER.struct_size")
+                    .unwrap_or(0u64),
             },
             WindowsVersion::Windows7 => Self {
-                eprocess_name_offset: pdb_store.get_offset("_EPROCESS.ImageFileName").unwrap_or(0u64),
-                eprocess_link_offset: pdb_store.get_offset("_EPROCESS.ActiveProcessLinks").unwrap_or(0u64),
+                eprocess_name_offset: pdb_store
+                    .get_offset("_EPROCESS.ImageFileName")
+                    .unwrap_or(0u64),
+                eprocess_link_offset: pdb_store
+                    .get_offset("_EPROCESS.ActiveProcessLinks")
+                    .unwrap_or(0u64),
                 list_blink_offset: pdb_store.get_offset("_LIST_ENTRY.Blink").unwrap_or(0u64),
                 process_head_offset: pdb_store.get_offset("PsActiveProcessHead").unwrap_or(0u64),
                 mistate_offset: pdb_store.get_offset("MiState").unwrap_or(0u64),
-                hardware_offset: pdb_store.get_offset("_MI_SYSTEM_INFORMATION.Hardware").unwrap_or(0u64),
-                system_node_offset: pdb_store.get_offset("_MI_HARDWARE_STATE.SystemNodeInformation").unwrap_or(0u64),
-                first_va_offset: pdb_store.get_offset("_MI_SYSTEM_NODE_INFORMATION.NonPagedPoolFirstVa").unwrap_or(0u64),
-                last_va_offset: pdb_store.get_offset("_MI_SYSTEM_NODE_INFORMATION.NonPagedPoolLastVa").unwrap_or(0u64),
+                hardware_offset: pdb_store
+                    .get_offset("_MI_SYSTEM_INFORMATION.Hardware")
+                    .unwrap_or(0u64),
+                system_node_offset: pdb_store
+                    .get_offset("_MI_HARDWARE_STATE.SystemNodeInformation")
+                    .unwrap_or(0u64),
+                first_va_offset: pdb_store
+                    .get_offset("_MI_SYSTEM_NODE_INFORMATION.NonPagedPoolFirstVa")
+                    .unwrap_or(0u64),
+                last_va_offset: pdb_store
+                    .get_offset("_MI_SYSTEM_NODE_INFORMATION.NonPagedPoolLastVa")
+                    .unwrap_or(0u64),
                 large_page_table_offset: pdb_store.get_offset("PoolBigPageTable").unwrap_or(0u64),
-                large_page_size_offset: pdb_store.get_offset("PoolBigPageTableSize").unwrap_or(0u64),
-                pool_chunk_size: pdb_store.get_offset("_POOL_HEADER.struct_size").unwrap_or(0u64),
+                large_page_size_offset: pdb_store
+                    .get_offset("PoolBigPageTableSize")
+                    .unwrap_or(0u64),
+                pool_chunk_size: pdb_store
+                    .get_offset("_POOL_HEADER.struct_size")
+                    .unwrap_or(0u64),
             },
             // TODO: Add other version of Windows here
             // TODO: Warn user of unknown windows version, because BSOD will occur
@@ -82,7 +129,7 @@ impl OffsetData {
                 large_page_table_offset: 0u64,
                 large_page_size_offset: 0u64,
                 pool_chunk_size: 0u64,
-            }
+            },
         }
     }
 }
@@ -91,7 +138,7 @@ impl OffsetData {
 #[derive(Debug, Copy, Clone)]
 pub struct DerefAddr {
     pub addr: u64,
-    pub size: u64
+    pub size: u64,
 }
 
 #[repr(C)]
@@ -99,15 +146,15 @@ pub struct DerefAddr {
 pub struct ScanPoolData {
     pub start: u64,
     pub end: u64,
-    pub tag: u32
+    pub tag: u32,
 }
 
-impl ScanPoolData{
+impl ScanPoolData {
     pub fn new(arr: &[u64; 2], tag: &[u8; 4]) -> Self {
         Self {
             start: arr[0],
             end: arr[1],
-            tag: u32::from_le_bytes(*tag)
+            tag: u32::from_le_bytes(*tag),
         }
     }
 }
@@ -116,7 +163,7 @@ impl ScanPoolData{
 #[derive(Debug, Copy, Clone)]
 pub struct HideProcess {
     pub name: [u8; 15],
-    pub size: u64
+    pub size: u64,
 }
 
 #[repr(C)]

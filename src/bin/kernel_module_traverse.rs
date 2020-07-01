@@ -2,16 +2,16 @@ use std::error::Error;
 
 use parse_int::parse;
 
-use lpus::{
-    driver_state::{DriverState},
-    traverse_loadedmodulelist,
-    traverse_unloadeddrivers
-};
+use lpus::{driver_state::DriverState, traverse_loadedmodulelist, traverse_unloadeddrivers};
 
 fn main() -> Result<(), Box<dyn Error>> {
     let mut driver = DriverState::new();
     if !driver.is_supported() {
-        return Err(format!("Windows version {:?} is not supported", driver.windows_ffi.short_version).into());
+        return Err(format!(
+            "Windows version {:?} is not supported",
+            driver.windows_ffi.short_version
+        )
+        .into());
     }
     println!("NtLoadDriver()   -> 0x{:x}", driver.startup());
 
@@ -26,10 +26,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let servicelimit_ptr = ntosbase.clone() + driver.pdb_store.get_offset_r("KiServiceLimit")?;
 
     let servicelimit = driver.deref_addr_new::<u32>(servicelimit_ptr.address()) as u64;
-    let ssdt: Vec<u64> = driver.deref_array::<u32>(&servicetable, servicelimit)
-                         .iter().map(|entry| {
-                            servicetable.address() + ((entry >> 4) as u64)
-                         }).collect();
+    let ssdt: Vec<u64> = driver
+        .deref_array::<u32>(&servicetable, servicelimit)
+        .iter()
+        .map(|entry| servicetable.address() + ((entry >> 4) as u64))
+        .collect();
 
     for r in loaded.iter() {
         println!("{:#}", r.to_string());
@@ -41,8 +42,14 @@ fn main() -> Result<(), Box<dyn Error>> {
     println!("=============================================");
     for func in ssdt {
         for r in loaded.iter() {
-            let base = r["dllbase"].as_str().and_then(|b| parse::<u64>(b).ok()).unwrap_or(0);
-            let size = r["size"].as_str().and_then(|s| parse::<u64>(s).ok()).unwrap_or(0);
+            let base = r["dllbase"]
+                .as_str()
+                .and_then(|b| parse::<u64>(b).ok())
+                .unwrap_or(0);
+            let size = r["size"]
+                .as_str()
+                .and_then(|s| parse::<u64>(s).ok())
+                .unwrap_or(0);
 
             if func > base && func < base + size {
                 let offset = func - ntosbase.address();
@@ -55,8 +62,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                     }
                     if n == "" {
                         "(??)".to_string()
-                    }
-                    else {
+                    } else {
                         n
                     }
                 };

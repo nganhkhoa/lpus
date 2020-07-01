@@ -1,9 +1,9 @@
-use std::error::Error;
-use std::str::{from_utf8};
-use serde_json::{json, Value};
-use crate::driver_state::DriverState;
 use crate::address::Address;
+use crate::driver_state::DriverState;
 use crate::{get_device_type, to_epoch};
+use serde_json::{json, Value};
+use std::error::Error;
+use std::str::from_utf8;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
@@ -29,26 +29,29 @@ pub fn make_eprocess(d: &DriverState, a: &Address) -> BoxResult<Value> {
     let pid: u64 = d.decompose(a, "_EPROCESS.UniqueProcessId")?;
     let ppid: u64 = d.decompose(a, "_EPROCESS.InheritedFromUniqueProcessId")?;
     let image_name: Vec<u8> = d.decompose_array(a, "_EPROCESS.ImageFileName", 15)?;
-    let filename_ptr = d.address_of(a, "_EPROCESS.ImageFilePointer.FileName")
-                        .unwrap_or(0); // ImageFilePointer is after Windows 10 Anniversary
+    let filename_ptr = d
+        .address_of(a, "_EPROCESS.ImageFilePointer.FileName")
+        .unwrap_or(0); // ImageFilePointer is after Windows 10 Anniversary
 
-    let eprocess_name =
-        if let Ok(name) = from_utf8(&image_name) {
-            name.to_string().trim_end_matches(char::from(0)).to_string()
-        } else {
-            "".to_string()
-        };
-    let binary_path = d.get_unicode_string(filename_ptr)
-                       .unwrap_or("".to_string());
+    let eprocess_name = if let Ok(name) = from_utf8(&image_name) {
+        name.to_string().trim_end_matches(char::from(0)).to_string()
+    } else {
+        "".to_string()
+    };
+    let binary_path = d.get_unicode_string(filename_ptr).unwrap_or("".to_string());
 
     let thread_head = d.address_of(a, "_EPROCESS.ThreadListHead")?;
-    let threads: Vec<Value> =
-        make_list_entry(d, Address::from_base(thread_head), "_ETHREAD.ThreadListEntry")
-        .unwrap_or(Vec::new()).iter()
-        .map(|thread_addr| {
-            make_ethread(d, thread_addr)
-            .unwrap_or(json!({})) // unlikely
-        }).collect();
+    let threads: Vec<Value> = make_list_entry(
+        d,
+        Address::from_base(thread_head),
+        "_ETHREAD.ThreadListEntry",
+    )
+    .unwrap_or(Vec::new())
+    .iter()
+    .map(|thread_addr| {
+        make_ethread(d, thread_addr).unwrap_or(json!({})) // unlikely
+    })
+    .collect();
 
     let c_t = to_epoch(createtime);
     let e_t = to_epoch(exittime);
@@ -77,12 +80,13 @@ pub fn make_ethread(d: &DriverState, a: &Address) -> BoxResult<Value> {
     // let exittime: u64 = d.decompose(a, "_ETHREAD.ExitTime")?;
     let pid: u64 = d.decompose(a, "_ETHREAD.Cid.UniqueProcess")?;
     let tid: u64 = d.decompose(a, "_ETHREAD.Cid.UniqueThread")?;
-    let name_ptr: u64 = d.address_of(a, "_ETHREAD.ThreadName")
-                        .unwrap_or(0); // ThreadName is after Windows 10 Anniversary
+    let name_ptr: u64 = d.address_of(a, "_ETHREAD.ThreadName").unwrap_or(0); // ThreadName is after Windows 10 Anniversary
 
-    let thread_name =
-        if let Ok(name) = d.get_unicode_string(name_ptr) { name }
-        else { "".to_string() };
+    let thread_name = if let Ok(name) = d.get_unicode_string(name_ptr) {
+        name
+    } else {
+        "".to_string()
+    };
 
     // let c_t = to_epoch(createtime);
     // let e_t = to_epoch(exittime);
@@ -114,12 +118,13 @@ pub fn make_driver(d: &DriverState, a: &Address) -> BoxResult<Value> {
     let unload: u64 = d.decompose(a, "_DRIVER_OBJECT.DriverUnload")?;
     let size: u64 = d.decompose(a, "_DRIVER_OBJECT.DriverSize")?;
 
-    let devicename = d.get_unicode_string(devicename_ptr)
-                        .unwrap_or("".to_string());
-    let hardware = d.get_unicode_string(hardware_ptr)
-                    .unwrap_or("".to_string());
-    let servicekey = d.get_unicode_string(servicekey_ptr)
-                        .unwrap_or("".to_string());
+    let devicename = d
+        .get_unicode_string(devicename_ptr)
+        .unwrap_or("".to_string());
+    let hardware = d.get_unicode_string(hardware_ptr).unwrap_or("".to_string());
+    let servicekey = d
+        .get_unicode_string(servicekey_ptr)
+        .unwrap_or("".to_string());
 
     // device tree walk
     let devices = {
@@ -134,7 +139,8 @@ pub fn make_driver(d: &DriverState, a: &Address) -> BoxResult<Value> {
             let mut attached_devices: Vec<Value> = Vec::new();
             while attached_ptr != 0 {
                 let attached = Address::from_base(attached_ptr);
-                let attached_device_type: u32 = d.decompose(&attached, "_DEVICE_OBJECT.DeviceType")?;
+                let attached_device_type: u32 =
+                    d.decompose(&attached, "_DEVICE_OBJECT.DeviceType")?;
                 attached_devices.push(json!({
                     "address": format!("0x{:x}", attached_ptr),
                     "type": "_DEVICE_OBJECT",
@@ -177,20 +183,27 @@ pub fn make_ldr(d: &DriverState, a: &Address) -> BoxResult<Value> {
     let fullname_ptr = d.address_of(a, "_LDR_DATA_TABLE_ENTRY.FullDllName")?;
     let basename_ptr = d.address_of(a, "_LDR_DATA_TABLE_ENTRY.BaseDllName")?;
 
-    let fullname = d.get_unicode_string(fullname_ptr)
-                    .unwrap_or("".to_string());
-    let basename = d.get_unicode_string(basename_ptr)
-                    .unwrap_or("".to_string());
+    let fullname = d.get_unicode_string(fullname_ptr).unwrap_or("".to_string());
+    let basename = d.get_unicode_string(basename_ptr).unwrap_or("".to_string());
 
     let ldr_load: Vec<String> =
         make_list_entry(d, a.clone(), "_LDR_DATA_TABLE_ENTRY.InLoadOrderLinks")?
-        .iter().map(|x| format!("0x{:x}", x.address())).collect();
+            .iter()
+            .map(|x| format!("0x{:x}", x.address()))
+            .collect();
     let ldr_mem: Vec<String> =
         make_list_entry(d, a.clone(), "_LDR_DATA_TABLE_ENTRY.InMemoryOrderLinks")?
-        .iter().map(|x| format!("0x{:x}", x.address())).collect();
-    let ldr_init: Vec<String> =
-        make_list_entry(d, a.clone(), "_LDR_DATA_TABLE_ENTRY.InInitializationOrderLinks")?
-        .iter().map(|x| format!("0x{:x}", x.address())).collect();
+            .iter()
+            .map(|x| format!("0x{:x}", x.address()))
+            .collect();
+    let ldr_init: Vec<String> = make_list_entry(
+        d,
+        a.clone(),
+        "_LDR_DATA_TABLE_ENTRY.InInitializationOrderLinks",
+    )?
+    .iter()
+    .map(|x| format!("0x{:x}", x.address()))
+    .collect();
 
     Ok(json!({
         "address": format!("0x{:x}", a.address()),
