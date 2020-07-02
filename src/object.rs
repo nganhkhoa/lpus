@@ -80,6 +80,61 @@ pub fn make_ethread(d: &DriverState, a: &Address) -> BoxResult<Value> {
     // let exittime: u64 = d.decompose(a, "_ETHREAD.ExitTime")?;
     let pid: u64 = d.decompose(a, "_ETHREAD.Cid.UniqueProcess")?;
     let tid: u64 = d.decompose(a, "_ETHREAD.Cid.UniqueThread")?;
+    let eprocess: u64 = d.decompose(a, "_ETHREAD.Tcb.Process")?;
+    let flags: u32 = d.decompose(a, "_ETHREAD.CrossThreadFlags")?;
+    let state = match d.decompose::<u8>(a, "_ETHREAD.Tcb.State")? {
+        0 => "Initialized",
+        1 => "Ready",
+        2 => "Running",
+        3 => "Standby",
+        4 => "Terminated",
+        5 => "Waiting",
+        6 => "Transition",
+        7 => "DeferredReady",
+        8 => "GateWait",
+        _ => "Unknown",
+    };
+    let wait = match d.decompose::<u8>(a, "_ETHREAD.Tcb.WaitReason")? {
+        0 => "Executive",
+        1 => "FreePage",
+        2 => "PageIn",
+        3 => "PoolAllocation",
+        4 => "DelayExecution",
+        5 => "Suspended",
+        6 => "UserRequest",
+        7 => "WrExecutive",
+        8 => "WrFreePage",
+        9 => "WrPageIn",
+        10 => "WrPoolAllocation",
+        11 => "WrDelayExecution",
+        12 => "WrSuspended",
+        13 => "WrUserRequest",
+        14 => "WrEventPair",
+        15 => "WrQueue",
+        16 => "WrLpcReceive",
+        17 => "WrLpcReply",
+        18 => "WrVirtualMemory",
+        19 => "WrPageOut",
+        20 => "WrRendezvous",
+        21 => "Spare2",
+        22 => "Spare3",
+        23 => "Spare4",
+        24 => "Spare5",
+        25 => "Spare6",
+        26 => "WrKernel",
+        27 => "WrResource",
+        28 => "WrPushLock",
+        29 => "WrMutex",
+        30 => "WrQuantumEnd",
+        31 => "WrDispatchInt",
+        32 => "WrPreempted",
+        33 => "WrYieldExecution",
+        34 => "WrFastMutex",
+        35 => "WrGuardedMutex",
+        36 => "WrRundown",
+        37 => "MaximumWaitReason",
+        _ => "Unknown",
+    };
     let name_ptr: u64 = d.address_of(a, "_ETHREAD.ThreadName").unwrap_or(0); // ThreadName is after Windows 10 Anniversary
 
     let thread_name = if let Ok(name) = d.get_unicode_string(name_ptr) {
@@ -97,6 +152,21 @@ pub fn make_ethread(d: &DriverState, a: &Address) -> BoxResult<Value> {
         "tid": tid,
         "pid": pid,
         "name": thread_name,
+        "eprocess": format!("0x{:x}", eprocess),
+        "state": state,
+        "wait_reason": wait,
+        "flags": {
+            "raw": format!("0x{:x}", flags),
+            "PS_CROSS_THREAD_FLAGS_TERMINATED": flags & 1 != 0,
+            "PS_CROSS_THREAD_FLAGS_DEADTHREAD": flags & 2 != 0,
+            "PS_CROSS_THREAD_FLAGS_HIDEFROMDBG": flags & 3 != 0,
+            "PS_CROSS_THREAD_FLAGS_IMPERSONATING": flags & 4 != 0,
+            "PS_CROSS_THREAD_FLAGS_SYSTEM": flags & 5 != 0,
+            "PS_CROSS_THREAD_FLAGS_HARD_ERRORS_DISABLED": flags & 6 != 0,
+            "PS_CROSS_THREAD_FLAGS_BREAK_ON_TERMINATION": flags & 7 != 0,
+            "PS_CROSS_THREAD_FLAGS_SKIP_CREATION_MSG": flags & 8 != 0,
+            "PS_CROSS_THREAD_FLAGS_SKIP_TERMINATION_MSG": flags & 9 != 0,
+        },
         // "createtime": {
         //     "unix": c_t.timestamp(),
         //     "rfc2822": c_t.to_rfc2822()
