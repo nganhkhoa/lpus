@@ -21,12 +21,12 @@ fn main() -> Result<(), Box<dyn Error>> {
     let kmods = scan_kernel_module(&driver).unwrap_or(Vec::new());
 
     for d in drivers.iter() {
-        println!("{} {}", d["device"], d["address"]);
+        println!("{} {}", d["address"], d["device"]);
     }
 
     let mut rl = Editor::<()>::new();
     loop {
-        let readline = rl.readline(">> ");
+        let readline = rl.readline("irp> ");
         match readline {
             Ok(line) => {
                 rl.add_history_entry(line.as_str());
@@ -39,9 +39,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                             .iter()
                             .enumerate()
                         {
+                            let addr: u64 =
+                                addr_.as_str().and_then(|x| parse(x).ok()).unwrap_or(0);
+                            let mut owner = "(??)";
+                            println!("{} {}", addr, get_irp_name(idx));
                             for kmod in kmods.iter() {
-                                let addr: u64 =
-                                    addr_.as_str().and_then(|x| parse(x).ok()).unwrap_or(0);
                                 let base: u64 = kmod["dllbase"]
                                     .as_str()
                                     .and_then(|x| parse(x).ok())
@@ -51,15 +53,11 @@ fn main() -> Result<(), Box<dyn Error>> {
                                     .and_then(|x| parse(x).ok())
                                     .unwrap_or(0);
                                 if addr > base && addr < base + size {
-                                    println!(
-                                        "{} 0x{:x} {}",
-                                        get_irp_name(idx),
-                                        addr,
-                                        kmod["BaseName"]
-                                    );
+                                    owner = kmod["BaseName"].as_str().unwrap_or("(??)");
                                     break;
                                 }
                             }
+                            println!("\towned by {}", owner);
                         }
                         break;
                     }
