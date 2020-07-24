@@ -27,7 +27,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     // }
     println!("=============================================");
     for r in unloaded.iter() {
-        println!("{:#}", r.to_string());
+        println!("{:#}", r);
     }
     println!("=============================================");
     for (idx, func) in ssdt.iter().enumerate() {
@@ -65,7 +65,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             println!("\towned by nt!{}", funcname);
         }
         else if let Some(owner_) = owner {
-            println!("\towned by {}", owner_);
+            println!("\\thooked by {}", owner_);
         }
         else {
             println!("\tmissing owner");

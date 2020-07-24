@@ -573,12 +573,15 @@ pub fn ssdt_table(driver: &DriverState) -> BoxResult<Vec<u64>> {
     let servicetable = ntosbase.clone() + driver.pdb_store.get_offset_r("KiServiceTable")?;
     let servicelimit_ptr = ntosbase.clone() + driver.pdb_store.get_offset_r("KiServiceLimit")?;
 
-    // TODO: Shifting is wrong, Rust seems to do arithmetic shift
     let servicelimit = driver.deref_addr_new::<u32>(servicelimit_ptr.address()) as u64;
     let ssdt: Vec<u64> = driver
-        .deref_array::<u32>(&servicetable, servicelimit)
+        .deref_array::<i32>(&servicetable, servicelimit)
         .iter()
-        .map(|entry| servicetable.address() + ((*entry as u64) >> 4))
+        .map(|entry| {
+            // the entry can be negative, we need to do calculation using signed int
+            // and convert back to unsigned int for address
+            ((servicetable.address() as i64) + ((*entry >> 4) as i64)) as u64
+        })
         .collect();
     Ok(ssdt)
 }
