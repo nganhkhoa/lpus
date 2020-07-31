@@ -14,8 +14,7 @@ use winapi::um::winioctl::{
 
 use crate::address::Address;
 use crate::ioctl_protocol::{
-    DerefAddr, InputData, /* OutputData, */ Nothing, OffsetData,
-    ScanPoolData, /* HideProcess, */
+    DerefAddr, HideProcess, InputData, /* OutputData, */ Nothing, OffsetData, ScanPoolData,
 };
 use crate::pdb_store::{parse_pdb, PdbStore};
 use crate::windows::{WindowsFFI, WindowsVersion};
@@ -120,8 +119,32 @@ impl DriverState {
         self.windows_ffi.unload_driver()
     }
 
+    pub fn connect(&mut self) {
+        self.windows_ffi.file_connect();
+    }
+
     pub fn is_supported(&self) -> bool {
         self.windows_ffi.short_version.is_supported()
+    }
+
+    pub fn hide_notepad(&self) {
+        let s = String::from("notepad.exe");
+        let s_bytes = s.as_bytes();
+        let mut name = [0u8; 15];
+        for i in 0..s.len() {
+            name[i] = s_bytes[i];
+        }
+        let mut input = InputData {
+            hide_process: HideProcess {
+                name,
+                size: s.len() as u64,
+            },
+        };
+        self.windows_ffi.device_io(
+            DriverAction::HideProcess.get_code(),
+            &mut input,
+            &mut Nothing,
+        );
     }
 
     pub fn use_old_tag(&self) -> bool {

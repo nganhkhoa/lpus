@@ -5,18 +5,14 @@ use std::io;
 use std::io::Read;
 use std::path::PathBuf;
 
-use app_dirs::{app_dir, AppDataType, AppInfo};
+use app_dirs::{app_dir, AppDataType};
 use pdb::{
     ClassType, FallibleIterator, ModifierType, Rva, SymbolData, TypeData, TypeFinder, TypeIndex,
     PDB,
 };
 
 use crate::address::Address;
-
-const APP_INFO: AppInfo = AppInfo {
-    name: "lpus",
-    author: "nganhkhoa",
-};
+use crate::APP_INFO;
 
 const KERNEL_PDB_NAME: &str = "ntkrnlmp.pdb";
 const NTOSKRNL_PATH: &str = "C:\\Windows\\System32\\ntoskrnl.exe";

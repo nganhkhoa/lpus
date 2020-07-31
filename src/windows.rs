@@ -2,7 +2,11 @@ use std::ffi::{c_void, CString};
 use std::mem::{size_of_val, transmute};
 use std::ptr::null_mut;
 use std::time::{SystemTime, UNIX_EPOCH};
+
+use app_dirs::{app_dir, AppDataType};
 use widestring::U16CString;
+
+use crate::APP_INFO;
 
 use winapi::shared::minwindef::{DWORD, HKEY, HMODULE};
 use winapi::shared::ntdef::*;
@@ -80,8 +84,17 @@ impl WindowsFFI {
         let str_rtl_init_unicode_str = CString::new("RtlInitUnicodeString").unwrap();
         let str_rtl_get_version = CString::new("RtlGetVersion").unwrap();
         let str_se_load_driver_privilege = CString::new("SeLoadDriverPrivilege").unwrap();
-
-        let str_driver_path = CString::new("\\SystemRoot\\System32\\DRIVERS\\lpus.sys").unwrap();
+        let str_driver_path = {
+            let mut driver_location =
+                app_dir(AppDataType::UserData, &APP_INFO, &format!("driver")).unwrap();
+            driver_location.push("lpus.sys");
+            if driver_location.is_file() {
+                let p = driver_location.to_str().unwrap();
+                CString::new(format!("\\??\\{}", p)).unwrap()
+            } else {
+                CString::new("\\SystemRoot\\System32\\DRIVERS\\lpus.sys").unwrap()
+            }
+        };
         let str_registry_path = CString::new("System\\CurrentControlSet\\Services\\lpus").unwrap();
         let str_type = CString::new("Type").unwrap();
         let str_error_control = CString::new("ErrorControl").unwrap();
@@ -217,21 +230,11 @@ impl WindowsFFI {
         }
     }
 
-    pub fn driver_loaded(self) -> bool {
+    pub fn driver_loaded(&self) -> bool {
         self.driver_handle != INVALID_HANDLE_VALUE
     }
 
-    pub fn load_driver(&mut self) -> NTSTATUS {
-        // TODO: Move this to new()
-        // If we move this function to new(), self.driver_handle will be init, and thus no mut here
-        let str_driver_reg = U16CString::from_str(STR_DRIVER_REGISTRY_PATH).unwrap();
-        let mut str_driver_reg_unicode = UNICODE_STRING::default();
-        (self.rtl_init_unicode_str)(
-            &mut str_driver_reg_unicode,
-            str_driver_reg.as_ptr() as *const u16,
-        );
-        let status = (self.nt_load_driver)(&mut str_driver_reg_unicode);
-
+    pub fn file_connect(&mut self) {
         let filename = CString::new("\\\\.\\poolscanner").unwrap();
         let driver_file_handle: HANDLE = unsafe {
             CreateFileA(
@@ -250,6 +253,20 @@ impl WindowsFFI {
         } else {
             self.driver_handle = driver_file_handle;
         }
+    }
+
+    pub fn load_driver(&mut self) -> NTSTATUS {
+        // TODO: Move this to new()
+        // If we move this function to new(), self.driver_handle will be init, and thus no mut here
+        let str_driver_reg = U16CString::from_str(STR_DRIVER_REGISTRY_PATH).unwrap();
+        let mut str_driver_reg_unicode = UNICODE_STRING::default();
+        (self.rtl_init_unicode_str)(
+            &mut str_driver_reg_unicode,
+            str_driver_reg.as_ptr() as *const u16,
+        );
+        let status = (self.nt_load_driver)(&mut str_driver_reg_unicode);
+
+        self.file_connect();
         status
     }
 

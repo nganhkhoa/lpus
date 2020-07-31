@@ -2,12 +2,14 @@ extern crate app_dirs;
 extern crate chrono;
 
 pub mod address;
+pub mod commands;
 pub mod driver_state;
 pub mod ioctl_protocol;
 pub mod object;
 pub mod pdb_store;
 pub mod windows;
 
+use app_dirs::AppInfo;
 use chrono::{DateTime, Local, TimeZone};
 use serde_json::{json, Value};
 use std::error::Error;
@@ -17,6 +19,11 @@ use driver_state::DriverState;
 use object::*;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
+
+pub const APP_INFO: AppInfo = AppInfo {
+    name: "lpus",
+    author: "nganhkhoa",
+};
 
 pub fn to_epoch(filetime: u64) -> DateTime<Local> {
     // return seconds from epoch
@@ -369,9 +376,7 @@ pub fn scan_driver(driver: &DriverState) -> BoxResult<Vec<Value>> {
         while try_ptr <= valid_end {
             // No documentation on type constrain
             let size: u16 = driver.decompose(&try_ptr, "_DRIVER_OBJECT.Size")?;
-            if (size as u64) == dob_size
-            /* && ftype == 5u16 */
-            {
+            if (size as u64) == dob_size {
                 break;
             }
             try_ptr += 0x4; // search exhaustively
@@ -538,7 +543,7 @@ pub fn traverse_unloadeddrivers(driver: &DriverState) -> BoxResult<Vec<Value>> {
 
     let unload_array = driver.deref_addr_new::<u64>(unload_array_ptr.address());
     if unload_array == 0 {
-        return Err("The unload driver list is null".into());
+        return Err("The unload driver list pointer is null".into());
     }
 
     // by reversing MmLocateUnloadedDriver
@@ -553,6 +558,7 @@ pub fn traverse_unloadeddrivers(driver: &DriverState) -> BoxResult<Vec<Value>> {
         let start_addr: u64 = driver.decompose(&driver_addr, "_UNLOADED_DRIVERS.StartAddress")?;
         let end_addr: u64 = driver.decompose(&driver_addr, "_UNLOADED_DRIVERS.EndAddress")?;
         let current_time: u64 = driver.decompose(&driver_addr, "_UNLOADED_DRIVERS.CurrentTime")?;
+        let time = to_epoch(current_time);
 
         result.push(json!({
             "address": format!("0x{:x}", driver_addr.address()),
@@ -560,7 +566,8 @@ pub fn traverse_unloadeddrivers(driver: &DriverState) -> BoxResult<Vec<Value>> {
             "name": name,
             "start_addr": format!("0x{:x}", start_addr),
             "end_addr": format!("0x{:x}", end_addr),
-            "current_time": driver.windows_ffi.to_epoch(current_time)
+            "time_unix": time.timestamp(),
+            "time_rfc2822": time.to_rfc2822()
         }));
     }
 
