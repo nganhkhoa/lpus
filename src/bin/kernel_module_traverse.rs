@@ -45,29 +45,30 @@ fn main() -> Result<(), Box<dyn Error>> {
             if *func > base && *func < base + size {
                 let module = r["BaseName"].as_str().unwrap();
                 Some(module)
-            }
-            else {
+            } else {
                 None
             }
         });
         if owner == Some("ntoskrnl.exe") {
             let offset = func - ntosbase.address();
             let funcname: String = {
-                driver.pdb_store.symbols.iter().find_map(|(name, o)| {
-                    if o.clone() == offset {
-                        Some(name.clone())
-                    }
-                    else {
-                        None
-                    }
-                }).unwrap_or("(??)".to_string())
+                driver
+                    .pdb_store
+                    .symbols
+                    .iter()
+                    .find_map(|(name, o)| {
+                        if o.clone() == offset {
+                            Some(name.clone())
+                        } else {
+                            None
+                        }
+                    })
+                    .unwrap_or("(??)".to_string())
             };
             println!("\towned by nt!{}", funcname);
-        }
-        else if let Some(owner_) = owner {
+        } else if let Some(owner_) = owner {
             println!("\\thooked by {}", owner_);
-        }
-        else {
+        } else {
             println!("\tmissing owner");
         }
     }

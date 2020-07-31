@@ -39,8 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                             .iter()
                             .enumerate()
                         {
-                            let addr: u64 =
-                                addr_.as_str().and_then(|x| parse(x).ok()).unwrap_or(0);
+                            let addr: u64 = addr_.as_str().and_then(|x| parse(x).ok()).unwrap_or(0);
                             let mut owner = "(??)";
                             println!("{} {}", addr, get_irp_name(idx));
                             for kmod in kmods.iter() {

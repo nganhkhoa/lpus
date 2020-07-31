@@ -1,13 +1,11 @@
-use serde_json::{json};
+use serde_json::json;
 use std::error::Error;
 use std::fs;
 
-
 use lpus::{
-    driver_state::DriverState, scan_eprocess, scan_ethread, traverse_activehead,
-    traverse_handletable, traverse_kiprocesslist, scan_driver, scan_kernel_module,
+    driver_state::DriverState, scan_driver, scan_eprocess, scan_ethread, scan_kernel_module,
+    ssdt_table, traverse_activehead, traverse_handletable, traverse_kiprocesslist,
     traverse_loadedmodulelist, traverse_unloadeddrivers,
-    ssdt_table
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -30,7 +28,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let kernel_module_1 = scan_kernel_module(&driver)?;
     let kernel_module_2 = traverse_loadedmodulelist(&driver)?;
     let unloaded_driver = traverse_unloadeddrivers(&driver)?;
-    let ssdt: Vec<String> = ssdt_table(&driver)?.into_iter().map(|x| format!("0x{:x}", x)).collect();
+    let ssdt: Vec<String> = ssdt_table(&driver)?
+        .into_iter()
+        .map(|x| format!("0x{:x}", x))
+        .collect();
 
     let result = json!({
         "scan_eprocess": eprocess_1,
