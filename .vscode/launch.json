@@ -1,0 +1,582 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'lpus'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "lpus",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'driver_irp'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=driver_irp",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "driver_irp",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'driver_irp'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=driver_irp",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "driver_irp",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'driver_scan'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=driver_scan",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "driver_scan",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'driver_scan'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=driver_scan",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "driver_scan",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'eprocess_scan'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=eprocess_scan",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "eprocess_scan",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'eprocess_scan'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=eprocess_scan",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "eprocess_scan",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'eprocess_traverse'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=eprocess_traverse",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "eprocess_traverse",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'eprocess_traverse'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=eprocess_traverse",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "eprocess_traverse",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'ethread_scan'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=ethread_scan",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "ethread_scan",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'ethread_scan'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=ethread_scan",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "ethread_scan",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'file_object_scan'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=file_object_scan",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "file_object_scan",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'file_object_scan'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=file_object_scan",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "file_object_scan",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'kernel_module_scan'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=kernel_module_scan",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "kernel_module_scan",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'kernel_module_scan'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=kernel_module_scan",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "kernel_module_scan",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'kernel_module_traverse'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=kernel_module_traverse",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "kernel_module_traverse",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'kernel_module_traverse'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=kernel_module_traverse",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "kernel_module_traverse",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'lpus'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=lpus",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "lpus",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'lpus'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=lpus",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "lpus",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'lpus_all'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=lpus_all",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "lpus_all",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'lpus_all'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=lpus_all",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "lpus_all",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'print_pdb'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=print_pdb",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "print_pdb",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'print_pdb'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=print_pdb",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "print_pdb",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'read_cr3'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=read_cr3",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "read_cr3",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'read_cr3'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=read_cr3",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "read_cr3",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'test'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=test",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "test",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'test'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=test",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "test",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'test_load'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=test_load",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "test_load",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'test_load'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=test_load",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "test_load",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'translate-addr'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=translate-addr",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "translate-addr",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'translate-addr'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=translate-addr",
+                    "--package=lpus"
+                ],
+                "filter": {
+                    "name": "translate-addr",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

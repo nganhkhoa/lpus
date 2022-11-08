@@ -33,6 +33,7 @@ pub fn make_eprocess(d: &DriverState, a: &Address) -> BoxResult<Value> {
         .address_of(a, "_EPROCESS.ImageFilePointer.FileName")
         .unwrap_or(0); // ImageFilePointer is after Windows 10 Anniversary
 
+    let directory_table_addr: u64 = d.decompose(a, "_EPROCESS.Pcb.DirectoryTableBase")?;
     let eprocess_name = if let Ok(name) = from_utf8(&image_name) {
         name.to_string().trim_end_matches(char::from(0)).to_string()
     } else {
@@ -71,7 +72,8 @@ pub fn make_eprocess(d: &DriverState, a: &Address) -> BoxResult<Value> {
         "exittime": {
             "unix": e_t.timestamp(),
             "rfc2822": e_t.to_rfc2822(),
-        }
+        },
+        "directory_table": directory_table_addr
     }))
 }
 
