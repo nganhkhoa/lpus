@@ -50,14 +50,12 @@ fn get_pml4e(driver_state: &DriverState, cr3: u64, vaddr: u64) -> Result<u64, Bo
      */
     let pml4e_addr = (cr3 & 0xffffffffff000) | ((vaddr & 0xff8000000000) >> 36);
     println!("PML4e Addr: 0x{:x}", pml4e_addr);
-    io::stdout().flush().unwrap();
     //return Ok(pml4e_addr);
-    let pml4e_content: u64 = driver_state.deref_physical_addr(pml4e_addr);
+    let pml4e_content: u64 = driver_state.read_paging_struct(pml4e_addr);
 
     if !is_valid_entry(pml4e_content) {
-        return Err(format!("Pml4e of address 0x{:x} is not valid", vaddr).into());
+        return Err(format!("Pml4e of address 0x{:x}: 0x{:x} is not valid", vaddr, pml4e_content).into());
     }
-
     Ok(pml4e_content)
 }
 
@@ -75,10 +73,10 @@ fn get_pdpte(driver_state: &DriverState, pml4e: u64, vaddr: u64) -> Result<u64, 
         "Bits 2:0 are all 0" [Intel]
      */
     let pdpte_paddr = (pml4e & 0xffffffffff000) | ((vaddr & 0x7FC0000000) >> 27);
-    let pdpte_content: u64 = driver_state.deref_physical_addr(pdpte_paddr);
+    let pdpte_content: u64 = driver_state.read_paging_struct(pdpte_paddr);
 
     if !is_valid_entry(pdpte_content) {
-        return Err(format!("PDPTE of address 0x{:x} is not valid", vaddr).into());
+        return Err(format!("PDPTE of address 0x{:x}: 0x{:x} is not valid", vaddr, pdpte_content).into());
     }
 
     Ok(pdpte_content)
@@ -89,7 +87,7 @@ fn get_pde(driver_state:&DriverState, pdpte: u64, vaddr: u64) -> Result<u64, Box
     Return the content of the Page Directory entry for the virtual address
      */
     let pde_addr = (pdpte & 0xFFFFFFFFFF000) | ((vaddr & 0x3fe00000) >> 18);
-    let pde_content: u64 = driver_state.deref_physical_addr(pde_addr);
+    let pde_content: u64 = driver_state.read_paging_struct(pde_addr);
     if !is_valid_entry(pde_content) {
         return Err(format!("PDE of address 0x{:x} is not valid", vaddr).into());
     }
@@ -101,7 +99,7 @@ fn get_pte(driver_state: &DriverState, pde: u64, vaddr: u64) -> Result<u64, Box<
     Return the content of the Page Table Entry for the virtual address
      */
     let pte_addr = (pde & 0xFFFFFFFFFF000) | ((vaddr & 0x1ff000) >> 9);
-    let pte_content: u64 = driver_state.deref_physical_addr(pte_addr);
+    let pte_content: u64 = driver_state.read_paging_struct(pte_addr);
     if !is_valid_entry(pte_content) {
         return Err(format!("PTE of address 0x{:x} is not valid", vaddr).into());
     }
@@ -120,10 +118,15 @@ fn translate_addr(driver_state: &DriverState, pid:u64, vaddr: u64) -> Result<u64
     //Only handle 4KB paging at the moment
     let cr3 : u64 = get_cr3(driver_state, pid).unwrap();
     println!("CR3 {:x}", cr3);
+
+    let test: u64 = driver_state.read_paging_struct(cr3);
+    println!("Test read at CR3: addr 0x{:x} - content 0x{:x}", cr3, test);
     //return Ok(cr3);
+
     let pml4e: u64 = get_pml4e(driver_state, cr3, vaddr).unwrap();
-    //println!("PML4e {:x}", pml4e);
-    return Ok(pml4e);
+    println!("PML4e {:x}", pml4e);
+    //return Ok(pml4e);
+
     let pdpte: u64 = get_pdpte(driver_state, pml4e, vaddr).unwrap();
     println!("PDPTE {:x}", pdpte);
     let pde: u64 = get_pde(driver_state, pdpte, vaddr).unwrap();

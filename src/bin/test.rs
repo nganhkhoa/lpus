@@ -7,6 +7,19 @@ extern crate prettytable;
 use prettytable::{Cell, Row, Table};
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let matches = App::new("Translate virtual address")
+    .arg(
+        Arg::with_name("addr")
+            .long("addr")
+            .short("a")
+            .multiple(false)
+            .help("Specify the virtual address to translate")
+            .takes_value(true)
+            .required(true)
+    )
+    .get_matches();
+
+
     let mut driver = DriverState::new();
     if !driver.is_supported() {
         return Err(format!(
@@ -15,8 +28,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         )
             .into());
     }
-    println!("NtLoadDriver()   -> 0x{:x}", driver.startup());
-    let pml4e_content: u64 = driver.deref_physical_addr(0x1234);
-    println!("NtUnloadDriver() -> 0x{:x}", driver.shutdown());
+    if (matches.is_present("addr")){
+        println!("NtLoadDriver()   -> 0x{:x}", driver.startup());
+        let addr: u64 = matches.value_of("addr").unwrap().parse::<u64>().unwrap();
+        let content: u64 = driver.read_paging_struct(addr);
+        println!("Result: Got 0x{:x} from address 0x{:x}", content, addr);
+        println!("NtUnloadDriver() -> 0x{:x}", driver.shutdown());
+    }
     Ok(())
 }

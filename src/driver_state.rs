@@ -41,7 +41,7 @@ pub enum DriverAction {
     ScanPool,
     ScanPoolRemote,
     DereferenceAddress,
-    DereferencePhysicalAddress,
+    DereferencePagingStructure,
     HideProcess,
 }
 
@@ -66,7 +66,7 @@ impl DriverAction {
             DriverAction::DereferenceAddress => {
                 CTL_CODE(SIOCTL_TYPE, 0xA00, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
             }
-            DriverAction::DereferencePhysicalAddress => {
+            DriverAction::DereferencePagingStructure => {
                 CTL_CODE(SIOCTL_TYPE, 0xA01, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
             }
             DriverAction::HideProcess => {
@@ -270,14 +270,14 @@ impl DriverState {
         r
     }
 
-    pub fn deref_physical_addr<T: Default>(&self, addr: u64) -> T {
+    pub fn read_paging_struct<T: Default>(&self, addr: u64) -> T {
         /*
-        Dereference a physical address, as opposed to `deref_addr_new`, which dereference virtual address
+        Read content of a paging structure, namely: PML4E, PDPTE, PDE, PTE
+            - addr: PHYSICAL address of the paging structure
         */
-        //TODO: ensure the virtual address range that need dumping is on the same physical page (maybe later when we implement an actual virtual address range dumping)
         let mut outbuf: T = Default::default();
         if addr != 0 {
-            let code = DriverAction::DereferencePhysicalAddress.get_code();
+            let code = DriverAction::DereferencePagingStructure.get_code();
             let size: usize = size_of_val(&outbuf);
             let mut input = InputData {
                 deref_addr: DerefAddr {
@@ -285,7 +285,6 @@ impl DriverState {
                     size: size as u64,
                 },
             };
-            //println!("Deref address {:x}", addr);
             self.windows_ffi.device_io(code, &mut input, &mut outbuf);
         }
         outbuf
