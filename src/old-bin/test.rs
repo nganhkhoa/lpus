@@ -28,10 +28,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         )
             .into());
     }
-    if (matches.is_present("addr")){
+    if matches.is_present("addr"){
         println!("NtLoadDriver()   -> 0x{:x}", driver.startup());
         let addr: u64 = matches.value_of("addr").unwrap().parse::<u64>().unwrap();
-        let content: u64 = driver.read_paging_struct(addr);
+        let content: u64 = driver.deref_physical_addr(addr);
         println!("Result: Got 0x{:x} from address 0x{:x}", content, addr);
         println!("NtUnloadDriver() -> 0x{:x}", driver.shutdown());
     }

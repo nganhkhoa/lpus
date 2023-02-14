@@ -9,6 +9,7 @@ edition = "2018"
 [lib]
 name = "lpus"
 doctest = false
+path = "src/lib/lib.rs"
 
 [dependencies]
 app_dirs = "1.2.1"

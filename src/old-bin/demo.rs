@@ -49,9 +49,7 @@ fn get_pml4e(driver_state: &DriverState, cr3: u64, vaddr: u64) -> Result<u64, Bo
         "Bits 2:0 are 0" [Intel]
      */
     let pml4e_addr = (cr3 & 0xffffffffff000) | ((vaddr & 0xff8000000000) >> 36);
-    println!("PML4e Addr: 0x{:x}", pml4e_addr);
-    //return Ok(pml4e_addr);
-    let pml4e_content: u64 = driver_state.read_paging_struct(pml4e_addr);
+    let pml4e_content: u64 = driver_state.deref_physical_addr(pml4e_addr);
 
     if !is_valid_entry(pml4e_content) {
         return Err(format!("Pml4e of address 0x{:x}: 0x{:x} is not valid", vaddr, pml4e_content).into());
@@ -73,7 +71,7 @@ fn get_pdpte(driver_state: &DriverState, pml4e: u64, vaddr: u64) -> Result<u64, 
         "Bits 2:0 are all 0" [Intel]
      */
     let pdpte_paddr = (pml4e & 0xffffffffff000) | ((vaddr & 0x7FC0000000) >> 27);
-    let pdpte_content: u64 = driver_state.read_paging_struct(pdpte_paddr);
+    let pdpte_content: u64 = driver_state.deref_physical_addr(pdpte_paddr);
 
     if !is_valid_entry(pdpte_content) {
         return Err(format!("PDPTE of address 0x{:x}: 0x{:x} is not valid", vaddr, pdpte_content).into());
@@ -87,7 +85,7 @@ fn get_pde(driver_state:&DriverState, pdpte: u64, vaddr: u64) -> Result<u64, Box
     Return the content of the Page Directory entry for the virtual address
      */
     let pde_addr = (pdpte & 0xFFFFFFFFFF000) | ((vaddr & 0x3fe00000) >> 18);
-    let pde_content: u64 = driver_state.read_paging_struct(pde_addr);
+    let pde_content: u64 = driver_state.deref_physical_addr(pde_addr);
     if !is_valid_entry(pde_content) {
         return Err(format!("PDE of address 0x{:x} is not valid", vaddr).into());
     }
@@ -99,7 +97,7 @@ fn get_pte(driver_state: &DriverState, pde: u64, vaddr: u64) -> Result<u64, Box<
     Return the content of the Page Table Entry for the virtual address
      */
     let pte_addr = (pde & 0xFFFFFFFFFF000) | ((vaddr & 0x1ff000) >> 9);
-    let pte_content: u64 = driver_state.read_paging_struct(pte_addr);
+    let pte_content: u64 = driver_state.deref_physical_addr(pte_addr);
     if !is_valid_entry(pte_content) {
         return Err(format!("PTE of address 0x{:x} is not valid", vaddr).into());
     }
@@ -107,33 +105,40 @@ fn get_pte(driver_state: &DriverState, pde: u64, vaddr: u64) -> Result<u64, Box<
 
 }
 
-fn translate_addr(driver_state: &DriverState, pid:u64, vaddr: u64) -> Result<u64, Box<dyn Error>> {
+fn translate_addr(driver_state: &DriverState, cr3:u64, vaddr: u64, debug: bool) -> Result<u64, Box<dyn Error>> {
     /*
     Returns the physical address of the Page Map Level 4 (PML4) entry for the virtual address
     # Arguments
-        * pid: process id
+        * cr3: process cr3
         * vaadr: virtual address that needs translating
      */
 
     //Only handle 4KB paging at the moment
-    let cr3 : u64 = get_cr3(driver_state, pid).unwrap();
-    println!("CR3 {:x}", cr3);
-
-    let test: u64 = driver_state.read_paging_struct(cr3);
-    println!("Test read at CR3: addr 0x{:x} - content 0x{:x}", cr3, test);
-    //return Ok(cr3);
+    if (debug) {
+        println!("\tCR3: 0x{:x}", cr3);
+    }
 
     let pml4e: u64 = get_pml4e(driver_state, cr3, vaddr).unwrap();
-    println!("PML4e {:x}", pml4e);
+    if (debug) {
+        println!("\tPML4e: 0x{:x}", pml4e);
+    }
     //return Ok(pml4e);
 
     let pdpte: u64 = get_pdpte(driver_state, pml4e, vaddr).unwrap();
-    println!("PDPTE {:x}", pdpte);
+    if (debug) {
+        println!("\tPDPTE: 0x{:x}", pdpte);
+    }
+    
     let pde: u64 = get_pde(driver_state, pdpte, vaddr).unwrap();
-    println!("PDE {:x}", pde);
-    let pte: u64 = get_pte(driver_state, pde, vaddr).unwrap();
-    println!("PTE {:x}", pte);
+    if (debug) {
+        println!("\tPDE: 0x{:x}", pde);
+    }
 
+    let pte: u64 = get_pte(driver_state, pde, vaddr).unwrap();
+    if (debug) {
+        println!("\tPTE: 0x{:x}", pte);
+    }
+    
     //Convert virtual address to physical address
     let pfn: u64 = pte & 0xFFFFFFFFFF000;
     let offset: u64 = vaddr & ((1 << 12) - 1);
@@ -142,26 +147,32 @@ fn translate_addr(driver_state: &DriverState, pid:u64, vaddr: u64) -> Result<u64
     Ok(paddr)
 }
 
+fn getImageBase(driver_state: &DriverState, cr3: u64, eprocess_addr: u64) -> Result<u64, Box<dyn Error>> {
+
+    // Query data from peb by physical address because i have no way to get to process's context
+    let addr: Address = Address::from_base(eprocess_addr);
+    let ppeb: u64 = driver_state.decompose(&addr, "_EPROCESS.Peb")?;
+    let ppeb_addr : Address = Address::from_base(ppeb);
+    let image_base_ptr: u64 = driver_state.address_of(&ppeb_addr, "_PEB.ImageBaseAddress")?;
+
+    let image_base_ptr_paddr = translate_addr(driver_state, cr3, image_base_ptr, false).unwrap();
+    let image_base : u64 = driver_state.deref_physical_addr(image_base_ptr_paddr);
+
+    Ok(image_base)
+
+}
+
 fn main()-> Result<(), Box<dyn Error>> {
     let matches = App::new("Translate virtual address")
-        .arg(
-            Arg::with_name("pid")
-                .long("pid")
-                .short("p")
-                .multiple(false)
-                .help("Specify the pid of the process to translate")
-                .takes_value(true)
-                .required(true)
-        )
-        .arg(
-            Arg::with_name("addr")
-                .long("addr")
-                .short("a")
-                .multiple(false)
-                .help("Specify the virtual address to translate")
-                .takes_value(true)
-                .required(true)
-        )
+    .arg(
+        Arg::with_name("name")
+            .long("name")
+            .short("n")
+            .multiple(false)
+            .help("Specify the names of the processes to display")
+            .takes_value(true)
+            .required(true),
+    )   
         .get_matches();
 
     let mut driver = DriverState::new();
@@ -174,12 +185,38 @@ fn main()-> Result<(), Box<dyn Error>> {
     }
     println!("NtLoadDriver()   -> 0x{:x}", driver.startup());
 
-    if matches.is_present("pid") && matches.is_present("addr") {
-        let pid: u64 = matches.value_of("pid").unwrap().parse::<u64>().unwrap();
-        let addr: u64 = matches.value_of("addr").unwrap().parse::<u64>().unwrap();
-        println!("Result: 0x{:x} -> 0x{:x}", addr, translate_addr(&driver, pid, addr).unwrap());
-    }
+    if matches.is_present("name"){
+        let name = matches.value_of("name").unwrap();
+        println!("[*] Finding image base of process {:?} in physical address", name);
 
+        // Running pool tag scan
+        println!("[*] Running pool tag scan");
+        let mut proc_list = scan_eprocess(&driver).unwrap_or(Vec::new());
+        proc_list = proc_list
+            .into_iter()
+            .filter(|proc|proc["name"].as_str().unwrap() == name)
+            .collect();
+
+        assert!(proc_list.len() == 1, "There are many process with the same name");
+
+        let cr3 = proc_list[0]["directory_table"].as_u64().unwrap();
+		
+		// Get image base address
+        let eprocess_addr = proc_list[0]["address_val"].as_u64().unwrap();
+        println!("[*] Cr3: 0x{:x}", cr3);
+        let image_base = getImageBase(&driver, cr3, eprocess_addr).unwrap();
+		
+        //let image_base = proc_list[0]["image_base"].as_u64().unwrap();
+
+        println!("[*] Image base: 0x{:x}", image_base);
+        println!("[*] Translating image base to physical address");
+        let paddr = translate_addr(&driver, cr3, image_base, true).unwrap();
+        println!("[*] Physical address of image base: 0x{:x}", paddr);
+		
+		let data: [u8; 16] = driver.deref_physical_addr(paddr);
+
+		println!("[*] Sample data at image base: {:x?}", data);
+    }
     println!("NtUnloadDriver() -> 0x{:x}", driver.shutdown());
     Ok(())
 }

@@ -41,7 +41,7 @@ pub enum DriverAction {
     ScanPool,
     ScanPoolRemote,
     DereferenceAddress,
-    DereferencePagingStructure,
+    DereferencePhysicalAddress,
     HideProcess,
 }
 
@@ -66,7 +66,7 @@ impl DriverAction {
             DriverAction::DereferenceAddress => {
                 CTL_CODE(SIOCTL_TYPE, 0xA00, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
             }
-            DriverAction::DereferencePagingStructure => {
+            DriverAction::DereferencePhysicalAddress => {
                 CTL_CODE(SIOCTL_TYPE, 0xA01, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
             }
             DriverAction::HideProcess => {
@@ -270,14 +270,14 @@ impl DriverState {
         r
     }
 
-    pub fn read_paging_struct<T: Default>(&self, addr: u64) -> T {
+    pub fn deref_physical_addr<T: Default>(&self, addr: u64) -> T {
         /*
-        Read content of a paging structure, namely: PML4E, PDPTE, PDE, PTE
+        Read content at a PHYSICAL ADDRESS
             - addr: PHYSICAL address of the paging structure
         */
         let mut outbuf: T = Default::default();
         if addr != 0 {
-            let code = DriverAction::DereferencePagingStructure.get_code();
+            let code = DriverAction::DereferencePhysicalAddress.get_code();
             let size: usize = size_of_val(&outbuf);
             let mut input = InputData {
                 deref_addr: DerefAddr {
