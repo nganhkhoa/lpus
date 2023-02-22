@@ -69,15 +69,18 @@ pub fn list_all_pde(driver_state: &DriverState, cr3: u64) -> Vec<PDE> {
     return pde_list;
 }
 
-pub fn list_all_pte(driver_state: &DriverState, cr3: u64) {
+pub fn list_all_pte(driver_state: &DriverState, cr3: u64) -> Vec<u64>{
     let pde_list = list_all_pde(driver_state, cr3);
+    let mut pte_list = Vec::new();
     for pde in pde_list {
         for index in 0..512 {
             let data: u64 = driver_state.deref_physical_addr((pde.pfn.value() << 12) | (index << 3));
             // println!("[*] PDE entry number {:?}: {:?}", index, data);
-            
+            pte_list.push(data);
+
             // TODO: Parse PTE
             // TODO: Still crash at some high-address PTE
         }
     }
+    return pte_list;
 }
