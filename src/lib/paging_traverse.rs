@@ -6,7 +6,7 @@ use crate::paging_structs::*;
 // https://learn.microsoft.com/en-us/windows-hardware/drivers/gettingstarted/virtual-address-spaces
 const HIGHEST_USER_ADDRESS : u64 = 0x7FFFFFFFFFFF;
 
-fn list_all_pml4e(driver_state: &DriverState, cr3: u64) -> Vec<PML4E> {   
+pub fn list_all_pml4e(driver_state: &DriverState, cr3: u64) -> Vec<PML4E> {   
     /* Return a list of all presenting PML4 entries*/
     let mut pml4e_list : Vec<PML4E> = Vec::new();
     for index in 0..512 {
@@ -26,7 +26,7 @@ fn list_all_pml4e(driver_state: &DriverState, cr3: u64) -> Vec<PML4E> {
     return pml4e_list;
 }
 
-fn list_all_pdpte(driver_state: &DriverState, cr3: u64) -> Vec<PDPTE> {
+pub fn list_all_pdpte(driver_state: &DriverState, cr3: u64) -> Vec<PDPTE> {
     /* Return a list of all presenting PDPTE */
 
     let pml4e_list = list_all_pml4e(driver_state, cr3);
@@ -51,7 +51,7 @@ fn list_all_pdpte(driver_state: &DriverState, cr3: u64) -> Vec<PDPTE> {
     return pdpte_list;
 }
 
-fn list_all_pde(driver_state: &DriverState, cr3: u64) -> Vec<PDE> {
+pub fn list_all_pde(driver_state: &DriverState, cr3: u64) -> Vec<PDE> {
     /* Return a list of all presenting PDE*/
 
     let pdpte_list = list_all_pdpte(driver_state, cr3);
@@ -69,7 +69,7 @@ fn list_all_pde(driver_state: &DriverState, cr3: u64) -> Vec<PDE> {
     return pde_list;
 }
 
-fn list_all_pte(driver_state: &DriverState, cr3: u64) {
+pub fn list_all_pte(driver_state: &DriverState, cr3: u64) {
     let pde_list = list_all_pde(driver_state, cr3);
     for pde in pde_list {
         for index in 0..512 {

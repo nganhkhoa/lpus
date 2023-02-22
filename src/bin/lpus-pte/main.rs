@@ -1,6 +1,5 @@
 use clap::{App, Arg};
 use lpus::{driver_state::DriverState, scan_eprocess};
-use lpus::paging_structs::*;
 use lpus::paging_traverse::*;
 use std::error::Error;
 
