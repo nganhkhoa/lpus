@@ -46,9 +46,9 @@ fn main()-> Result<(), Box<dyn Error>> {
         println!("[*] Cr3: 0x{:x}", cr3);
         let pte_table = list_all_pte(&driver, cr3);
 
-        for pte in pte_table {
+        for (pte, addr) in pte_table {
             if pte & 1 != 0 {
-                println!("Valid PTE value: 0x{:x}", pte);
+                println!("Valid PTE value: 0x{:x} at address: 0x{:x}", pte, addr);
             }
         }
     }

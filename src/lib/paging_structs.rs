@@ -115,3 +115,54 @@ impl PDE {
         }
     }
 }
+
+// PTE states: http://blog.rekall-forensic.com/2014/10/windows-virtual-address-translation-and.html
+// Structure of each states: https://www.vergiliusproject.com/kernels/x64/Windows%2010%20%7C%202016/2104%2021H1%20(May%202021%20Update)/_MMPTE
+// And also the paper
+
+pub struct MMPTE_HARDWARE {
+    pub Valid: u1,
+    pub Dirty1: u1,
+    pub Owner: u1,
+    pub WriteThrough: u1,
+    pub CacheDisable: u1,
+    pub Accessed: u1,
+    pub Dirty: u1,
+    pub LargePage: u1,
+    pub Global: u1,
+    pub CopyOnWrite: u1,
+    pub Unused: u1,
+    pub Write: u1,
+    pub PageFrameNumber: u36,
+    pub ReservedForHardware: u4,
+    pub ReservedForSoftware: u4,
+    pub WsleAge: u4,
+    pub WsleProtection: u3,
+    pub NoExecute: u1
+}
+
+pub struct MMPTE_PROTOTYPE {
+    pub Valid: u1,
+    pub DemandFillProto: u1,
+    pub HiberVerifyConverted: u1,
+    pub ReadOnly: u1,
+    pub SwizzleBit: u1,
+    pub Protection: u5,
+    pub Prototype: u1,
+    pub Combined: u1,
+    pub Unused1: u4,
+    pub ProtoAddress: u48
+}
+
+pub struct MMPTE_TRANSITION {
+    pub Valid: u1,
+    pub Write: u1,
+    pub Spare: u1,
+    pub IoTracker: u1,
+    pub SwizzleBit: u1,
+    pub Protection: u5,
+    pub Prototype: u1,
+    pub Transition: u1,
+    pub PageFrameNumber: u36,
+    pub Unused: u16
+}
