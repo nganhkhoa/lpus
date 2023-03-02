@@ -5,6 +5,13 @@ use bit_struct::*;
 // Ref: https://back.engineering/23/08/2020/
 // Ref: https://blog.efiens.com/post/luibo/address-translation-revisited/
 
+pub trait PagingStruct: std::fmt::Debug{
+    fn get_pfn(&self) -> u64;
+    fn is_present(&self) -> bool;
+    fn is_executable(&self) -> bool;
+    
+}
+
 #[derive(Debug)]
 pub struct PML4E {
     pub present: u1,    
@@ -39,6 +46,21 @@ impl PML4E {
             Ignored3: (u11::new(((data >> 52) & 2047).try_into().unwrap()).unwrap()), 
             nx: (u1::new(((data >> 63) & 1).try_into().unwrap()).unwrap()) 
         }
+    }
+
+}
+
+impl PagingStruct for PML4E {
+    fn is_present(&self) -> bool {
+        return self.present.value() != 0
+    }
+    
+    fn get_pfn(&self) -> u64{
+        return self.pfn.value() 
+    } 
+
+    fn is_executable(&self) -> bool {
+        return self.nx.value() == 0
     }
 }
 
@@ -79,6 +101,20 @@ impl PDPTE {
     }
 }
 
+impl PagingStruct for PDPTE {
+    fn is_present(&self) -> bool {
+        return self.present.value() != 0
+    }
+    
+    fn get_pfn(&self) -> u64{
+        return self.pfn.value() 
+    } 
+
+    fn is_executable(&self) -> bool {
+        return self.nx.value() == 0
+    }
+}
+
 #[derive(Debug)]
 pub struct PDE {
     pub present : u1,
@@ -116,10 +152,25 @@ impl PDE {
     }
 }
 
+impl PagingStruct for PDE {
+    fn is_present(&self) -> bool {
+        return self.present.value() != 0
+    }
+    
+    fn get_pfn(&self) -> u64{
+        return self.pfn.value() 
+    } 
+
+    fn is_executable(&self) -> bool {
+        return self.nx.value() == 0
+    }
+}
+
 // PTE states: http://blog.rekall-forensic.com/2014/10/windows-virtual-address-translation-and.html
 // Structure of each states: https://www.vergiliusproject.com/kernels/x64/Windows%2010%20%7C%202016/2104%2021H1%20(May%202021%20Update)/_MMPTE
 // And also the paper
 
+#[derive(Debug)]
 pub struct MMPTE_HARDWARE {
     pub Valid: u1,
     pub Dirty1: u1,
@@ -141,6 +192,45 @@ pub struct MMPTE_HARDWARE {
     pub NoExecute: u1
 }
 
+impl MMPTE_HARDWARE {
+    pub fn new(data: u64) -> Self {
+        Self {
+            Valid: (u1::new((data & 1).try_into().unwrap()).unwrap()), 
+            Dirty1: (u1::new(((data >> 1) & 1).try_into().unwrap()).unwrap()), 
+            Owner: (u1::new(((data >> 2) & 1).try_into().unwrap()).unwrap()), 
+            WriteThrough: (u1::new(((data >> 3) & 1).try_into().unwrap()).unwrap()), 
+            CacheDisable: (u1::new(((data >> 4) & 1).try_into().unwrap()).unwrap()), 
+            Accessed: (u1::new(((data >> 5) & 1).try_into().unwrap()).unwrap()), 
+            Dirty: (u1::new(((data >> 6) & 1).try_into().unwrap()).unwrap()), 
+            LargePage: (u1::new(((data >> 7) & 1).try_into().unwrap()).unwrap()), 
+            Global: (u1::new(((data >> 8) & 1).try_into().unwrap()).unwrap()), 
+            CopyOnWrite: (u1::new(((data >> 9) & 1).try_into().unwrap()).unwrap()), 
+            Unused: (u1::new(((data >> 10) & 1).try_into().unwrap()).unwrap()), 
+            Write: (u1::new(((data >> 11) & 1).try_into().unwrap()).unwrap()), 
+            PageFrameNumber: (u36::new(((data >> 12) & 68719476735).try_into().unwrap()).unwrap()), 
+            ReservedForHardware: (u4::new(((data >> 48) & 15).try_into().unwrap()).unwrap()), 
+            ReservedForSoftware: (u4::new(((data >> 52) & 15).try_into().unwrap()).unwrap()), 
+            WsleAge: (u4::new(((data >> 56) & 15).try_into().unwrap()).unwrap()), 
+            WsleProtection: (u3::new(((data >> 60) & 7).try_into().unwrap()).unwrap()), 
+            NoExecute: (u1::new(((data >> 63) & 1).try_into().unwrap()).unwrap()) 
+        }
+    }
+}
+
+impl PagingStruct for MMPTE_HARDWARE {
+    fn is_present(&self) -> bool {
+        return self.Valid.value() != 0
+    }
+    
+    fn get_pfn(&self) -> u64{
+        return self.PageFrameNumber.value() 
+    } 
+
+    fn is_executable(&self) -> bool {
+        return self.NoExecute.value() == 0
+    }
+}
+
 pub struct MMPTE_PROTOTYPE {
     pub Valid: u1,
     pub DemandFillProto: u1,
@@ -154,6 +244,23 @@ pub struct MMPTE_PROTOTYPE {
     pub ProtoAddress: u48
 }
 
+impl MMPTE_PROTOTYPE {
+    pub fn new (data: u64) -> Self {
+        Self { 
+            Valid: (u1::new((data & 1).try_into().unwrap()).unwrap()), 
+            DemandFillProto: (u1::new(((data >> 1) & 1).try_into().unwrap()).unwrap()), 
+            HiberVerifyConverted: (u1::new(((data >> 2) & 1).try_into().unwrap()).unwrap()), 
+            ReadOnly: (u1::new(((data >> 3) & 1).try_into().unwrap()).unwrap()), 
+            SwizzleBit: (u1::new(((data >> 4) & 1).try_into().unwrap()).unwrap()), 
+            Protection: (u5::new(((data >> 5) & 31).try_into().unwrap()).unwrap()), 
+            Prototype: (u1::new(((data >> 10) & 1).try_into().unwrap()).unwrap()), 
+            Combined: (u1::new(((data >> 11) & 1).try_into().unwrap()).unwrap()), 
+            Unused1: (u4::new(((data >> 12) & 15).try_into().unwrap()).unwrap()), 
+            ProtoAddress: (u48::new(((data >> 16) & 281474976710655).try_into().unwrap()).unwrap()) 
+        }
+    }
+}
+
 pub struct MMPTE_TRANSITION {
     pub Valid: u1,
     pub Write: u1,
@@ -165,4 +272,25 @@ pub struct MMPTE_TRANSITION {
     pub Transition: u1,
     pub PageFrameNumber: u36,
     pub Unused: u16
+}
+
+impl MMPTE_TRANSITION {
+    pub fn new(data: u64) -> Self {
+        Self { 
+            Valid: (u1::new((data & 1).try_into().unwrap()).unwrap()), 
+            Write: (u1::new(((data >> 1) & 1).try_into().unwrap()).unwrap()), 
+            Spare: (u1::new(((data >> 2) & 1).try_into().unwrap()).unwrap()), 
+            IoTracker: (u1::new(((data >> 3) & 1).try_into().unwrap()).unwrap()), 
+            SwizzleBit: (u1::new(((data >> 4) & 1).try_into().unwrap()).unwrap()), 
+            Protection: (u5::new(((data >> 9) & 31).try_into().unwrap()).unwrap()), 
+            Prototype: (u1::new(((data >> 10) & 1).try_into().unwrap()).unwrap()), 
+            Transition: (u1::new(((data >> 11) & 1).try_into().unwrap()).unwrap()), 
+            PageFrameNumber: (u36::new(((data >> 12) & 68719476735).try_into().unwrap()).unwrap()), 
+            Unused: (((data >> 48) & 65535).try_into().unwrap())
+        }
+    }    
+}
+
+pub fn parse_pte(data: u64) {
+    // Detect PTE state and return the correct object describing the PTE
 }

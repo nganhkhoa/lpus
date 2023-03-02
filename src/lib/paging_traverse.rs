@@ -18,7 +18,7 @@ pub fn list_all_pml4e(driver_state: &DriverState, cr3: u64) -> Vec<PML4E> {
         }
         let data : u64 = driver_state.deref_physical_addr((cr3 & 0xffffffffff000) | (index  << 3));
         let new_entry = PML4E::new(data);
-        if new_entry.present.value() != 0 {
+        if new_entry.is_present() {
             // println!("[*] PML4 entry number {:?}: {:?}", index, new_entry);
             pml4e_list.push(new_entry);
         }        
@@ -40,9 +40,9 @@ pub fn list_all_pdpte(driver_state: &DriverState, cr3: u64) -> Vec<PDPTE> {
 
             // TODO: Read the whole PDPT instead of each entry one by one (IO is slow!)
             // println!("Deref address {:x}", (pml4e.pfn.value() << 12) | (index << 3));
-            let data: u64 = driver_state.deref_physical_addr((pml4e.pfn.value() << 12) | (index << 3));
+            let data: u64 = driver_state.deref_physical_addr((pml4e.get_pfn() << 12) | (index << 3));
             let new_entry = PDPTE::new(data);
-            if new_entry.present.value() != 0 {
+            if new_entry.is_present() {
                 // println!("[*] PDPT entry number {:?}: {:?}", index, new_entry);
                 pdpte_list.push(new_entry);
             }
@@ -60,7 +60,7 @@ pub fn list_all_pde(driver_state: &DriverState, cr3: u64) -> Vec<PDE> {
         for index in 0..512 {
             let data: u64 = driver_state.deref_physical_addr((pdpte.pfn.value() << 12) | (index << 3));
             let new_entry = PDE::new(data);
-            if new_entry.present.value() != 0 {
+            if new_entry.is_present() {
                 // println!("[*] PDE entry number {:?}: {:?}", index, new_entry);
                 pde_list.push(new_entry);
             }
@@ -69,19 +69,22 @@ pub fn list_all_pde(driver_state: &DriverState, cr3: u64) -> Vec<PDE> {
     return pde_list;
 }
 
-pub fn list_all_pte(driver_state: &DriverState, cr3: u64) -> Vec<(u64, u64)>{
+pub fn list_all_pte(driver_state: &DriverState, cr3: u64) -> Vec<Box<dyn PagingStruct>>{
     let pde_list = list_all_pde(driver_state, cr3);
-    let mut pte_list: Vec<Box<dyn PTE>> = Vec::new();
+    let mut pte_list: Vec<Box<dyn PagingStruct>> = Vec::new();
     for pde in pde_list {
         for index in 0..512 {
             let pte_addr = (pde.pfn.value() << 12) | (index << 3);
             let data: u64 = driver_state.deref_physical_addr(pte_addr);
             // println!("[*] PTE entry number {:?}: {:?}", index, data);
-            pte_list.push((data, pte_addr));
+            // pte_list.push((data, pte_addr));
 
             // TODO: Parse PTE
-            // TODO: Still crash at some high-address PTE
-
+            // TODO: Fix crashes at some high-address PTE
+            let new_entry = MMPTE_HARDWARE::new(data);
+            if new_entry.is_present() {
+                pte_list.push(Box::new(new_entry));            
+            }
         }
     }
     return pte_list;
