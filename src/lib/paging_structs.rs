@@ -1,9 +1,11 @@
 use std::convert::TryInto;
-
+use std::error::Error;
 use bit_struct::*; 
 
 // Ref: https://back.engineering/23/08/2020/
 // Ref: https://blog.efiens.com/post/luibo/address-translation-revisited/
+
+type BoxResult<T> = Result<T, Box<dyn Error>>;
 
 pub trait PagingStruct: std::fmt::Debug{
     fn get_pfn(&self) -> u64;
@@ -215,6 +217,11 @@ impl MMPTE_HARDWARE {
             NoExecute: (u1::new(((data >> 63) & 1).try_into().unwrap()).unwrap()) 
         }
     }
+
+    pub fn is_present(&self) -> bool{
+        return self.Valid.value() != 0
+    }
+
 }
 
 impl PagingStruct for MMPTE_HARDWARE {
@@ -231,6 +238,7 @@ impl PagingStruct for MMPTE_HARDWARE {
     }
 }
 
+#[derive(Debug)]
 pub struct MMPTE_PROTOTYPE {
     pub Valid: u1,
     pub DemandFillProto: u1,
@@ -259,8 +267,27 @@ impl MMPTE_PROTOTYPE {
             ProtoAddress: (u48::new(((data >> 16) & 281474976710655).try_into().unwrap()).unwrap()) 
         }
     }
+
+    pub fn is_prototype(&self) -> bool {
+        return self.Prototype.value() != 0
+    }
 }
 
+impl PagingStruct for MMPTE_PROTOTYPE {
+    fn is_present(&self) -> bool {
+        return self.Valid.value() != 0
+    }
+    
+    fn get_pfn(&self) -> u64{
+        return 0
+    } 
+
+    fn is_executable(&self) -> bool {
+        return false
+    }
+}
+
+#[derive(Debug)]
 pub struct MMPTE_TRANSITION {
     pub Valid: u1,
     pub Write: u1,
@@ -288,9 +315,43 @@ impl MMPTE_TRANSITION {
             PageFrameNumber: (u36::new(((data >> 12) & 68719476735).try_into().unwrap()).unwrap()), 
             Unused: (((data >> 48) & 65535).try_into().unwrap())
         }
-    }    
+    }   
+
+    pub fn is_transition(&self) -> bool {
+        return self.Transition.value() != 0
+    } 
 }
 
-pub fn parse_pte(data: u64) {
+impl PagingStruct for MMPTE_TRANSITION {
+    fn is_present(&self) -> bool {
+        return self.Valid.value() != 0
+    }
+    
+    fn get_pfn(&self) -> u64{
+        return self.PageFrameNumber.value() 
+    } 
+
+    fn is_executable(&self) -> bool {
+        return false
+    }
+}
+
+pub fn parse_pte(data: u64) -> BoxResult<Box<dyn PagingStruct>> {
     // Detect PTE state and return the correct object describing the PTE
+    let hardware_state = MMPTE_HARDWARE::new(data);
+    if hardware_state.is_present() {
+        return Ok(Box::new(hardware_state));
+    }
+
+    let prototype_state = MMPTE_PROTOTYPE::new(data);
+    if prototype_state.is_prototype() {
+        return Ok(Box::new(prototype_state));
+    }
+
+    let transition_state = MMPTE_TRANSITION::new(data);
+    if transition_state.is_transition() {
+        return Ok(Box::new(transition_state));
+    }
+
+    return Err(Box::<dyn Error>::from("Unknown PTE state"));
 }

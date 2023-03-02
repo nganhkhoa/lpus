@@ -1,5 +1,4 @@
-use clap::{App, Arg};
-use crate::{driver_state::DriverState, scan_eprocess};
+use crate::driver_state::DriverState;
 use crate::paging_structs::*;
 
 // https://github.com/mic101/windows/blob/master/WRK-v1.2/base/ntos/inc/amd64.h#L2594 (This is wrong!)
@@ -81,10 +80,16 @@ pub fn list_all_pte(driver_state: &DriverState, cr3: u64) -> Vec<Box<dyn PagingS
 
             // TODO: Parse PTE
             // TODO: Fix crashes at some high-address PTE
-            let new_entry = MMPTE_HARDWARE::new(data);
-            if new_entry.is_present() {
-                pte_list.push(Box::new(new_entry));            
+            let new_entry = parse_pte(data);
+            match new_entry {
+                Ok(entry) => {
+                    pte_list.push(entry);
+                }
+                Err(msg) => {
+                    println!("Error at PTE entry {:?}: {:?}", index, msg);
+                }
             }
+
         }
     }
     return pte_list;
