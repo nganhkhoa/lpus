@@ -47,8 +47,9 @@ fn main()-> Result<(), Box<dyn Error>> {
         let pte_table = list_all_pte(&driver, cr3);
 
         for pte in pte_table {
-            if pte.is_present() {
-                println!("Valid PTE value: {:?}", pte);
+            if pte.is_present() && pte.is_executable() {
+                // println!("Valid PTE value: {:?}", pte);
+                println!("Executatble page PFN: 0x{:x}", pte.get_pfn());
             }
         }
     }

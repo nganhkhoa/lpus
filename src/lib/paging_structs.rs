@@ -355,3 +355,5 @@ pub fn parse_pte(data: u64) -> BoxResult<Box<dyn PagingStruct>> {
 
     return Err(Box::<dyn Error>::from("Unknown PTE state"));
 }
+
+// pub fn deref_prototype_pte(pte: MMPTE_PROTOTYPE) -> BoxResult<Box<dyn PagingStruct>>{}
