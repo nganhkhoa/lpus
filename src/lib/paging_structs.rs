@@ -1,17 +1,27 @@
 use std::convert::TryInto;
 use std::error::Error;
 use bit_struct::*; 
+use std::any::Any;
 
 // Ref: https://back.engineering/23/08/2020/
 // Ref: https://blog.efiens.com/post/luibo/address-translation-revisited/
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
+#[derive(PartialEq)]
+pub enum PageState {
+    HARDWARE,
+    TRANSITION,
+    PROTOTYPE,
+    INVALID
+}
+
 pub trait PagingStruct: std::fmt::Debug{
+    fn as_any(&self) -> &dyn Any;
     fn get_pfn(&self) -> u64;
     fn is_present(&self) -> bool;
     fn is_executable(&self) -> bool;
-    
+    fn get_state(&self) -> PageState;   
 }
 
 #[derive(Debug)]
@@ -53,6 +63,10 @@ impl PML4E {
 }
 
 impl PagingStruct for PML4E {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
     fn is_present(&self) -> bool {
         return self.present.value() != 0
     }
@@ -63,6 +77,10 @@ impl PagingStruct for PML4E {
 
     fn is_executable(&self) -> bool {
         return self.nx.value() == 0
+    }
+
+    fn get_state(&self) -> PageState {
+        return PageState::HARDWARE
     }
 }
 
@@ -104,6 +122,10 @@ impl PDPTE {
 }
 
 impl PagingStruct for PDPTE {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
     fn is_present(&self) -> bool {
         return self.present.value() != 0
     }
@@ -114,6 +136,10 @@ impl PagingStruct for PDPTE {
 
     fn is_executable(&self) -> bool {
         return self.nx.value() == 0
+    }
+
+    fn get_state(&self) -> PageState {
+        return PageState::HARDWARE
     }
 }
 
@@ -155,6 +181,10 @@ impl PDE {
 }
 
 impl PagingStruct for PDE {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
     fn is_present(&self) -> bool {
         return self.present.value() != 0
     }
@@ -165,6 +195,10 @@ impl PagingStruct for PDE {
 
     fn is_executable(&self) -> bool {
         return self.nx.value() == 0
+    }
+
+    fn get_state(&self) -> PageState {
+        return PageState::HARDWARE
     }
 }
 
@@ -225,6 +259,10 @@ impl MMPTE_HARDWARE {
 }
 
 impl PagingStruct for MMPTE_HARDWARE {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
     fn is_present(&self) -> bool {
         return self.Valid.value() != 0
     }
@@ -235,6 +273,10 @@ impl PagingStruct for MMPTE_HARDWARE {
 
     fn is_executable(&self) -> bool {
         return self.NoExecute.value() == 0
+    }
+
+    fn get_state(&self) -> PageState {
+        return PageState::HARDWARE
     }
 }
 
@@ -274,6 +316,10 @@ impl MMPTE_PROTOTYPE {
 }
 
 impl PagingStruct for MMPTE_PROTOTYPE {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
     fn is_present(&self) -> bool {
         return self.Valid.value() != 0
     }
@@ -284,6 +330,10 @@ impl PagingStruct for MMPTE_PROTOTYPE {
 
     fn is_executable(&self) -> bool {
         return false
+    }
+    
+    fn get_state(&self) -> PageState {
+        return PageState::PROTOTYPE
     }
 }
 
@@ -323,6 +373,10 @@ impl MMPTE_TRANSITION {
 }
 
 impl PagingStruct for MMPTE_TRANSITION {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
     fn is_present(&self) -> bool {
         return self.Valid.value() != 0
     }
@@ -333,6 +387,10 @@ impl PagingStruct for MMPTE_TRANSITION {
 
     fn is_executable(&self) -> bool {
         return false
+    }
+    
+    fn get_state(&self) -> PageState {
+        return PageState::TRANSITION
     }
 }
 
@@ -353,7 +411,7 @@ pub fn parse_pte(data: u64) -> BoxResult<Box<dyn PagingStruct>> {
         return Ok(Box::new(transition_state));
     }
 
-    return Err(Box::<dyn Error>::from("Unknown PTE state"));
+    return Err(Box::<dyn Error>::from("Paged out page"));
 }
 
 // pub fn deref_prototype_pte(pte: MMPTE_PROTOTYPE) -> BoxResult<Box<dyn PagingStruct>>{}

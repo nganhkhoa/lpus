@@ -86,7 +86,7 @@ pub fn list_all_pte(driver_state: &DriverState, cr3: u64) -> Vec<Box<dyn PagingS
                     pte_list.push(entry);
                 }
                 Err(msg) => {
-                    println!("Error at PTE entry {:?}: {:?}", index, msg);
+                    // println!("Error at PTE entry {:?}: {:?}", index, msg);
                 }
             }
 
