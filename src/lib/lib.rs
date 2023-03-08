@@ -9,6 +9,7 @@ pub mod object;
 pub mod paging_structs;
 pub mod paging_traverse;
 pub mod pdb_store;
+pub mod utils;
 pub mod windows;
 
 use app_dirs::AppInfo;
@@ -19,6 +20,7 @@ use std::error::Error;
 use address::Address;
 use driver_state::DriverState;
 use object::*;
+use utils::*;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 

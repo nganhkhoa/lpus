@@ -17,6 +17,7 @@ use crate::ioctl_protocol::{
     DerefAddr, HideProcess, InputData, /* OutputData, */ Nothing, OffsetData, ScanPoolData,
 };
 use crate::pdb_store::{parse_pdb, PdbStore};
+use crate::utils::mask_cast::MaskCast;
 use crate::windows::{WindowsFFI, WindowsVersion};
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
@@ -240,15 +241,16 @@ impl DriverState {
 
     pub fn address_of(&self, addr: &Address, name: &str) -> BoxResult<u64> {
         let resolver = |p| self.deref_addr_new(p);
-        let r = self.pdb_store.decompose(&addr, &name)?;
+        let (r, mask) = self.pdb_store.decompose(&addr, &name)?;
         Ok(r.get(&resolver))
     }
 
-    pub fn decompose<T: Default>(&self, addr: &Address, name: &str) -> BoxResult<T> {
+    pub fn decompose<T: Default + MaskCast<u64>>(&self, addr: &Address, name: &str) -> BoxResult<T> {
         // interface to pdb_store.decompose
         let resolver = |p| self.deref_addr_new(p);
-        let r: T = self.deref_addr_new(self.pdb_store.decompose(&addr, &name)?.get(&resolver));
-        Ok(r)
+        let (addr, mask) = self.pdb_store.decompose(&addr, &name)?;
+        let r: T = self.deref_addr_new(addr.get(&resolver));
+        Ok(T::mask_cast_from(r.mask_cast_to() & mask))
     }
 
     pub fn decompose_array<T: Default + Clone>(
@@ -258,7 +260,8 @@ impl DriverState {
         len: u64,
     ) -> BoxResult<Vec<T>> {
         // interface to pdb_store.decompose for array
-        let r: Vec<T> = self.deref_array(&self.pdb_store.decompose(&addr, &name)?, len);
+        let (addr, mask) = self.pdb_store.decompose(&addr, &name)?;
+        let r: Vec<T> = self.deref_array(&addr, len);
         Ok(r)
     }
 

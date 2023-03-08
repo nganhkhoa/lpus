@@ -151,7 +151,7 @@ fn getImageBase(driver_state: &DriverState, cr3: u64, eprocess_addr: u64) -> Res
 
     // Query data from peb by physical address because i have no way to get to process's context
     let addr: Address = Address::from_base(eprocess_addr);
-    let ppeb: u64 = driver_state.decompose(&addr, "_EPROCESS.Peb")?;
+    let ppeb = driver_state.decompose(&addr, "_EPROCESS.Peb")?;
     let ppeb_addr : Address = Address::from_base(ppeb);
     let image_base_ptr: u64 = driver_state.address_of(&ppeb_addr, "_PEB.ImageBaseAddress")?;
 

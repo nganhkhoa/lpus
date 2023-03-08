@@ -83,8 +83,10 @@ impl PdbStore {
         }
     }
 
-    pub fn decompose(&self, source: &Address, full_name: &str) -> BoxResult<Address> {
-        // println!("decompose {}", full_name);
+    pub fn decompose(&self, source: &Address, full_name: &str) -> BoxResult<(Address, u64)> {
+        // Get the Address object for a field inside a struct
+        // If the field is a bit field, the second value in the return tuple is a mask to get the exact bit(s)
+
         if !full_name.contains(".") {
             return Err("Not decomposable".into());
         }
@@ -100,7 +102,18 @@ impl PdbStore {
             .ok_or(format!("No member {} in {}", name_part[1], name_part[0]))?;
 
         if next.len() == 0 {
-            return Ok(source.clone() + *offset);
+            let mask = u64::MAX;
+
+            // ":" is my own sperator for bitfield type
+            if memtype.contains(":") {
+                let bit_parts: Vec<&str> = memtype.split(":").collect();
+                let bit_pos: u64 = bit_parts[1].parse().unwrap();
+                let bit_len: u64 = bit_parts[2].parse().unwrap();
+                println!("Pos: {}, Len: {}", bit_pos, bit_len) 
+
+            }
+
+            return Ok((source.clone() + *offset, mask));
         }
         if memtype.contains("*") {
             let mut t = memtype.clone(); // remove *
@@ -375,9 +388,9 @@ fn get_type_as_str(type_finder: &TypeFinder, typ: &TypeIndex) -> String {
         // TypeData::Union(ut) => {
         //     format!("union")
         // },
-        // TypeData::Bitfield(bft) => {
-        //     format!("bitfield")
-        // },
+        TypeData::Bitfield(bft) => {
+            format!("{}:{}:{}", get_type_as_str(type_finder, &bft.underlying_type), bft.position, bft.length)
+        },
         TypeData::FieldList(_flt) => format!("fieldlist"),
         // TypeData::ArgumentList(alt) => {
         //     format!("arglist")
