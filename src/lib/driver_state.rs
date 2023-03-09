@@ -248,9 +248,17 @@ impl DriverState {
     pub fn decompose<T: Default + MaskCast<u64>>(&self, addr: &Address, name: &str) -> BoxResult<T> {
         // interface to pdb_store.decompose
         let resolver = |p| self.deref_addr_new(p);
-        let (addr, mask) = self.pdb_store.decompose(&addr, &name)?;
+        let (addr, mask_handler) = self.pdb_store.decompose(&addr, &name)?;
         let r: T = self.deref_addr_new(addr.get(&resolver));
-        Ok(T::mask_cast_from(r.mask_cast_to() & mask))
+        Ok(T::mask_cast_from(mask_handler(r.mask_cast_to())))
+    }
+
+    pub fn decompose_physical<T: Default + MaskCast<u64>>(&self, addr: &Address, name: &str) -> BoxResult<T> {
+        // The same as "decompose()", but use physical address
+        let resolver = |p| self.deref_physical_addr(p);
+        let (addr, mask_handler) = self.pdb_store.decompose(&addr, &name)?;
+        let r: T = self.deref_addr_new(addr.get(&resolver));
+        Ok(T::mask_cast_from(mask_handler(r.mask_cast_to())))
     }
 
     pub fn decompose_array<T: Default + Clone>(

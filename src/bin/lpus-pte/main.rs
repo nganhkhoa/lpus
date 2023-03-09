@@ -5,13 +5,13 @@ use lpus::paging_structs::*;
 use std::error::Error;
 
 fn main()-> Result<(), Box<dyn Error>> {
-    let matches = App::new("Translate virtual address")
+    let matches = App::new("Listing all PTEs")
     .arg(
         Arg::with_name("name")
             .long("name")
             .short("n")
             .multiple(false)
-            .help("Specify the names of the processes to display")
+            .help("Specify the names of the processes")
             .takes_value(true)
             .required(true),
     )   
@@ -29,8 +29,6 @@ fn main()-> Result<(), Box<dyn Error>> {
 
     if matches.is_present("name"){
         let name = matches.value_of("name").unwrap();
-        println!("[*] Finding image base of process {:?} in physical address", name);
-
         // Running pool tag scan
         println!("[*] Running pool tag scan");
         let mut proc_list = scan_eprocess(&driver).unwrap_or(Vec::new());
@@ -39,7 +37,7 @@ fn main()-> Result<(), Box<dyn Error>> {
             .filter(|proc|proc["name"].as_str().unwrap() == name)
             .collect();
 
-        assert!(proc_list.len() == 1, "There are many process with the same name");
+        assert!(proc_list.len() == 1, "There are many processes with the same name");
 
         let cr3 = proc_list[0]["directory_table"].as_u64().unwrap();
 		

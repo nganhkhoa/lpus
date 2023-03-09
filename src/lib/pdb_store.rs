@@ -12,6 +12,7 @@ use pdb::{
 };
 
 use crate::address::Address;
+use crate::utils;
 use crate::APP_INFO;
 
 const KERNEL_PDB_NAME: &str = "ntkrnlmp.pdb";
@@ -83,7 +84,7 @@ impl PdbStore {
         }
     }
 
-    pub fn decompose(&self, source: &Address, full_name: &str) -> BoxResult<(Address, u64)> {
+    pub fn decompose(&self, source: &Address, full_name: &str) -> BoxResult<(Address, Box<dyn Fn(u64) -> u64>)> {
         // Get the Address object for a field inside a struct
         // If the field is a bit field, the second value in the return tuple is a mask to get the exact bit(s)
 
@@ -102,18 +103,18 @@ impl PdbStore {
             .ok_or(format!("No member {} in {}", name_part[1], name_part[0]))?;
 
         if next.len() == 0 {
-            let mask = u64::MAX;
-
+            // Default mask, getting every bits.
+            let mut mask_handler = utils::get_bit_mask_handler(0, 64);
             // ":" is my own sperator for bitfield type
             if memtype.contains(":") {
                 let bit_parts: Vec<&str> = memtype.split(":").collect();
                 let bit_pos: u64 = bit_parts[1].parse().unwrap();
                 let bit_len: u64 = bit_parts[2].parse().unwrap();
+                mask_handler = utils::get_bit_mask_handler(bit_pos, bit_len);
                 println!("Pos: {}, Len: {}", bit_pos, bit_len) 
-
             }
 
-            return Ok((source.clone() + *offset, mask));
+            return Ok((source.clone() + *offset, mask_handler));
         }
         if memtype.contains("*") {
             let mut t = memtype.clone(); // remove *

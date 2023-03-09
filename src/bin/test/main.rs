@@ -1,10 +1,61 @@
-use lpus::pdb_store::*;
+use clap::{App, Arg};
+use lpus::{driver_state::DriverState, scan_eprocess};
+use lpus::paging_traverse::*;
 use lpus::address::*;
-fn main() {
-    let pdb = parse_pdb().unwrap();
-    // println!("PDB: {:?}", pdb.structs.get("_TEB_ACTIVE_FRAME_CONTEXT"));
-    println!("PDB: {:?}", pdb.structs.get("_HARDWARE_PTE"));
+use lpus::paging_structs::*;
+use std::error::Error;
 
-    // println!("{}", pdb.decompose(&Address::from_base(0), "_EPROCESS.Peb").unwrap().0);
-    println!("{}", pdb.decompose(&Address::from_base(0), "_HARDWARE_PTE.PageFrameNumber").unwrap().0);
+fn main()-> Result<(), Box<dyn Error>> {
+    let matches = App::new("Translate virtual address")
+    .arg(
+        Arg::with_name("name")
+            .long("name")
+            .short("n")
+            .multiple(false)
+            .help("Specify the names of the processes to display")
+            .takes_value(true)
+            .required(true),
+    )   
+        .get_matches();
+
+    let mut driver = DriverState::new();
+    if !driver.is_supported() {
+        return Err(format!(
+            "Windows version {:?} is not supported",
+            driver.windows_ffi.short_version
+        )
+            .into());
+    }
+    println!("NtLoadDriver()   -> 0x{:x}", driver.startup());
+
+    if matches.is_present("name"){
+        let name = matches.value_of("name").unwrap();
+        println!("[*] Finding image base of process {:?} in physical address", name);
+
+        // Running pool tag scan
+        println!("[*] Running pool tag scan");
+        let mut proc_list = scan_eprocess(&driver).unwrap_or(Vec::new());
+        proc_list = proc_list
+            .into_iter()
+            .filter(|proc|proc["name"].as_str().unwrap() == name)
+            .collect();
+
+        assert!(proc_list.len() == 1, "There are many process with the same name");
+
+        let cr3 = proc_list[0]["directory_table"].as_u64().unwrap();
+        println!("[*] Cr3: 0x{:x}", cr3);   
+
+        let addr = (cr3 & 0xffffffffff000) | (3  << 3);
+        let data : u64 = driver.deref_physical_addr(addr);
+        println!("Test entry {} at address: {}", data, addr);
+
+        let entry = PML4E::new(data);
+        println!("Old way: {}", entry.pfn);
+
+        let new_way : u64 = driver.decompose_physical(&Address::from_base(addr), "_HARDWARE_PTE.PageFrameNumber").unwrap();
+        println!("New way: {}", new_way)
+        
+    }
+    println!("NtUnloadDriver() -> 0x{:x}", driver.shutdown());
+    Ok(())
 }

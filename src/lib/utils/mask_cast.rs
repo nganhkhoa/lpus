@@ -1,5 +1,5 @@
 pub trait MaskCast<T> {
-    // Casting u64 to other primitive types
+    // Casting u64 to other primitive types, and vice versa
     // Use for bitmask casting inside struct field decomposing
     // It's basically std::convert::Into trait but Rust won't let me implement that for primitive type (FUCK)
     fn mask_cast_to(self) -> T;
