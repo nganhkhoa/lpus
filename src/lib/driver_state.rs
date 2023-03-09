@@ -251,13 +251,14 @@ impl DriverState {
         let (addr, mask_handler) = self.pdb_store.decompose(&addr, &name)?;
         let r: T = self.deref_addr_new(addr.get(&resolver));
         Ok(T::mask_cast_from(mask_handler(r.mask_cast_to())))
+        // Ok(r)
     }
 
     pub fn decompose_physical<T: Default + MaskCast<u64>>(&self, addr: &Address, name: &str) -> BoxResult<T> {
         // The same as "decompose()", but use physical address
         let resolver = |p| self.deref_physical_addr(p);
         let (addr, mask_handler) = self.pdb_store.decompose(&addr, &name)?;
-        let r: T = self.deref_addr_new(addr.get(&resolver));
+        let r: T = self.deref_physical_addr(addr.get(&resolver));
         Ok(T::mask_cast_from(mask_handler(r.mask_cast_to())))
     }
 
