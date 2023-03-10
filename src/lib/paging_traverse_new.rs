@@ -1,5 +1,4 @@
 use crate::driver_state::DriverState;
-use crate::paging_structs::*;
 use crate::paging_structs_new::*;
 
 // Try using the new decompose method
@@ -60,7 +59,7 @@ pub fn list_all_pde(driver_state: &DriverState, cr3: u64) -> Vec<PTE> {
     /* Return a list of all presenting PDE*/
 
     let pdpte_list = list_all_pdpte(driver_state, cr3);
-    let mut pde_list : Vec<PDE> = Vec::new();
+    let mut pde_list : Vec<PTE> = Vec::new();
     for pdpte in pdpte_list {
         for index in 0..512 {
             let entry_addr = (pdpte.get_pfn(driver_state).unwrap() << 12) | (index << 3);
@@ -76,15 +75,14 @@ pub fn list_all_pde(driver_state: &DriverState, cr3: u64) -> Vec<PTE> {
 
 pub fn list_all_pte(driver_state: &DriverState, cr3: u64) -> Vec<PTE>{
     let pde_list = list_all_pde(driver_state, cr3);
-    let mut pte_list: Vec<Box<dyn PagingStruct>> = Vec::new();
+    let mut pte_list: Vec<PTE> = Vec::new();
     for pde in pde_list {
         for index in 0..512 {
             let entry_addr = (pde.get_pfn(driver_state).unwrap() << 12) | (index << 3);
             let new_entry = PTE::new(driver_state, entry_addr);
             // println!("[*] PTE entry number {:?}: {:?}", index, data);
             // pte_list.push((data, pte_addr));
-            pte_list.push(entry);
-
+            pte_list.push(new_entry);
         }
     }
     return pte_list;

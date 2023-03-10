@@ -28,33 +28,33 @@ pub struct PTE {
 impl PTE {
     pub fn new(driver: &DriverState, addr: u64) -> Self {
         let addr_obj = Address::from_base(addr);
-        let is_hardware: u8 = driver.decompose_physical(addr_obj, "_MMPTE_HARDWARE.Valid");
+        let is_hardware: u8 = driver.decompose_physical(&addr_obj, "_MMPTE_HARDWARE.Valid").unwrap();
         if is_hardware != 0 {
             return Self{state: PageState::HARDWARE, address: addr_obj};
         }
 
-        let is_prototype: u8 = driver.decompose_physical(addr_obj, "_MMPTE_PROTOTYPE.Prototype");
+        let is_prototype: u8 = driver.decompose_physical(&addr_obj, "_MMPTE_PROTOTYPE.Prototype").unwrap();
         if is_prototype != 0 {
             return Self{state: PageState::PROTOTYPE, address: addr_obj};
         }
 
-        let is_transition: u8 = driver.decompose_physical(addr_obj, "_MMPTE_TRANSITION.Transition");
+        let is_transition: u8 = driver.decompose_physical(&addr_obj, "_MMPTE_TRANSITION.Transition").unwrap();
         if is_transition != 0 {
             return Self{state: PageState::TRANSITION, address: addr_obj};
         }
         return Self{state: PageState::INVALID, address: addr_obj};
     }
 
-    pub fn is_present(&self) {
+    pub fn is_present(&self) -> bool{
         return self.state == PageState::HARDWARE;
     }
 
     pub fn get_pfn(&self, driver: &DriverState) -> BoxResult<u64> {
         if self.state == PageState::HARDWARE {
-            let pfn: u64 = driver.decompose_physical(self.address, "_MMPTE_HARDWARE.PageFrameNumber");
+            let pfn: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.PageFrameNumber").unwrap();
             return Ok(pfn);
         } else if (self.state == PageState::TRANSITION) {
-            let pfn: u64 = driver.decompose_physical(self.address, "_MMPTE_TRANSITION.PageFrameNumber");
+            let pfn: u64 = driver.decompose_physical(&self.address, "_MMPTE_TRANSITION.PageFrameNumber").unwrap();
             return Ok(pfn);
         } else {
             return Err("No PFN in this state of PTE".into());

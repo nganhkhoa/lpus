@@ -6,8 +6,12 @@ pub mod commands;
 pub mod driver_state;
 pub mod ioctl_protocol;
 pub mod object;
+
 pub mod paging_structs;
 pub mod paging_traverse;
+pub mod paging_structs_new;
+pub mod paging_traverse_new;
+
 pub mod pdb_store;
 pub mod utils;
 pub mod windows;
