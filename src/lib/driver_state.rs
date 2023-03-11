@@ -241,25 +241,34 @@ impl DriverState {
 
     pub fn address_of(&self, addr: &Address, name: &str) -> BoxResult<u64> {
         let resolver = |p| self.deref_addr_new(p);
-        let (r, mask) = self.pdb_store.decompose(&addr, &name)?;
+        let (r, mask, required_len) = self.pdb_store.decompose(&addr, &name)?;
         Ok(r.get(&resolver))
     }
 
     pub fn decompose<T: Default + MaskCast<u64>>(&self, addr: &Address, name: &str) -> BoxResult<T> {
         // interface to pdb_store.decompose
         let resolver = |p| self.deref_addr_new(p);
-        let (addr, mask_handler) = self.pdb_store.decompose(&addr, &name)?;
+        let (addr, mask_handler, required_len) = self.pdb_store.decompose(&addr, &name)?;
         let r: T = self.deref_addr_new(addr.get(&resolver));
-        Ok(T::mask_cast_from(mask_handler(r.mask_cast_to())))
+        if size_of::<T>() as u64 * 8 >= required_len {
+            Ok(T::mask_cast_from(mask_handler(r.mask_cast_to())))
+        } else {
+            Err(format!("Required length is {} while buffer size if {}", required_len, size_of::<T>() * 8).into())
+        }
+        
         // Ok(r)
     }
 
     pub fn decompose_physical<T: Default + MaskCast<u64>>(&self, addr: &Address, name: &str) -> BoxResult<T> {
         // The same as "decompose()", but use physical address
         let resolver = |p| self.deref_physical_addr(p);
-        let (addr, mask_handler) = self.pdb_store.decompose(&addr, &name)?;
+        let (addr, mask_handler, required_len) = self.pdb_store.decompose(&addr, &name)?;
         let r: T = self.deref_physical_addr(addr.get(&resolver));
-        Ok(T::mask_cast_from(mask_handler(r.mask_cast_to())))
+        if size_of::<T>() as u64 * 8 >= required_len {
+            Ok(T::mask_cast_from(mask_handler(r.mask_cast_to())))
+        } else {
+            Err(format!("Required length is {} while buffer size if {}", required_len, size_of::<T>() * 8, ).into())
+        }
     }
 
     pub fn decompose_array<T: Default + Clone>(
@@ -269,7 +278,7 @@ impl DriverState {
         len: u64,
     ) -> BoxResult<Vec<T>> {
         // interface to pdb_store.decompose for array
-        let (addr, mask) = self.pdb_store.decompose(&addr, &name)?;
+        let (addr, mask, required_len) = self.pdb_store.decompose(&addr, &name)?;
         let r: Vec<T> = self.deref_array(&addr, len);
         Ok(r)
     }

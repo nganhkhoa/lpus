@@ -43,6 +43,8 @@ pub fn list_all_pdpte(driver_state: &DriverState, cr3: u64) -> Vec<PTE> {
             // ptenum still perform the check for some reason
 
             // TODO: Read the whole PDPT instead of each entry one by one (IO is slow!)
+            // TODO: Handle large pages.
+
             // println!("Deref address {:x}", (pml4e.pfn.value() << 12) | (index << 3));
             let entry_addr = (pml4e.get_pfn(driver_state).unwrap() << 12) | (index << 3);
             let new_entry = PTE::new(driver_state, entry_addr);

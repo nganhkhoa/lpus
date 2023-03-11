@@ -84,9 +84,11 @@ impl PdbStore {
         }
     }
 
-    pub fn decompose(&self, source: &Address, full_name: &str) -> BoxResult<(Address, Box<dyn Fn(u64) -> u64>)> {
+    pub fn decompose(&self, source: &Address, full_name: &str) -> BoxResult<(Address, Box<dyn Fn(u64) -> u64>, u64)> {
         // Get the Address object for a field inside a struct
-        // If the field is a bit field, the second value in the return tuple is a mask to get the exact bit(s)
+        // If the field is a bit field:
+        //  - The second value in the return tuple is a mask to get the exact bit(s)
+        //  - The third value is the required length in BIT of the data type (e.g if we need 1 bit is at pos 17, the required len is 17)
 
         if !full_name.contains(".") {
             return Err("Not decomposable".into());
@@ -105,16 +107,18 @@ impl PdbStore {
         if next.len() == 0 {
             // Default mask, getting every bits.
             let mut mask_handler = utils::get_bit_mask_handler(0, 64);
+            let mut required_len = 0;
             // ":" is my own sperator for bitfield type
             if memtype.contains(":") {
                 let bit_parts: Vec<&str> = memtype.split(":").collect();
                 let bit_pos: u64 = bit_parts[1].parse().unwrap();
                 let bit_len: u64 = bit_parts[2].parse().unwrap();
                 mask_handler = utils::get_bit_mask_handler(bit_pos, bit_len);
-                println!("Pos: {}, Len: {}", bit_pos, bit_len) 
+                required_len = bit_pos + bit_len;
+                //println!("Pos: {}, Len: {}", bit_pos, bit_len);
             }
 
-            return Ok((source.clone() + *offset, mask_handler));
+            return Ok((source.clone() + *offset, mask_handler, required_len));
         }
         if memtype.contains("*") {
             let mut t = memtype.clone(); // remove *

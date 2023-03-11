@@ -1,8 +1,6 @@
 use clap::{App, Arg};
 use lpus::{driver_state::DriverState, scan_eprocess};
-use lpus::paging_traverse::*;
-use lpus::paging_structs::*;
-
+use lpus::paging_traverse_new::*;
 use std::error::Error;
 
 fn main()-> Result<(), Box<dyn Error>> {
@@ -41,17 +39,18 @@ fn main()-> Result<(), Box<dyn Error>> {
         assert!(proc_list.len() == 1, "There are many processes with the same name");
 
         let cr3 = proc_list[0]["directory_table"].as_u64().unwrap();
+        println!("[*] CR3: 0x{:x}", cr3);
 		
 		// Get image base address
-        println!("[*] Cr3: 0x{:x}", cr3);
         let pte_table = list_all_pte(&driver, cr3);
 
         for pte in pte_table {
-            if pte.get_state() == PageState::HARDWARE {
-                let hardware_pte = pte.as_any().downcast_ref::<MMPTE_HARDWARE>().unwrap();
-                if hardware_pte.is_executable() && hardware_pte.Write.value() != 0 {
-                    println!("PFN of write+exec page: 0x{:x}", pte.get_pfn());
+            if pte.is_present() {
+                if pte.is_executable(&driver).unwrap() && pte.is_writable(&driver).unwrap() {
+                    println!("PFN of write+exec page: 0x{:x}", pte.get_pfn(&driver).unwrap());
                 }
+
+                // println!("[*] Addr: 0x{:x}, PFN: 0x{:x} x: {}, w: {}", pte.address.address() ,pte.get_pfn(&driver).unwrap(), pte.is_executable(&driver).unwrap(), pte.is_writable(&driver).unwrap())
                 
             } /*else {
                 println!("Invalid PML4E: {:?}", pte);
