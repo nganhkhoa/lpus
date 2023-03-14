@@ -6,12 +6,7 @@ pub mod commands;
 pub mod driver_state;
 pub mod ioctl_protocol;
 pub mod object;
-
-pub mod paging_structs;
-pub mod paging_traverse;
-pub mod paging_structs_new;
-pub mod paging_traverse_new;
-
+pub mod pte_scan;
 pub mod pdb_store;
 pub mod utils;
 pub mod windows;
@@ -20,11 +15,11 @@ use app_dirs::AppInfo;
 use chrono::{DateTime, Local, TimeZone};
 use serde_json::{json, Value};
 use std::error::Error;
+use std::str::from_utf8;
 
 use address::Address;
-use driver_state::DriverState;
+use driver_state::{DriverState, ScannerSignal};
 use object::*;
-use utils::*;
 
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
@@ -174,13 +169,63 @@ pub fn scan_eprocess(driver: &DriverState) -> BoxResult<Vec<Value>> {
             try_eprocess_ptr += 0x4; // search exhaustively
         }
         if try_eprocess_ptr > eprocess_valid_end {
-            return Ok(false);
+            return Ok(ScannerSignal::SearchNext);
         }
 
         result.push(make_eprocess(driver, &try_eprocess_ptr)?);
-        Ok(true)
+        Ok(ScannerSignal::FoundStruct)
     })?;
     Ok(result)
+}
+
+pub fn find_eprocess_by_name(driver: &DriverState, expected: &String, find_one: bool) -> BoxResult<Vec<Value>> {
+    // - param: find_one => only return the first process that satisfies the name constraint
+
+    let mut result: Vec<Value> = Vec::new();
+    let tag = if driver.use_old_tag() {
+        b"Pro\xe3"
+    } else {
+        b"Proc"
+    };
+
+    driver.scan_pool(tag, "_EPROCESS", |pool_addr, header, data_addr| {
+        let chunk_size = (header[2] as u64) * 16u64;
+
+        let eprocess_size = driver.pdb_store.get_offset_r("_EPROCESS.struct_size")?;
+
+        let eprocess_valid_start = &data_addr;
+        let eprocess_valid_end = (pool_addr.clone() + chunk_size) - eprocess_size;
+        let mut try_eprocess_ptr = eprocess_valid_start.clone();
+
+        while try_eprocess_ptr <= eprocess_valid_end {
+            let create_time: u64 = driver.decompose(&try_eprocess_ptr, "_EPROCESS.CreateTime")?;
+            if driver.windows_ffi.valid_process_time(create_time) {
+                break;
+            }
+            try_eprocess_ptr += 0x4;
+        }
+        if try_eprocess_ptr > eprocess_valid_end {
+            return Ok(ScannerSignal::SearchNext);
+        }
+
+        // result.push(make_eprocess(driver, &try_eprocess_ptr)?);
+        let image_file_name: Vec<u8> = driver.decompose_array(&try_eprocess_ptr, "_EPROCESS.ImageFileName", 15).unwrap();
+        let proc_name = match from_utf8(&image_file_name) {
+            Ok(name) => (*name.trim_end_matches("\x00")).to_string(),
+            _ => "".to_string()
+        };
+
+        if proc_name == *expected {
+            result.push(make_eprocess(driver, &try_eprocess_ptr)?);
+
+            if find_one {
+                return Ok(ScannerSignal::StopScan);
+            }
+        }
+        Ok(ScannerSignal::FoundStruct)
+    })?;
+    Ok(result)
+
 }
 
 pub fn scan_file(driver: &DriverState) -> BoxResult<Vec<Value>> {
@@ -207,7 +252,7 @@ pub fn scan_file(driver: &DriverState) -> BoxResult<Vec<Value>> {
             try_ptr += 0x4; // search exhaustively
         }
         if try_ptr > valid_end {
-            return Ok(false);
+            return Ok(ScannerSignal::SearchNext);
         }
 
         let fob_addr = &try_ptr;
@@ -256,7 +301,7 @@ pub fn scan_file(driver: &DriverState) -> BoxResult<Vec<Value>> {
                 "D": share_delete_ok == 1
             }
         }));
-        Ok(true)
+        Ok(ScannerSignal::FoundStruct)
     })?;
 
     Ok(result)
@@ -293,12 +338,12 @@ pub fn scan_ethread(driver: &DriverState) -> BoxResult<Vec<Value>> {
                 try_ethread_ptr += 0x4; // search exhaustively
             }
             if try_ethread_ptr > ethread_valid_end {
-                return Ok(false);
+                return Ok(ScannerSignal::SearchNext);
             }
         }
 
         result.push(make_ethread(driver, &try_ethread_ptr)?);
-        Ok(true)
+        Ok(ScannerSignal::FoundStruct)
     })?;
 
     Ok(result)
@@ -390,10 +435,10 @@ pub fn scan_driver(driver: &DriverState) -> BoxResult<Vec<Value>> {
             try_ptr += 0x4; // search exhaustively
         }
         if try_ptr > valid_end {
-            return Ok(false);
+            return Ok(ScannerSignal::SearchNext);
         }
         result.push(make_driver(driver, &try_ptr)?);
-        Ok(true)
+        Ok(ScannerSignal::FoundStruct)
     })?;
 
     Ok(result)
@@ -408,7 +453,7 @@ pub fn scan_kernel_module(driver: &DriverState) -> BoxResult<Vec<Value>> {
         |_pool_addr, _, data_addr| {
             // By reversing, this structure does not have any header
             result.push(make_ldr(driver, &data_addr)?);
-            Ok(true)
+            Ok(ScannerSignal::FoundStruct)
         },
     )?;
 

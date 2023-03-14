@@ -35,6 +35,14 @@ pub fn to_epoch(filetime: u64) -> u64 {
 
 #[allow(dead_code)]
 #[derive(Debug)]
+pub enum ScannerSignal {
+    FoundStruct,        // Found a valid struct, scan for pool in the next chunk
+    SearchNext,         // Keep doing exhausting search
+    StopScan            // Stop the scanning process
+}
+
+#[allow(dead_code)]
+#[derive(Debug)]
 pub enum DriverAction {
     SetupOffset,
     GetKernelBase,
@@ -178,7 +186,7 @@ impl DriverState {
         mut handler: F,
     ) -> BoxResult<bool>
     where
-        F: FnMut(Address, &[u8], Address) -> BoxResult<bool>, // F(Pool Address, Pool Header Data, Pool Data Address)
+        F: FnMut(Address, &[u8], Address) -> BoxResult<ScannerSignal>, // F(Pool Address, Pool Header Data, Pool Data Address)
                                                               // TODO: Pool Header as a real struct
     {
         // TODO: scan large pool
@@ -229,11 +237,19 @@ impl DriverState {
             }
 
             let data_addr = Address::from_base(pool_addr.address() + pool_header_size);
-            let success = handler(pool_addr, &header, data_addr).unwrap_or(false);
-            if success {
-                ptr += chunk_size; // skip this chunk
-            } else {
-                ptr += 0x4; // search next
+            let handler_status = handler(pool_addr, &header, data_addr).unwrap_or(ScannerSignal::SearchNext);
+            match handler_status {
+                ScannerSignal::FoundStruct => {
+                    ptr += chunk_size;
+                }
+
+                ScannerSignal::SearchNext => {
+                    ptr += 0x4;
+                }
+
+                ScannerSignal::StopScan => {
+                    break;
+                }
             }
         }
         Ok(true)
