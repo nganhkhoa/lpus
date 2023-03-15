@@ -60,10 +60,17 @@ pub fn list_all_pdpte(driver_state: &DriverState, cr3: u64) -> Vec<PTE> {
 
 pub fn list_all_pde(driver_state: &DriverState, cr3: u64) -> Vec<PTE> {
     /* Return a list of all presenting PDE*/
+    // Handle both PDE and PDPTE for large pages (1gb pages)
 
     let pdpte_list = list_all_pdpte(driver_state, cr3);
     let mut pde_list : Vec<PTE> = Vec::new();
     for pdpte in pdpte_list {
+        if pdpte.is_large_page(driver_state).unwrap_or(false) {
+            // Return this value so it can be handled along with all other normal pages
+            pde_list.push(pdpte);
+            continue;
+        }
+
         for index in 0..512 {
             let entry_addr = (pdpte.get_pfn(driver_state).unwrap() << 12) | (index << 3);
             let new_entry = PTE::new(driver_state, entry_addr);
@@ -80,6 +87,13 @@ pub fn list_all_pte(driver_state: &DriverState, cr3: u64) -> Vec<PTE>{
     let pde_list = list_all_pde(driver_state, cr3);
     let mut pte_list: Vec<PTE> = Vec::new();
     for pde in pde_list {
+        if pde.is_large_page(driver_state).unwrap_or(false) {
+            // Return this value so it can be handled along with all other normal pages
+            // The list now includes PDPTE and PDE for large pages and PTE for normal pages 
+            pte_list.push(pde);
+            continue;
+        }
+
         for index in 0..512 {
             let entry_addr = (pde.get_pfn(driver_state).unwrap() << 12) | (index << 3);
             let new_entry = PTE::new(driver_state, entry_addr);
