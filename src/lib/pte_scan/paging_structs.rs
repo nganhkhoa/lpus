@@ -1,6 +1,7 @@
 use std::error::Error;
-use crate::address::Address;
-use crate::driver_state::*;
+use crate::address::{Address, self};
+use crate::driver_state::{*, self};
+use crate::utils::get_bit_mask_handler;
 
 // Ref: https://back.engineering/23/08/2020/
 // Ref: https://blog.efiens.com/post/luibo/address-translation-revisited/
@@ -74,5 +75,37 @@ impl PTE {
         }
 
         return Err("Writable page test is not implemented for this state".into())
+    }
+
+    pub fn is_large_page(&self, driver: &DriverState) -> BoxResult<bool> {
+        if self.state == PageState::HARDWARE {
+            let large_page_bit: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.LargePage").unwrap();
+            Ok(large_page_bit != 0)
+        } else {
+            // Large page is always non-paged
+            Ok(false)
+        }
+    }
+}
+
+pub struct MMPFN {
+    index: u64,
+    address: Address,
+}
+
+impl MMPFN {
+    pub fn new(driver: &DriverState, index: u64) -> Self {
+        let kernel_base = driver.get_kernel_base();
+        let pfn_db_base = kernel_base + driver.pdb_store.get_offset_r("MmPfnDatabase").unwrap();
+        let pfn_entry_size = driver.pdb_store.get_offset_r("struct_size").unwrap();
+        let entry_address = pfn_db_base + index * pfn_entry_size; 
+        Self { index: index, address: entry_address }
+    }
+
+    pub fn is_shared_mem(&self, driver: &DriverState) -> BoxResult<bool> {
+        let u4_union: u64 = driver.decompose(&self.address, "_MMPFN.u4")?;
+        let handler = get_bit_mask_handler(63, 1);
+        let prototype_pte_bit = handler(u4_union);
+        Ok(prototype_pte_bit == 0)
     }
 }

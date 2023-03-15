@@ -1,8 +1,9 @@
 use crate::driver_state::DriverState;
 use super::paging_structs::*;
+use std::error::Error;
 
-// Try using the new decompose method
-// TODO: In this new way, we have to read 64-bit everytime we want to query just 1 bit --> must improve somehow
+
+type BoxResult<T> = Result<T, Box<dyn Error>>;
 
 // https://github.com/mic101/windows/blob/master/WRK-v1.2/base/ntos/inc/amd64.h#L2594 (This is wrong!)
 // https://learn.microsoft.com/en-us/windows-hardware/drivers/gettingstarted/virtual-address-spaces
@@ -89,3 +90,8 @@ pub fn list_all_pte(driver_state: &DriverState, cr3: u64) -> Vec<PTE>{
     }
     return pte_list;
 }
+
+// pub fn iterate_pml4(driver_state: &DriverState, cr3: u64) -> Vec<PTE>;
+// pub fn iterate_pdpt(driver_state: &DriverState, base: u64) -> Vec<PTE>
+// pub fn iterate_page_dir_table(driver_state: &DriverState, base: u64) -> Vec<PTE>
+// pub fn iterate_page_table(driver_state: &DriverState, base: u64) -> Vec<PTE>
