@@ -44,7 +44,6 @@ pub fn list_all_pdpte(driver_state: &DriverState, cr3: u64) -> Vec<PTE> {
             // ptenum still perform the check for some reason
 
             // TODO: Read the whole PDPT instead of each entry one by one (IO is slow!)
-            // TODO: Handle large pages.
 
             // println!("Deref address {:x}", (pml4e.pfn.value() << 12) | (index << 3));
             let entry_addr = (pml4e.get_pfn(driver_state).unwrap() << 12) | (index << 3);
@@ -104,8 +103,3 @@ pub fn list_all_pte(driver_state: &DriverState, cr3: u64) -> Vec<PTE>{
     }
     return pte_list;
 }
-
-// pub fn iterate_pml4(driver_state: &DriverState, cr3: u64) -> Vec<PTE>;
-// pub fn iterate_pdpt(driver_state: &DriverState, base: u64) -> Vec<PTE>
-// pub fn iterate_page_dir_table(driver_state: &DriverState, base: u64) -> Vec<PTE>
-// pub fn iterate_page_table(driver_state: &DriverState, base: u64) -> Vec<PTE>

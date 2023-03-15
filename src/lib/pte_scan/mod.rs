@@ -14,10 +14,8 @@ pub fn scan_rwx_pages(driver: &DriverState, cr3: u64) -> BoxResult<Vec<PTE>>{
     let pte_table = list_all_pte(driver, cr3);
 
     for pte in pte_table {
-        if pte.is_present() {
-            if pte.is_executable(&driver).unwrap() && pte.is_writable(&driver).unwrap() {
-                result.push(pte);
-            }                
+        if pte.is_executable(&driver).unwrap() && pte.is_writable(&driver).unwrap() {
+            result.push(pte);
         } 
     }
     Ok(result)
