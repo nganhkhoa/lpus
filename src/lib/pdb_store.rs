@@ -12,7 +12,7 @@ use pdb::{
 };
 
 use crate::address::Address;
-use crate::utils;
+use crate::utils::mask_cast::*;
 use crate::APP_INFO;
 
 const KERNEL_PDB_NAME: &str = "ntkrnlmp.pdb";
@@ -106,14 +106,14 @@ impl PdbStore {
 
         if next.len() == 0 {
             // Default mask, getting every bits.
-            let mut mask_handler = utils::get_bit_mask_handler(0, 64);
+            let mut mask_handler = get_bit_mask_handler(0, 64);
             let mut required_len = 0;
             // ":" is my own sperator for bitfield type
             if memtype.contains(":") {
                 let bit_parts: Vec<&str> = memtype.split(":").collect();
                 let bit_pos: u64 = bit_parts[1].parse().unwrap();
                 let bit_len: u64 = bit_parts[2].parse().unwrap();
-                mask_handler = utils::get_bit_mask_handler(bit_pos, bit_len);
+                mask_handler = get_bit_mask_handler(bit_pos, bit_len);
                 required_len = bit_pos + bit_len;
                 //println!("Pos: {}, Len: {}", bit_pos, bit_len);
             }
