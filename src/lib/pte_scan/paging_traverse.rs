@@ -103,9 +103,3 @@ pub fn list_all_pte(driver_state: &DriverState, cr3: u64) -> Vec<PTE>{
     }
     return pte_list;
 }
-
-pub fn dump_page_content(pfn: u64) {
-    let page_start = pfn << 12;
-
-    // TODO: add function to dump an array by physical address
-}

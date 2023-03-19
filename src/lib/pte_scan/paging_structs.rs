@@ -1,8 +1,8 @@
 use std::error::Error;
 use  std::convert::From;
-use crate::address::{Address, self};
-use crate::driver_state::{*, self};
-use crate::utils::get_bit_mask_handler;
+use crate::address::Address;
+use crate::driver_state::*;
+use crate::utils::mask_cast::get_bit_mask_handler;
 
 // Ref: https://back.engineering/23/08/2020/
 // Ref: https://blog.efiens.com/post/luibo/address-translation-revisited/
@@ -36,7 +36,7 @@ pub enum PteProtection {
 impl From<u64> for PteProtection {
     fn from(value: u64) -> Self {
         match value {
-            // 0 => PteProtection::MM_ZERO_ACCESS,
+            0 => PteProtection::MM_ZERO_ACCESS,
             1 => PteProtection::MM_READONLY,
             2 => PteProtection::MM_EXECUTE,
             3 => PteProtection::MM_EXECUTE_READ,
@@ -96,6 +96,11 @@ impl PTE {
         return self.state == PageState::HARDWARE;
     }
 
+    // pub fn test_present_exact(&self, driver: &DriverState) -> bool {
+    //     let is_hardware: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.Valid").unwrap();
+    //     return is_hardware != 0;
+    // }
+
     pub fn get_pfn(&self, driver: &DriverState) -> BoxResult<u64> {
         if self.state == PageState::HARDWARE {
             let pfn: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.PageFrameNumber").unwrap();
@@ -125,7 +130,7 @@ impl PTE {
             }
 
             let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_PROTOTYPE.Protection")?;
-            if protection == 0 {
+            if protection != 0 {
                 return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_executable());
             } else {
                 let proto_pte = PTE::new(driver, proto_address);
@@ -144,7 +149,7 @@ impl PTE {
                 let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_SOFTWARE.Protection")?;
                 return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_executable());
             } else {
-                println!("Page is in an unknown state");
+                // println!("Page is in an unknown state");
                 return Ok(false);
             }
         }
@@ -168,7 +173,7 @@ impl PTE {
             }
 
             let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_PROTOTYPE.Protection")?;
-            if protection == 0 {
+            if protection != 0 {
                 return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_writable());
             } else {
                 let proto_pte = PTE::new(driver, proto_address);
@@ -187,7 +192,7 @@ impl PTE {
                 let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_SOFTWARE.Protection")?;
                 return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_writable());
             } else {
-                println!("Page is in an unknown state");
+                // println!("Page is in an unknown state");
                 return Ok(false);
             }
         }
@@ -213,17 +218,20 @@ pub struct MMPFN {
 impl MMPFN {
     pub fn new(driver: &DriverState, index: u64) -> Self {
         let kernel_base = driver.get_kernel_base();
-        let pfn_db_base = kernel_base + driver.pdb_store.get_offset_r("MmPfnDatabase").unwrap();
-        let pfn_entry_size = driver.pdb_store.get_offset_r("struct_size").unwrap();
+        let pfn_symbol = kernel_base + driver.pdb_store.get_offset_r("MmPfnDatabase").unwrap();
+        let pfn_db_base: u64 = driver.deref_addr_new(pfn_symbol.address());
+        let pfn_entry_size = driver.pdb_store.get_offset_r("_MMPFN.struct_size").unwrap();
         let entry_address = pfn_db_base + index * pfn_entry_size; 
-        Self { index: index, address: entry_address }
+        Self { index: index, address: Address::from_base(entry_address) }
     }
 
     pub fn is_shared_mem(&self, driver: &DriverState) -> BoxResult<bool> {
-        let u4_union: u64 = driver.decompose(&self.address, "_MMPFN.u4")?;
-        let handler = get_bit_mask_handler(63, 1);
         // Getting _MMPFN.u4.PrototypePte
+        // TODO: add union support for decompose 
+        let u4_union: u64 = driver.decompose(&self.address, "_MMPFN.u4")?;
+        // According to windbg
+        let handler = get_bit_mask_handler(57, 1);
         let prototype_pte_bit = handler(u4_union);
-        Ok(prototype_pte_bit == 0)
+        Ok(prototype_pte_bit != 0)
     }
 }

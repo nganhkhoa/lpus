@@ -14,9 +14,11 @@ pub fn scan_rwx_pages(driver: &DriverState, cr3: u64) -> BoxResult<Vec<PTE>>{
     let pte_table = list_all_pte(driver, cr3);
 
     for pte in pte_table {
+        // if pte.is_present() {
         if pte.is_executable(&driver).unwrap() && pte.is_writable(&driver).unwrap() {
             result.push(pte);
         } 
+        // }
     }
     Ok(result)
 }
@@ -25,10 +27,15 @@ pub fn scan_injected_pages(driver: &DriverState, cr3: u64) -> BoxResult<Vec<PTE>
     let mut result: Vec<PTE> = Vec::new();
     let pte_table = list_all_pte(driver, cr3);
     for pte in pte_table {
-        let pfn = pte.get_pfn(driver)?;
-        let pfn_entry = MMPFN::new(driver, pfn);
-        if pte.is_executable(driver)? && !pfn_entry.is_shared_mem(driver)? {
-            result.push(pte);
+        if pte.is_present(){
+            let pfn = pte.get_pfn(driver).unwrap_or(0);
+            if pfn == 0 {
+                continue;
+            }
+            let pfn_entry = MMPFN::new(driver, pfn);
+            if pte.is_executable(driver)? && !pfn_entry.is_shared_mem(driver)? {
+                result.push(pte);
+            }
         }
     }
     Ok(result)

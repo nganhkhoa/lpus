@@ -335,6 +335,23 @@ impl DriverState {
         r
     }
 
+    pub fn deref_array_physical<T: Default + Clone>(&self, addr: &Address, len: u64) -> Vec<T> {
+        let resolver = |p| self.deref_physical_addr(p);
+        let mut outbuf: Vec<T> = vec![Default::default(); len as usize];
+        let size_in_byte = (len as usize) * size_of::<T>();
+        // self.deref_addr_ptr(addr.get(&resolver), r.as_mut_ptr(), size_in_byte as u64);
+
+        let code = DriverAction::DereferencePhysicalAddress.get_code();
+        let mut input = InputData {
+            deref_addr: DerefAddr {
+                addr: addr.get(&resolver),
+                size: size_in_byte as u64,
+            },
+        };
+        self.windows_ffi.device_io(code, &mut input, &mut outbuf);
+        outbuf
+    }
+
     // #[deprecated(note="use deref_addr_new<T>")]
     pub fn deref_addr<T>(&self, addr: u64, outbuf: &mut T) {
         let code = DriverAction::DereferenceAddress.get_code();
