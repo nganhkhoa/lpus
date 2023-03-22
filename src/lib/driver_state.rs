@@ -348,7 +348,18 @@ impl DriverState {
                 size: size_in_byte as u64,
             },
         };
-        self.windows_ffi.device_io(code, &mut input, &mut outbuf);
+        // unsafe {
+        //     self.windows_ffi.device_io(code, &mut input, &mut *outbuf.as_mut_ptr());
+        // }
+
+        self.windows_ffi.device_io_raw(
+            code,
+            &mut input as *mut _ as *mut c_void,
+            size_of_val(&input) as DWORD,
+            outbuf.as_mut_ptr() as *mut c_void,
+            len as DWORD,
+        );
+
         outbuf
     }
 

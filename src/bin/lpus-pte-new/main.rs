@@ -4,7 +4,7 @@ use lpus::utils::hex_dump::{self, print_hex_dump};
 use lpus::pte_scan::*;
 use std::error::Error;
 
-const PAGE_SIZE: u64 = 0x10;
+const PAGE_SIZE: u64 = 0x1000;
 
 fn main()-> Result<(), Box<dyn Error>> {
     let matches = App::new("Listing all PTEs")
@@ -45,10 +45,10 @@ fn main()-> Result<(), Box<dyn Error>> {
 
         for pte in page_list {
             let physical_addr = pte.get_pfn(&driver).unwrap() << 12;
+		println!("\n***************************************************************\n");
             println!("Injected code at: 0x{:x}", physical_addr);
-            //let content: Vec<u8> = driver.deref_array_physical(&Address::from_base(physical_addr), PAGE_SIZE);
-		//println!("{:?}", content);
-            //print_hex_dump(&content, physical_addr);
+            let content: Vec<u8> = driver.deref_array_physical(&Address::from_base(physical_addr), PAGE_SIZE);
+            print_hex_dump(&content, physical_addr);
             println!("\n***************************************************************\n");
         }
     }

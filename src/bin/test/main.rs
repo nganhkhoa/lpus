@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let data : Vec<u8> = (0u8..200u8).collect();
     print_hex_dump(&data, 0);
     println!("\n***************************************************************\n");
-    let data2: Vec<u8> = vec![0,0,0,0,0,0,0,0,0,1,2,3,4,5,6,7,8,9,0,0,0,0,0,10,11,12,13,0,0,0,0,0,0,0];
+    let data2: Vec<u8> = vec![0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
     print_hex_dump(&data2, 0);
 
     Ok(())
