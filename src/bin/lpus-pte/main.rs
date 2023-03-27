@@ -39,11 +39,23 @@ fn main()-> Result<(), Box<dyn Error>> {
         } else if proc_list.len() > 1 {
             return Err(format!("Many processes with name {}", name).into())
         }
-
+        
         let cr3 = proc_list[0]["directory_table"].as_u64().unwrap();   
-        let page_list = scan_injected_pages(&driver, cr3).unwrap();
 
+        println!("=============PTE + PFNDB scan=============");
+        let page_list = scan_injected_pages(&driver, cr3).unwrap();
         for pte in page_list {
+            let physical_addr = pte.get_pfn(&driver).unwrap() << 12;
+		println!("\n***************************************************************\n");
+            println!("Injected code at: 0x{:x}", physical_addr);
+            let content: Vec<u8> = driver.deref_array_physical(&Address::from_base(physical_addr), PAGE_SIZE);
+            print_hex_dump(&content, physical_addr);
+            println!("\n***************************************************************\n");
+        }
+
+        println!("=============PTE RWX scan=============");
+        let rwx_page_list = scan_rwx_pages(&driver, cr3).unwrap();
+        for pte in rwx_page_list {
             let physical_addr = pte.get_pfn(&driver).unwrap() << 12;
 		println!("\n***************************************************************\n");
             println!("Injected code at: 0x{:x}", physical_addr);
