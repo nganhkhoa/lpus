@@ -30,6 +30,7 @@ prettytable-rs = "^0.8"
 rust-embed="5.6.0"
 clap="2.33.1"
 hexplay = "0.2.1"
+capstone = "0.11.0"
 
 [build-dependencies]
 vergen="3.1.0"
