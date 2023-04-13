@@ -1,0 +1,3 @@
+﻿  Process-Injection-poc.cpp
+D:\thesis\injection-poc\Process-Injection-poc\Process-Injection-poc.cpp(94,16): warning C4477: 'printf' : format string '%llx' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'PVOID'
+  Process-Injection-poc.vcxproj -> D:\thesis\injection-poc\Process-Injection-poc\x64\Debug\Process-Injection-poc.exe

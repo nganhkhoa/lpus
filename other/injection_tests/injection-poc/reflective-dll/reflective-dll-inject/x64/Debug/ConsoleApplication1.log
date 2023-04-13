@@ -1,0 +1,19 @@
+﻿C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\MSBuild\Microsoft\VC\v160\Microsoft.CppBuild.targets(513,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (ConsoleApplication1.vcxproj).  This can lead to incorrect clean and rebuild behavior.
+  reflective-dll-inject.cpp
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(49,108): warning C4311: 'type cast': pointer truncation from 'LPBYTE' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(49,108): warning C4302: 'type cast': truncation from 'LPBYTE' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(84,52): warning C4311: 'type cast': pointer truncation from 'FARPROC' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(84,52): warning C4302: 'type cast': truncation from 'FARPROC' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(94,88): warning C4311: 'type cast': pointer truncation from 'FARPROC' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(94,88): warning C4302: 'type cast': truncation from 'FARPROC' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(150,84): warning C4311: 'type cast': pointer truncation from 'PBYTE' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(150,84): warning C4302: 'type cast': truncation from 'PBYTE' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(172,271): warning C4311: 'type cast': pointer truncation from 'FARPROC' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(172,271): warning C4302: 'type cast': truncation from 'FARPROC' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(237,11): warning C4477: 'printf_s' : format string '%llx' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'LPVOID'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(249,37): warning C4311: 'type cast': pointer truncation from 'DWORD (__cdecl *)(void)' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(249,37): warning C4302: 'type cast': truncation from 'DWORD (__cdecl *)(void)' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(249,59): warning C4311: 'type cast': pointer truncation from 'DWORD (__cdecl *)(LPVOID)' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(249,59): warning C4302: 'type cast': truncation from 'DWORD (__cdecl *)(LPVOID)' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(255,11): warning C4477: 'printf_s' : format string '%llx' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'LPVOID'
+  ConsoleApplication1.vcxproj -> D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\x64\Debug\reflective-dll-inject.exe

@@ -1,0 +1,17 @@
+﻿  reflective-dll-inject.cpp
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(49,108): warning C4311: 'type cast': pointer truncation from 'LPBYTE' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(49,108): warning C4302: 'type cast': truncation from 'LPBYTE' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(84,52): warning C4311: 'type cast': pointer truncation from 'FARPROC' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(84,52): warning C4302: 'type cast': truncation from 'FARPROC' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(150,84): warning C4311: 'type cast': pointer truncation from 'PBYTE' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(150,84): warning C4302: 'type cast': truncation from 'PBYTE' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(257,37): warning C4311: 'type cast': pointer truncation from 'DWORD (__cdecl *)(void)' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(257,37): warning C4302: 'type cast': truncation from 'DWORD (__cdecl *)(void)' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(257,59): warning C4311: 'type cast': pointer truncation from 'DWORD (__cdecl *)(LPVOID)' to 'DWORD'
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\reflective-dll-inject.cpp(257,59): warning C4302: 'type cast': truncation from 'DWORD (__cdecl *)(LPVOID)' to 'DWORD'
+  Generating code
+  124 of 129 functions (96.1%) were compiled, the rest were copied from previous compilation.
+    106 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  ConsoleApplication1.vcxproj -> D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\x64\Release\reflective-dll-inject.exe

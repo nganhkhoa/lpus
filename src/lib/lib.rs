@@ -228,6 +228,46 @@ pub fn find_eprocess_by_name(driver: &DriverState, expected: &String, find_one: 
 
 }
 
+pub fn find_eprocess_by_pid(driver: &DriverState, expected: u64) -> BoxResult<Vec<Value>> {
+    let mut result: Vec<Value> = Vec::new();
+    let tag = if driver.use_old_tag() {
+        b"Pro\xe3"
+    } else {
+        b"Proc"
+    };
+
+    driver.scan_pool(tag, "_EPROCESS", |pool_addr, header, data_addr| {
+        let chunk_size = (header[2] as u64) * 16u64;
+
+        let eprocess_size = driver.pdb_store.get_offset_r("_EPROCESS.struct_size")?;
+
+        let eprocess_valid_start = &data_addr;
+        let eprocess_valid_end = (pool_addr.clone() + chunk_size) - eprocess_size;
+        let mut try_eprocess_ptr = eprocess_valid_start.clone();
+
+        while try_eprocess_ptr <= eprocess_valid_end {
+            let create_time: u64 = driver.decompose(&try_eprocess_ptr, "_EPROCESS.CreateTime")?;
+            if driver.windows_ffi.valid_process_time(create_time) {
+                break;
+            }
+            try_eprocess_ptr += 0x4;
+        }
+        if try_eprocess_ptr > eprocess_valid_end {
+            return Ok(ScannerSignal::SearchNext);
+        }
+
+        let pid : u64 = driver.decompose(&try_eprocess_ptr, "_EPROCESS.UniqueProcessId")?;
+
+        if pid == expected {
+            result.push(make_eprocess(driver, &try_eprocess_ptr)?);
+            return Ok(ScannerSignal::StopScan);
+        }
+        Ok(ScannerSignal::FoundStruct)
+    })?;
+    Ok(result)
+
+}
+
 pub fn scan_file(driver: &DriverState) -> BoxResult<Vec<Value>> {
     let mut result: Vec<Value> = Vec::new();
 
