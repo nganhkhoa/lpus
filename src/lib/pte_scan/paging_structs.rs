@@ -160,7 +160,15 @@ impl PTE {
         // Get the write access right similar to the way we get the exec right
         if self.state == PageState::HARDWARE {
             let write_bit: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.Write").unwrap();
-            return Ok(write_bit != 0);
+            if write_bit != 0 {
+                return Ok(true);
+            }
+            // Detection for writable shared pages
+            // Writable shared pages may have write bit unset, but the copy-on-write bit is still set to 1
+            // Mainly to handle DirtyVanity
+            let copy_on_write_bit: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.CopyOnWrite").unwrap();
+            return Ok(copy_on_write_bit != 0);
+
         } else if self.state == PageState::TRANSITION {
             let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_TRANSITION.Protection")?;
             return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_writable());
