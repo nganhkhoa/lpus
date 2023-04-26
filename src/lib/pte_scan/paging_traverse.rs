@@ -20,7 +20,6 @@ pub fn list_all_pml4e(driver_state: &DriverState, cr3: u64) -> Vec<PTE> {
             break;
         }
 
-        // let data : u64 = driver_state.deref_physical_addr((cr3 & 0xffffffffff000) | (index  << 3));
         let entry_addr = (cr3 & 0xffffffffff000) | (index  << 3);
         let new_entry = PTE::new(driver_state, entry_addr);
         if new_entry.is_present() {

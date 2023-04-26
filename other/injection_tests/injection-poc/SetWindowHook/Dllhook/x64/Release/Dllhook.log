@@ -1,0 +1,8 @@
+﻿  pch.cpp
+  dllmain.cpp
+     Creating library D:\thesis\lpus\other\injection_tests\injection-poc\SetWindowHook\SetWindowHook\x64\Release\Dllhook.lib and object D:\thesis\lpus\other\injection_tests\injection-poc\SetWindowHook\SetWindowHook\x64\Release\Dllhook.exp
+  Generating code
+  Previous IPDB not found, fall back to full compilation.
+  All 2 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  Finished generating code
+  Dllhook.vcxproj -> D:\thesis\lpus\other\injection_tests\injection-poc\SetWindowHook\SetWindowHook\x64\Release\Dllhook.dll
