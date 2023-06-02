@@ -58,17 +58,17 @@ fn main()-> Result<(), Box<dyn Error>> {
     } else {
         // Default to scan first 50 processes
         // The tool will crash if it scans to many processes
-        proc_list = scan_eprocess(&driver).unwrap_or(Vec::new())[0..50].into();
+        proc_list = scan_eprocess(&driver).unwrap_or(Vec::new())[0.70].into();
     }
         
         for proc in proc_list {
-            println!("================= Scanning process: {} - PID: {} =================\n", proc["name"], proc["pid"]);
+            println!("\n================= Scanning process: {} - PID: {} =================\n", proc["name"], proc["pid"]);
             let cr3 = proc["directory_table"].as_u64().unwrap();   
             println!("=================== PTE + PFNDB scan ===================");
             let page_list = scan_injected_pages(&driver, cr3).unwrap();
             if page_list.len() != 0 {
                 println!("Detected {:?} injected pages", page_list.len());
-                for pte in &page_list {
+                for pte in &page_list[0..1] {
                     let physical_addr = pte.get_pfn(&driver).unwrap() << 12;
                     println!("Injected code at: 0x{:x}", physical_addr);
                     let content: Vec<u8> = driver.deref_array_physical(&Address::from_base(physical_addr), PAGE_SIZE);
@@ -79,11 +79,11 @@ fn main()-> Result<(), Box<dyn Error>> {
                 }
             }
 
-            println!("=================== PTE RWX scan ===================");
+            println!("===================   PTE RWX scan   ===================");
             let rwx_page_list = scan_rwx_pages(&driver, cr3).unwrap();
             if rwx_page_list.len() != 0 {
                 println!("Detected {:?} injected pages", rwx_page_list.len());
-                for pte in &rwx_page_list {
+                for pte in &rwx_page_list[0..1] {
                     let physical_addr = pte.get_pfn(&driver).unwrap() << 12;
                     println!("Injected code at: 0x{:x}", physical_addr);
                     let content: Vec<u8> = driver.deref_array_physical(&Address::from_base(physical_addr), PAGE_SIZE);

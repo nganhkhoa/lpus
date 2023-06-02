@@ -75,7 +75,7 @@ pub struct PTE {
 
 impl PTE {
 
-    pub fn new(driver: &DriverState, addr: u64) -> Self {
+    pub fn from_addr(driver: &DriverState, addr: u64) -> Self {
         let addr_obj = Address::from_base(addr);
         // let is_hardware: u64 = driver.decompose_physical(&addr_obj, "_MMPTE_HARDWARE.Valid").unwrap();
         // if is_hardware != 0 {
@@ -112,6 +112,30 @@ impl PTE {
             return Self{state: PageState::TRANSITION, address: addr_obj, value: pte_value};
         }
         return Self{state: PageState::PAGEFILE, address: addr_obj, value: pte_value};
+
+    }
+
+    pub fn from_value(driver: &DriverState, pte_value: u64) -> Self {
+        let addr_obj = Address::from_base(0);
+        let (offset, hardware_handler, _) = driver.pdb_store.decompose(&addr_obj, "_MMPTE_HARDWARE.Valid").unwrap();
+        
+        let is_hardware = hardware_handler(pte_value);
+        if is_hardware != 0 {
+            return Self{state: PageState::HARDWARE, address: addr_obj, value: pte_value};
+        }
+        let (_, prototype_handler, _) = driver.pdb_store.decompose(&addr_obj, "_MMPTE_PROTOTYPE.Prototype").unwrap();
+        let is_prototype = prototype_handler(pte_value);
+        if is_prototype != 0 {
+            return Self{state: PageState::PROTOTYPE, address: addr_obj, value: pte_value};
+        }
+
+        let (_, trans_handler, _) = driver.pdb_store.decompose(&addr_obj, "_MMPTE_TRANSITION.Transition").unwrap();
+        let is_transition = trans_handler(pte_value);
+        if is_transition != 0 {
+            return Self{state: PageState::TRANSITION, address: addr_obj, value: pte_value};
+        }
+        return Self{state: PageState::PAGEFILE, address: addr_obj, value: pte_value};
+
 
     }
 
@@ -167,7 +191,7 @@ impl PTE {
             if protection != 0 {
                 return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_executable());
             } else {
-                let proto_pte = PTE::new(driver, proto_address);
+                let proto_pte = PTE::from_addr(driver, proto_address);
                 // If the prototype pte has prototype bit set, apply the _MMPTE_SUBSECTION struct
                 // Otherwise handle it like a normal MMU PTE
                 if proto_pte.state == PageState::PROTOTYPE {
@@ -196,14 +220,16 @@ impl PTE {
     pub fn is_writable(&self, driver: &DriverState) -> BoxResult<bool> {
         // Get the write access right similar to the way we get the exec right
         if self.state == PageState::HARDWARE {
-            let write_bit: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.Write").unwrap();
+            // let write_bit: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.Write").unwrap();
+            let write_bit = self.get_pte_field(driver, "_MMPTE_HARDWARE.Write");
             if write_bit != 0 {
                 return Ok(true);
             }
             // Detection for writable shared pages
             // Writable shared pages may have write bit unset, but the copy-on-write bit is still set to 1
             // Mainly to handle DirtyVanity
-            let copy_on_write_bit: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.CopyOnWrite").unwrap();
+            // let copy_on_write_bit: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.CopyOnWrite").unwrap();
+            let copy_on_write_bit = self.get_pte_field(driver, "_MMPTE_HARDWARE.CopyOnWrite");
             return Ok(copy_on_write_bit != 0);
 
         } else if self.state == PageState::TRANSITION {
@@ -224,7 +250,7 @@ impl PTE {
             if protection != 0 {
                 return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_writable());
             } else {
-                let proto_pte = PTE::new(driver, proto_address);
+                let proto_pte = PTE::from_addr(driver, proto_address);
                 // If the prototype pte has prototype bit set, apply the _MMPTE_SUBSECTION struct
                 // Otherwise handle it like a normal MMU PTE
                 if proto_pte.state == PageState::PROTOTYPE {
