@@ -52,6 +52,7 @@ pub enum DriverAction {
     DereferenceAddress,
     DereferencePhysicalAddress,
     HideProcess,
+    GetPteBaseAddress,
 }
 
 impl DriverAction {
@@ -80,6 +81,9 @@ impl DriverAction {
             }
             DriverAction::HideProcess => {
                 CTL_CODE(SIOCTL_TYPE, 0xA02, METHOD_IN_DIRECT, FILE_ANY_ACCESS)
+            }
+            DriverAction::GetPteBaseAddress => {
+                CTL_CODE(SIOCTL_TYPE, 0xB01, METHOD_OUT_DIRECT, FILE_ANY_ACCESS)
             }
         }
     }
@@ -177,6 +181,17 @@ impl DriverState {
             &mut ntosbase,
         );
         Address::from_base(ntosbase)
+    }
+
+    pub fn get_pte_base(&self) -> Address {
+        // Get base address of PTE 
+        let mut pteBase = 0u64;
+        self.windows_ffi.device_io(
+            DriverAction::GetPteBaseAddress.get_code(),
+             &mut Nothing, 
+             &mut pteBase
+        );
+        Address::from_base(pteBase)
     }
 
     pub fn scan_pool<F>(

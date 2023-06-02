@@ -8,6 +8,11 @@ type BoxResult<T> = Result<T, Box<dyn Error>>;
 // https://github.com/mic101/windows/blob/master/WRK-v1.2/base/ntos/inc/amd64.h#L2594 (This is wrong!)
 // https://learn.microsoft.com/en-us/windows-hardware/drivers/gettingstarted/virtual-address-spaces
 const HIGHEST_USER_ADDRESS : u64 = 0x7FFFFFFFFFFF;
+static mut PTE_BASE : u64 = 0;
+
+pub fn startup(driver_state: &DriverState) {
+
+}
 
 pub fn list_all_pml4e(driver_state: &DriverState, cr3: u64) -> Vec<PTE> {   
     /* Return a list of all presenting PML4 entries*/

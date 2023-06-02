@@ -69,27 +69,55 @@ impl PteProtection {
 // Since PML4E, PDPTE and PDE have the same structure, this struct can be used for all paging struct
 pub struct PTE {
     pub state: PageState,
-    pub address: Address
+    pub address: Address,
+    pub value: u64
 }
 
 impl PTE {
+
     pub fn new(driver: &DriverState, addr: u64) -> Self {
         let addr_obj = Address::from_base(addr);
-        let is_hardware: u64 = driver.decompose_physical(&addr_obj, "_MMPTE_HARDWARE.Valid").unwrap();
+        // let is_hardware: u64 = driver.decompose_physical(&addr_obj, "_MMPTE_HARDWARE.Valid").unwrap();
+        // if is_hardware != 0 {
+        //     return Self{state: PageState::HARDWARE, address: addr_obj};
+        // }
+
+        // let is_prototype: u64 = driver.decompose_physical(&addr_obj, "_MMPTE_PROTOTYPE.Prototype").unwrap();
+        // if is_prototype != 0 {
+        //     return Self{state: PageState::PROTOTYPE, address: addr_obj};
+        // }
+
+        // let is_transition: u64 = driver.decompose_physical(&addr_obj, "_MMPTE_TRANSITION.Transition").unwrap();
+        // if is_transition != 0 {
+        //     return Self{state: PageState::TRANSITION, address: addr_obj};
+        // }
+        // return Self{state: PageState::PAGEFILE, address: addr_obj};
+        let pte_value = driver.deref_physical_addr(addr);
+        let (offset, hardware_handler, _) = driver.pdb_store.decompose(&addr_obj, "_MMPTE_HARDWARE.Valid").unwrap();
+        assert!(offset.address() == addr_obj.address(), "Fault in decomposing PTE");
+        
+        let is_hardware = hardware_handler(pte_value);
         if is_hardware != 0 {
-            return Self{state: PageState::HARDWARE, address: addr_obj};
+            return Self{state: PageState::HARDWARE, address: addr_obj, value: pte_value};
         }
-
-        let is_prototype: u64 = driver.decompose_physical(&addr_obj, "_MMPTE_PROTOTYPE.Prototype").unwrap();
+        let (_, prototype_handler, _) = driver.pdb_store.decompose(&addr_obj, "_MMPTE_PROTOTYPE.Prototype").unwrap();
+        let is_prototype = prototype_handler(pte_value);
         if is_prototype != 0 {
-            return Self{state: PageState::PROTOTYPE, address: addr_obj};
+            return Self{state: PageState::PROTOTYPE, address: addr_obj, value: pte_value};
         }
 
-        let is_transition: u64 = driver.decompose_physical(&addr_obj, "_MMPTE_TRANSITION.Transition").unwrap();
+        let (_, trans_handler, _) = driver.pdb_store.decompose(&addr_obj, "_MMPTE_TRANSITION.Transition").unwrap();
+        let is_transition = trans_handler(pte_value);
         if is_transition != 0 {
-            return Self{state: PageState::TRANSITION, address: addr_obj};
+            return Self{state: PageState::TRANSITION, address: addr_obj, value: pte_value};
         }
-        return Self{state: PageState::PAGEFILE, address: addr_obj};
+        return Self{state: PageState::PAGEFILE, address: addr_obj, value: pte_value};
+
+    }
+
+    pub fn get_pte_field(&self, driver: &DriverState, name: &str) -> u64 {
+        let (addr, handler, len) = driver.pdb_store.decompose(&self.address, name).unwrap();
+        handler(self.value)
     }
 
     pub fn is_present(&self) -> bool{
@@ -103,10 +131,12 @@ impl PTE {
 
     pub fn get_pfn(&self, driver: &DriverState) -> BoxResult<u64> {
         if self.state == PageState::HARDWARE {
-            let pfn: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.PageFrameNumber").unwrap();
+            // let pfn: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.PageFrameNumber").unwrap();
+            let pfn = self.get_pte_field(driver, "_MMPTE_HARDWARE.PageFrameNumber");
             return Ok(pfn);
         } else if self.state == PageState::TRANSITION {
-            let pfn: u64 = driver.decompose_physical(&self.address, "_MMPTE_TRANSITION.PageFrameNumber").unwrap();
+            // let pfn: u64 = driver.decompose_physical(&self.address, "_MMPTE_TRANSITION.PageFrameNumber").unwrap();
+            let pfn = self.get_pte_field(driver, "_MMPTE_TRANSITION.PageFrameNumber");
             return Ok(pfn);
         } else {
             return Err("No PFN in this state of PTE".into());
@@ -116,20 +146,24 @@ impl PTE {
     pub fn is_executable(&self, driver: &DriverState) -> BoxResult<bool> {
         // Following: https://github.com/f-block/volatility-plugins/blob/main/ptenum.py
         if self.state == PageState::HARDWARE {
-            let nx_bit: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.NoExecute")?;
+            // let nx_bit: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.NoExecute")?;
+            let nx_bit = self.get_pte_field(driver, "_MMPTE_HARDWARE.NoExecute");
             return Ok(nx_bit == 0);
         } else if self.state == PageState::TRANSITION {
-            let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_TRANSITION.Protection")?;
+            // let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_TRANSITION.Protection")?;
+            let protection = self.get_pte_field(driver, "_MMPTE_TRANSITION.Protection");
             return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_executable());
         } else if self.state == PageState::PROTOTYPE {
-            let proto_address: u64 = driver.decompose_physical(&self.address, "_MMPTE_PROTOTYPE.ProtoAddress")?;
-            
+            // let proto_address: u64 = driver.decompose_physical(&self.address, "_MMPTE_PROTOTYPE.ProtoAddress")?;
+            let proto_address = self.get_pte_field(driver, "_MMPTE_PROTOTYPE.ProtoAddress");
             if proto_address == 0xffffffff0000 {
-                let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_SOFTWARE.Protection")?;
+                // let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_SOFTWARE.Protection")?;
+                let protection = self.get_pte_field(driver, "_MMPTE_SOFTWARE.Protection");
                 return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_executable());
             }
 
-            let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_PROTOTYPE.Protection")?;
+            // let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_PROTOTYPE.Protection")?;
+            let protection = self.get_pte_field(driver, "_MMPTE_PROTOTYPE.Protection");
             if protection != 0 {
                 return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_executable());
             } else {
@@ -137,16 +171,19 @@ impl PTE {
                 // If the prototype pte has prototype bit set, apply the _MMPTE_SUBSECTION struct
                 // Otherwise handle it like a normal MMU PTE
                 if proto_pte.state == PageState::PROTOTYPE {
-                    let proto_protection: u64 = driver.decompose_physical(&proto_pte.address, "_MMPTE_SUBSECTION.Protection")?;
+                    // let proto_protection: u64 = driver.decompose_physical(&proto_pte.address, "_MMPTE_SUBSECTION.Protection")?;
+                    let proto_protection = proto_pte.get_pte_field(driver, "_MMPTE_SUBSECTION.Protection");
                     return Ok(PteProtection::from(proto_protection & MM_PROTECT_ACCESS).is_executable());
                 } else {
                     return proto_pte.is_executable(driver);
                 }
             }
         } else if self.state == PageState::PAGEFILE {
-            let page_file_high: u64 = driver.decompose_physical(&self.address, "_MMPTE_SOFTWARE.PageFileHigh")?;
+            // let page_file_high: u64 = driver.decompose_physical(&self.address, "_MMPTE_SOFTWARE.PageFileHigh")?;
+            let page_file_high = self.get_pte_field(driver, "_MMPTE_SOFTWARE.PageFileHigh");
             if page_file_high != 0 {
-                let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_SOFTWARE.Protection")?;
+                // let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_SOFTWARE.Protection")?;
+                let protection = self.get_pte_field(driver, "_MMPTE_SOFTWARE.Protection");
                 return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_executable());
             } else {
                 // println!("Page is in an unknown state");
@@ -170,17 +207,20 @@ impl PTE {
             return Ok(copy_on_write_bit != 0);
 
         } else if self.state == PageState::TRANSITION {
-            let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_TRANSITION.Protection")?;
+            // let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_TRANSITION.Protection")?;
+            let protection = self.get_pte_field(driver, "_MMPTE_TRANSITION.Protection");
             return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_writable());
         } else if self.state == PageState::PROTOTYPE {
-            let proto_address: u64 = driver.decompose_physical(&self.address, "_MMPTE_PROTOTYPE.ProtoAddress")?;
-            
+            // let proto_address: u64 = driver.decompose_physical(&self.address, "_MMPTE_PROTOTYPE.ProtoAddress")?;
+            let proto_address = self.get_pte_field(driver, "_MMPTE_PROTOTYPE.ProtoAddress");
             if proto_address == 0xffffffff0000 {
-                let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_SOFTWARE.Protection")?;
+                // let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_SOFTWARE.Protection")?;
+                let protection = self.get_pte_field(driver, "_MMPTE_SOFTWARE.Protection");
                 return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_writable());
             }
 
-            let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_PROTOTYPE.Protection")?;
+            // let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_PROTOTYPE.Protection")?;
+            let protection = self.get_pte_field(driver, "_MMPTE_PROTOTYPE.Protection");
             if protection != 0 {
                 return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_writable());
             } else {
@@ -188,16 +228,19 @@ impl PTE {
                 // If the prototype pte has prototype bit set, apply the _MMPTE_SUBSECTION struct
                 // Otherwise handle it like a normal MMU PTE
                 if proto_pte.state == PageState::PROTOTYPE {
-                    let proto_protection: u64 = driver.decompose_physical(&proto_pte.address, "_MMPTE_SUBSECTION.Protection")?;
+                    // let proto_protection: u64 = driver.decompose_physical(&proto_pte.address, "_MMPTE_SUBSECTION.Protection")?;
+                    let proto_protection = proto_pte.get_pte_field(driver, "_MMPTE_SUBSECTION.Protection");
                     return Ok(PteProtection::from(proto_protection & MM_PROTECT_ACCESS).is_writable());
                 } else {
                     return proto_pte.is_writable(driver);
                 }
             }
         } else if self.state == PageState::PAGEFILE {
-            let page_file_high: u64 = driver.decompose_physical(&self.address, "_MMPTE_SOFTWARE.PageFileHigh")?;
+            // let page_file_high: u64 = driver.decompose_physical(&self.address, "_MMPTE_SOFTWARE.PageFileHigh")?;
+            let page_file_high = self.get_pte_field(driver, "_MMPTE_SOFTWARE.PageFileHigh");
             if page_file_high != 0 {
-                let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_SOFTWARE.Protection")?;
+                // let protection: u64 = driver.decompose_physical(&self.address, "_MMPTE_SOFTWARE.Protection")?;
+                let protection = self.get_pte_field(driver, "_MMPTE_SOFTWARE.Protection");
                 return Ok(PteProtection::from(protection & MM_PROTECT_ACCESS).is_writable());
             } else {
                 // println!("Page is in an unknown state");
@@ -209,7 +252,8 @@ impl PTE {
 
     pub fn is_large_page(&self, driver: &DriverState) -> BoxResult<bool> {
         if self.state == PageState::HARDWARE {
-            let large_page_bit: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.LargePage").unwrap();
+            // let large_page_bit: u64 = driver.decompose_physical(&self.address, "_MMPTE_HARDWARE.LargePage").unwrap();
+            let large_page_bit = self.get_pte_field(driver, "_MMPTE_HARDWARE.LargePage");
             Ok(large_page_bit != 0)
         } else {
             // Large page is always non-paged

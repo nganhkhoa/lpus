@@ -35,21 +35,38 @@ fn main() -> Result<(), Box<dyn Error>> {
     // let data2: Vec<u8> = vec![0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0];
     // print_hex_dump(&data2, 0);
 
-    let x: u64 = 0x81000001112AF025;
-    let pdb = parse_pdb().unwrap();
-    let addr = Address::from_base(0);
-    let (offset, handler, required_len) = pdb.decompose(&addr,"_MMPTE_HARDWARE.Valid").unwrap();
-    println!("Is valid bit: {}", handler(x));
+    // let x: u64 = 0x81000001112AF025;
+    // let pdb = parse_pdb().unwrap();
+    // let addr = Address::from_base(0);
+    // let (offset, handler, required_len) = pdb.decompose(&addr,"_MMPTE_HARDWARE.Valid").unwrap();
+    // println!("Is valid bit: {}", handler(x));
 
-    let (offset, handler, required_len) = pdb.decompose(&addr,"_MMPTE_HARDWARE.NoExecute").unwrap();
-    println!("NX bit: {}", handler(x));
+    // let (offset, handler, required_len) = pdb.decompose(&addr,"_MMPTE_HARDWARE.NoExecute").unwrap();
+    // println!("NX bit: {}", handler(x));
 
-    let (offset, handler, required_len) = pdb.decompose(&addr,"_MMPTE_HARDWARE.Write").unwrap();
-    println!("Write bit: {}", handler(x));
+    // let (offset, handler, required_len) = pdb.decompose(&addr,"_MMPTE_HARDWARE.Write").unwrap();
+    // println!("Write bit: {}", handler(x));
 
-    let (offset, handler, required_len) = pdb.decompose(&addr,"_MMPTE_HARDWARE.CopyOnWrite").unwrap();
-    println!("CopyOnWrite bit: {}", handler(x));
+    // let (offset, handler, required_len) = pdb.decompose(&addr,"_MMPTE_HARDWARE.CopyOnWrite").unwrap();
+    // println!("CopyOnWrite bit: {}", handler(x));
 
+    // let pdb = parse_pdb().unwrap();
+    // let offset = pdb.get_offset_r("MiGetPteAddress").unwrap();
+    // println!("nt!MiGetPteAddress: 0x{:x}", offset);
+
+    let mut driver = DriverState::new();
+    if !driver.is_supported() {
+        return Err(format!(
+            "Windows version {:?} is not supported",
+            driver.windows_ffi.short_version
+        )
+            .into());
+    }
+    println!("NtLoadDriver()   -> 0x{:x}", driver.startup());
+    let ntosbase = driver.get_kernel_base();
+    let pte_base = driver.get_pte_base();
+    println!("Kernel base: 0x{:x}", ntosbase.address());
+    println!("PTE base: 0x{:x}", pte_base.address());
 
     Ok(())
     

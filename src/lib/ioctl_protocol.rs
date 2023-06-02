@@ -16,6 +16,7 @@ pub struct OffsetData {
     large_page_table_offset: u64,
     large_page_size_offset: u64,
     pool_chunk_size: u64,
+    function_MiGetPteAddress_offset: u64
 }
 
 // TODO: Move to WindowsScanStrategy and return the corresponding struct base on Windows version
@@ -53,6 +54,9 @@ impl OffsetData {
                 pool_chunk_size: pdb_store
                     .get_offset("_POOL_HEADER.struct_size")
                     .unwrap_or(0u64),
+                function_MiGetPteAddress_offset: pdb_store
+                    .get_offset("MiGetPteAddress")
+                    .unwrap_or(0u64)
             },
             WindowsVersion::Windows10_2019 | WindowsVersion::Windows10_2018 => Self {
                 eprocess_name_offset: pdb_store
@@ -82,6 +86,9 @@ impl OffsetData {
                     .unwrap_or(0u64),
                 pool_chunk_size: pdb_store
                     .get_offset("_POOL_HEADER.struct_size")
+                    .unwrap_or(0u64),
+                function_MiGetPteAddress_offset: pdb_store
+                    .get_offset("MiGetPteAddress")
                     .unwrap_or(0u64),
             },
             WindowsVersion::Windows7 => Self {
@@ -113,6 +120,9 @@ impl OffsetData {
                 pool_chunk_size: pdb_store
                     .get_offset("_POOL_HEADER.struct_size")
                     .unwrap_or(0u64),
+                function_MiGetPteAddress_offset: pdb_store
+                    .get_offset("MiGetPteAddress")
+                    .unwrap_or(0u64)
             },
             // TODO: Add other version of Windows here
             // TODO: Warn user of unknown windows version, because BSOD will occur
@@ -129,6 +139,7 @@ impl OffsetData {
                 large_page_table_offset: 0u64,
                 large_page_size_offset: 0u64,
                 pool_chunk_size: 0u64,
+                function_MiGetPteAddress_offset: 0u64
             },
         }
     }
