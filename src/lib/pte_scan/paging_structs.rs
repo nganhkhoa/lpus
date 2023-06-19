@@ -135,8 +135,6 @@ impl PTE {
             return Self{state: PageState::TRANSITION, address: addr_obj, value: pte_value};
         }
         return Self{state: PageState::PAGEFILE, address: addr_obj, value: pte_value};
-
-
     }
 
     pub fn get_pte_field(&self, driver: &DriverState, name: &str) -> u64 {

