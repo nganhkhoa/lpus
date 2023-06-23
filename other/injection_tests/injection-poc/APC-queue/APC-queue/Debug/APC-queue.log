@@ -1,0 +1,4 @@
+﻿  APC-queue.cpp
+D:\thesis\lpus\other\injection_tests\injection-poc\APC-queue\APC-queue\APC-queue.cpp(92,16): warning C4477: 'printf' : format string '%llx' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'PVOID'
+D:\thesis\lpus\other\injection_tests\injection-poc\APC-queue\APC-queue\APC-queue.cpp(92,16): warning C4313: 'printf': '%x' in format string conflicts with argument 1 of type 'PVOID'
+  APC-queue.vcxproj -> D:\thesis\lpus\other\injection_tests\injection-poc\APC-queue\APC-queue\Debug\APC-queue.exe

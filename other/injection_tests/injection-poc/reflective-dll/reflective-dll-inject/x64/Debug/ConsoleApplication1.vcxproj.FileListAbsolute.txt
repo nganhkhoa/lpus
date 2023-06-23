@@ -1,0 +1,2 @@
+D:\thesis\injection-poc\reflective-dll\ConsoleApplication1\x64\Debug\ConsoleApplication1.exe
+D:\thesis\injection-poc\reflective-dll\reflective-dll-inject\x64\Debug\reflective-dll-inject.exe

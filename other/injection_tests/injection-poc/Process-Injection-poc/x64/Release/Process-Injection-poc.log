@@ -1,0 +1,8 @@
+﻿  Process-Injection-poc.cpp
+D:\thesis\injection-poc\Process-Injection-poc\Process-Injection-poc.cpp(94,16): warning C4477: 'printf' : format string '%llx' requires an argument of type 'unsigned __int64', but variadic argument 1 has type 'PVOID'
+  Generating code
+  2 of 6 functions (33.3%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  Process-Injection-poc.vcxproj -> D:\thesis\injection-poc\Process-Injection-poc\x64\Release\Process-Injection-poc.exe

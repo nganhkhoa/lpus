@@ -92,6 +92,17 @@ One last thing, the backend doesn't have any check on address referencing, so
 one may get a blue screen, eventhough I tried to avoid it, I'm not 100% sure it
 would not crash the system.
 
+## Scanning for injected code in a process:
+LPUS also implements a simple technique to detect code injection. The technique was proposed by Frank Block [here](https://www.blackhat.com/eu-19/briefings/schedule/#detecting-unintentionally-hidden-injected-code-by-examining-page-table-entries-17856). In short, we use the information from **Page Table Entry** and **Page Frame Number Database** to learn about a page's protection and its shared/private status. A page is marked as potentially injected if it is:
+ - Writable and Executable
+ - A private and executable page
+
+For now, the tool will crash if we scan too many processes in a single run. On my test environment, I was able to scan 100 processes. The root cause might be in the way we read the paging structures from memory. Since those structures all use physical address pointer, we resolve those pointer by mapping the physical address into the kernel virtual space (using `ZwMapViewOfSection`) and read the data using normal Windows API (like `RtlCopyMemory`). There are alternative methods for accessing memory using physical address (for example, using `MmCopyMemory`), but they do not give us the correct value of the PTEs (for some reasons).
+
+I tried to mitigate the crash by limiting memory reads using physical address as much as possible, but it's still not entirely fixed. It means that LPUS probably need a new method to read PTEs more efficiently. I think that self-mapping PTE table could be the key to this (a table containing addresses to all PTEs of a process, mapped in its virtual address space, you can look at [this](https://www.blackhat.com/docs/us-17/wednesday/us-17-Schenk-Taking-Windows-10-Kernel-Exploitation-To-The-Next-Level%E2%80%93Leveraging-Write-What-Where-Vulnerabilities-In-Creators-Update.pdf) and [this](https://connormcgarr.github.io/pte-overwrites/) for more info).
+
+Nevertheless, in implementing this technique, LPUS can now interact with user-mode memory. Its ability is limiting for now, but it's a start.
+
 ## Future works
 
 - [ ] An interactive repl (1)
